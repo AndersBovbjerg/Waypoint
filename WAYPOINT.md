@@ -20,7 +20,7 @@ change is where the data lives.
 
 ## Data model
 
-See `schema.sql`. Four tables: `projects`, `waypoints`, `activities`, `prefs`.
+See `schema.sql`. Five tables: `projects`, `waypoints`, `activities`, `sessions`, `prefs`.
 All protected by row level security keyed on `auth.uid()`.
 
 Field notes that are easy to get wrong:
@@ -34,6 +34,15 @@ Field notes that are easy to get wrong:
   so this bug would move every evening activity to the next day.
 - **`status`** is `active` or `archived`. Archived projects stay fully intact and
   readable; they just leave the Today view and the default Projects list.
+- **`waypoints.done_at` is what makes a review possible.** `done` alone cannot say
+  *when* a checkpoint was reached, so it cannot answer which waypoints moved in a
+  given week. Anything ticked before the column existed has a null here and reads
+  correctly as reached at some earlier point, rather than being counted into the
+  current week.
+- **A session is an instant, an activity is a day.** `sessions.started_at` and
+  `ended_at` are real timestamps, but `sessions.date` is still a plain local date
+  and is written by the client. Deriving it in SQL from `started_at` would use UTC
+  and move every evening session to the next day — the same trap as above.
 
 ## Features (all working in the prototype)
 
@@ -54,7 +63,49 @@ cleared-vs-planned chart, and a per-project breakdown.
 
 **Import** — paste a list, one activity per line, optional leading `YYYY-MM-DD`.
 
+**Focus** — a focus/break timer on the Today view, bound to a project and
+optionally to one of today's open activities. Presets of 25/5, 50/10, 90/20 and a
+custom pair; a long break after a set number of blocks; auto-start of either phase
+as a preference. Each completed block is written to `sessions`, so Statistics can
+answer where the hours went, not just which boxes were ticked. Stopping early still
+logs the minutes that were actually worked.
+
+**Review** — a Monday-to-Sunday look back at the week: what was cleared and what was
+left open, which waypoints were reached, focus time logged, and a per-project
+breakdown. Available from its own tab at any time, and any past week can be paged
+back to.
+
+It also comes to you. Early on a Sunday it waits as a quiet card on Today; from
+09:00 it opens itself in a window over the app — either as the hour passes on a
+window left open, or the moment the app is next opened that day. Closing it settles
+the week, and it does not ask again until the next one. Both the card and the window
+are derived from the same two facts, the clock and whether the week is settled, so
+there is no separate open/closed flag able to disagree with them. If notifications
+have been granted for the timer, nine o'clock also sends one, since a window that
+opens behind other things is a window nobody sees.
+
+Each project row states route walked against time elapsed toward the target date —
+*ahead*, *on pace*, *behind pace*. It stays silent for the first stretch of a
+project's run, when barely any time has passed and a single tick would read as being
+ahead. Projects that did not move are listed too, plainly. A week where nothing
+happened on a course is exactly what a review exists to show.
+
 **Light / dark** — a toggle in the header, persisted per user in `prefs`.
+
+### The timer, on an app that stays open
+
+Waypoint is meant to sit open all day, which the timer has to survive:
+
+- The countdown is derived from an absolute end timestamp, never accumulated from
+  ticks. A backgrounded tab gets throttled to roughly one tick a minute, so a
+  counter that decrements per tick would drift badly; reading the clock instead
+  means the display is right the moment the window is looked at again.
+- The running phase is persisted, so a reload mid-session picks it back up.
+- A phase that ended more than two minutes ago is settled silently — no bell for a
+  break that finished while the machine was asleep.
+- The day key is recomputed at midnight and whenever the window regains focus.
+  Computing it once per mount is fine for a page reloaded daily; here it would
+  leave yesterday's list on screen in the morning.
 
 ### Definitions worth keeping consistent
 
@@ -63,15 +114,28 @@ cleared-vs-planned chart, and a per-project breakdown.
 - **Clear streak** counts consecutive days, going back from today, where every planned
   activity was cleared. Days with nothing planned are skipped rather than breaking the
   streak. If today still has open items, the count starts from yesterday.
+- **A week runs Monday to Sunday**, matching the calendar grid. On a Sunday the week
+  under review is the one ending that day, not the one before.
+- **The week's activities are the ones dated inside it**, cleared or not. An old item
+  ticked this week belongs to the week it was planned for, which is what keeps the
+  review a picture of the plan rather than of the ticking.
 
 ## Build order
 
 **Phase 1 — port.** Next.js app, the prototype rendered as components, still using
 local state. Deployed on Vercel and reachable from the phone. No database yet.
 
+**Phase 1a — local persistence.** Done. Data is saved in `localStorage` behind the
+`WaypointStore` interface in `components/store.ts`. The prototype's `window.storage`
+was a sandbox API that does not exist in a browser, so nothing was ever actually
+saved; this is what makes the app usable day to day. Installable as a PWA, so it can
+live on the desktop in its own window.
+
 **Phase 2 — persistence.** Supabase auth (magic link, one user). Replace local state
 with database reads and writes. Optimistic updates on every toggle — ticking a checkbox
-must feel instant, not wait for a round trip.
+must feel instant, not wait for a round trip. This should replace the implementation
+of `WaypointStore`, not change its callers; the components never touch storage
+directly. Note that until this lands, desktop and phone keep separate data.
 
 **Phase 3 — Garmin.** OAuth against the Garmin Connect API, pull completed activities,
 write them in with `source = 'garmin'` and the Garmin activity id as `external_id`.

@@ -27,6 +27,9 @@ create table if not exists waypoints (
   title       text not null,
   due         date,
   done        boolean not null default false,
+  -- when the checkpoint was reached. The weekly review needs this to say which
+  -- waypoints moved in a given week; `done` alone cannot answer that.
+  done_at     timestamptz,
   position    integer not null default 0,
   created_at  timestamptz not null default now()
 );
@@ -54,6 +57,26 @@ create unique index if not exists activities_external_unique
   where external_id is not null;
 
 -- ============================================================
+-- SESSIONS  (focus timer blocks, logged against a project)
+-- Unlike activities, a session is a real moment in time, so it carries
+-- timestamps. `date` is the local day key it belongs to, stored explicitly
+-- rather than derived from started_at — deriving it in SQL would use UTC
+-- and move every evening session to the next day.
+-- ============================================================
+create table if not exists sessions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  project_id  uuid not null references projects(id) on delete cascade,
+  activity_id uuid references activities(id) on delete set null,
+  date        date not null,
+  started_at  timestamptz not null,
+  ended_at    timestamptz not null,
+  minutes     integer not null check (minutes >= 0),
+  completed   boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
+-- ============================================================
 -- PREFERENCES  (light / dark)
 -- ============================================================
 create table if not exists prefs (
@@ -68,6 +91,8 @@ create index if not exists activities_user_date_idx  on activities (user_id, dat
 create index if not exists activities_project_idx    on activities (project_id);
 create index if not exists waypoints_project_idx     on waypoints (project_id, position);
 create index if not exists projects_user_status_idx  on projects (user_id, status);
+create index if not exists sessions_user_date_idx    on sessions (user_id, date);
+create index if not exists sessions_project_idx      on sessions (project_id);
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -76,12 +101,16 @@ create index if not exists projects_user_status_idx  on projects (user_id, statu
 alter table projects   enable row level security;
 alter table waypoints  enable row level security;
 alter table activities enable row level security;
+alter table sessions   enable row level security;
 alter table prefs      enable row level security;
 
 create policy "own projects" on projects
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "own activities" on activities
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own sessions" on sessions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "own prefs" on prefs

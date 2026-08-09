@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference material, not shipped code — kept as the record of the
+    // original design so the port can be checked against it.
+    "prototype/**",
   ]),
 ]);
 
