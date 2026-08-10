@@ -7,7 +7,7 @@ turning it into a real app.
 ## Stack
 
 - Next.js (App Router) + TypeScript
-- Supabase — Postgres + Auth (magic link)
+- Supabase — Postgres + Auth (password, with a magic link as a second route)
 - Plain CSS in `app/globals.css`. **No Tailwind, no component library.** The design
   already exists as hand-written CSS in the prototype; port it as-is.
 - Deployed on Vercel
@@ -125,17 +125,28 @@ Waypoint is meant to sit open all day, which the timer has to survive:
 **Phase 1 — port.** Next.js app, the prototype rendered as components, still using
 local state. Deployed on Vercel and reachable from the phone. No database yet.
 
-**Phase 1a — local persistence.** Done. Data is saved in `localStorage` behind the
-`WaypointStore` interface in `components/store.ts`. The prototype's `window.storage`
-was a sandbox API that does not exist in a browser, so nothing was ever actually
-saved; this is what makes the app usable day to day. Installable as a PWA, so it can
-live on the desktop in its own window.
+**Phase 1a — local persistence.** Superseded by phase 2. Data lived in
+`localStorage` behind a store interface, which is what made the app usable day to
+day before there was a database. What remains on the device is the countdown of a
+running timer — it is about the window rather than about the user.
 
-**Phase 2 — persistence.** Supabase auth (magic link, one user). Replace local state
-with database reads and writes. Optimistic updates on every toggle — ticking a checkbox
-must feel instant, not wait for a round trip. This should replace the implementation
-of `WaypointStore`, not change its callers; the components never touch storage
-directly. Note that until this lands, desktop and phone keep separate data.
+**Phase 2 — persistence.** Done. Supabase, one user. `components/db.ts` reads and
+writes one record at a time; every change is applied to the screen first and written
+after, and a write that fails takes its change back and says so.
+
+Two things turned out differently from the plan written here:
+
+- *The interface had to change, not just its implementation.* Saving the whole
+  dataset on every change is fine for a few kilobytes and wrong for Postgres, where
+  a single tick would rewrite every row the user owns. The callers changed with it.
+- *Sign-in is a password, not a magic link.* The link depends on Supabase's built-in
+  mail sender, which allows a handful of messages an hour and is meant for testing.
+  Hitting that limit locked the only door to the app, on exactly the day a new device
+  was being set up. The link is still there as a second route.
+
+Public sign-up is turned off in Supabase. The app is on a public URL, and row level
+security keeps one user's rows to themselves, but there is no reason to let a
+stranger create an account.
 
 **Phase 3 — Garmin.** OAuth against the Garmin Connect API, pull completed activities,
 write them in with `source = 'garmin'` and the Garmin activity id as `external_id`.
