@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, LogOut, X } from "lucide-react";
 import type {
   AppData,
   Activity,
@@ -11,9 +11,11 @@ import type {
   ProjectStatus,
   Session,
   TimerSettings,
+  WaypointItem,
 } from "./types";
 import { PALETTES, fmtLong, shiftKey, uid } from "./helpers";
-import { DEFAULT_TIMER, localStore, normalise, seed } from "./store";
+import { DEFAULT_TIMER, localStore, normalise } from "./store";
+import * as db from "./db";
 import { useToday, useMinuteTick } from "./useToday";
 import { useTimer } from "./useTimer";
 import { TimerBadge } from "./TimerCard";
@@ -34,16 +36,19 @@ type View = "today" | "projects" | "calendar" | "review" | "stats";
 const REVIEW_HOUR = 9;
 
 /* =============================== APP =============================== */
-export default function Waypoint() {
-  const [data, setData] = useState<AppData>({
-    mode: "light",
-    projects: [],
-    activities: [],
-    sessions: [],
-    timer: DEFAULT_TIMER,
-    reviewSeen: null,
-  });
+const EMPTY: AppData = {
+  mode: "light",
+  projects: [],
+  activities: [],
+  sessions: [],
+  timer: DEFAULT_TIMER,
+  reviewSeen: null,
+};
+
+export default function Waypoint({ userId, onSignOut }: { userId: string; onSignOut: () => void }) {
+  const [data, setData] = useState<AppData>(EMPTY);
   const [ready, setReady] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
   const [view, setView] = useState<View>("today");
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -53,104 +58,191 @@ export default function Waypoint() {
   const today = useToday();
   const tick = useMinuteTick();
 
-  useEffect(() => {
-    let alive = true;
-    localStore.load().then((saved) => {
-      if (!alive) return;
-      setData(saved && Array.isArray(saved.projects) ? normalise(saved) : seed());
-      setReady(true);
-    });
-    return () => {
-      alive = false;
-    };
+  /* Mutations read and write this rather than React state, so two changes in
+     the same tick both build on each other. A rollback snapshot taken from
+     state could be one commit behind and would undo the wrong thing. */
+  const dataRef = useRef<AppData>(EMPTY);
+  const apply = useCallback((next: AppData) => {
+    dataRef.current = next;
+    setData(next);
   }, []);
 
   useEffect(() => {
-    if (ready) void localStore.save(data);
-  }, [data, ready]);
+    let alive = true;
+    (async () => {
+      try {
+        let loaded = await db.loadAll(userId);
+        /* Nothing in the account yet? Carry over whatever the local build
+           left behind, once. An account that is genuinely empty simply
+           starts empty — the empty states already invite the first move,
+           and seeding a real account with sample projects would be a lie. */
+        if (loaded.projects.length === 0) {
+          const local = await localStore.load();
+          if (local && Array.isArray(local.projects) && local.projects.length) {
+            await db.importLocal(normalise(local), userId, uid);
+            loaded = await db.loadAll(userId);
+          }
+        }
+        if (!alive) return;
+        dataRef.current = loaded;
+        setData(loaded);
+        setReady(true);
+      } catch (e) {
+        if (!alive) return;
+        setFailure(e instanceof Error ? e.message : "Could not reach the database.");
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+  /* Change the screen now, tell the database after. If the write fails the
+     change is taken back and said out loud, rather than the app quietly
+     showing something the database does not contain. */
+  const mutate = useCallback(
+    (optimistic: (d: AppData) => AppData, write: () => Promise<void>) => {
+      const before = dataRef.current;
+      apply(optimistic(before));
+      write().catch((e: unknown) => {
+        apply(before);
+        setFailure(e instanceof Error ? e.message : "That change did not save.");
+      });
+    },
+    [apply]
+  );
 
   const mode = data.mode === "dark" ? "dark" : "light";
   const palette = PALETTES[mode];
-  const update = (fn: (d: AppData) => AppData) => setData((d) => fn(d));
 
-  /* ---------- mutations ---------- */
+  /* ---------- mutations ----------
+     Each one changes the screen and writes just the record that moved. */
   const saveProject = (p: Project) =>
-    update((d) => ({
-      ...d,
-      projects: d.projects.some((x) => x.id === p.id)
-        ? d.projects.map((x) => (x.id === p.id ? p : x))
-        : [...d.projects, p],
-    }));
+    mutate(
+      (d) => ({
+        ...d,
+        projects: d.projects.some((x) => x.id === p.id)
+          ? d.projects.map((x) => (x.id === p.id ? p : x))
+          : [...d.projects, p],
+      }),
+      () => db.saveProject(p, userId)
+    );
 
   const removeProject = (id: string) =>
-    update((d) => ({
-      ...d,
-      projects: d.projects.filter((p) => p.id !== id),
-      activities: d.activities.filter((a) => a.projectId !== id),
-    }));
+    mutate(
+      (d) => ({
+        ...d,
+        projects: d.projects.filter((p) => p.id !== id),
+        activities: d.activities.filter((a) => a.projectId !== id),
+        sessions: d.sessions.filter((s) => s.projectId !== id),
+      }),
+      () => db.deleteProject(id)
+    );
 
   const setStatus = (id: string, status: ProjectStatus) =>
-    update((d) => ({ ...d, projects: d.projects.map((p) => (p.id === id ? { ...p, status } : p)) }));
+    mutate(
+      (d) => ({ ...d, projects: d.projects.map((p) => (p.id === id ? { ...p, status } : p)) }),
+      () => db.setProjectStatus(id, status)
+    );
 
-  const toggleWaypoint = (pid: string, wid: string) =>
-    update((d) => ({
-      ...d,
-      projects: d.projects.map((p) =>
-        p.id !== pid
-          ? p
-          : {
-              ...p,
-              waypoints: p.waypoints.map((w) =>
-                w.id === wid
-                  ? { ...w, done: !w.done, doneAt: !w.done ? new Date().toISOString() : null }
-                  : w
-              ),
-            }
-      ),
-    }));
+  const toggleWaypoint = (pid: string, wid: string) => {
+    const current = dataRef.current.projects
+      .find((p) => p.id === pid)
+      ?.waypoints.find((w) => w.id === wid);
+    if (!current) return;
+    const done = !current.done;
+    const doneAt = done ? new Date().toISOString() : null;
+    mutate(
+      (d) => ({
+        ...d,
+        projects: d.projects.map((p) =>
+          p.id !== pid
+            ? p
+            : {
+                ...p,
+                waypoints: p.waypoints.map((w) => (w.id === wid ? { ...w, done, doneAt } : w)),
+              }
+        ),
+      }),
+      () => db.setWaypointDone(wid, done, doneAt)
+    );
+  };
 
-  const addWaypoint = (pid: string, title: string, due: string) =>
-    update((d) => ({
-      ...d,
-      projects: d.projects.map((p) =>
-        p.id !== pid ? p : { ...p, waypoints: [...p.waypoints, { id: uid(), title, due, done: false }] }
-      ),
-    }));
+  const addWaypoint = (pid: string, title: string, due: string) => {
+    const w: WaypointItem = { id: uid(), title, due, done: false, doneAt: null };
+    const position = dataRef.current.projects.find((p) => p.id === pid)?.waypoints.length ?? 0;
+    mutate(
+      (d) => ({
+        ...d,
+        projects: d.projects.map((p) =>
+          p.id !== pid ? p : { ...p, waypoints: [...p.waypoints, w] }
+        ),
+      }),
+      () => db.addWaypoint(w, pid, position)
+    );
+  };
 
   const removeWaypoint = (pid: string, wid: string) =>
-    update((d) => ({
-      ...d,
-      projects: d.projects.map((p) =>
-        p.id !== pid ? p : { ...p, waypoints: p.waypoints.filter((w) => w.id !== wid) }
-      ),
-    }));
+    mutate(
+      (d) => ({
+        ...d,
+        projects: d.projects.map((p) =>
+          p.id !== pid ? p : { ...p, waypoints: p.waypoints.filter((w) => w.id !== wid) }
+        ),
+      }),
+      () => db.deleteWaypoint(wid)
+    );
 
-  const addActivity = (a: NewActivity) =>
-    update((d) => ({ ...d, activities: [...d.activities, { id: uid(), done: false, ...a }] }));
+  const addActivity = (a: NewActivity) => {
+    const row: Activity = { id: uid(), done: false, doneAt: null, ...a };
+    mutate(
+      (d) => ({ ...d, activities: [...d.activities, row] }),
+      () => db.addActivity(row, userId)
+    );
+  };
 
-  const addManyActivities = (list: NewActivity[]) =>
-    update((d) => ({
-      ...d,
-      activities: [...d.activities, ...list.map((a) => ({ id: uid(), done: false, ...a }))],
-    }));
+  const addManyActivities = (list: NewActivity[]) => {
+    const rows: Activity[] = list.map((a) => ({ id: uid(), done: false, doneAt: null, ...a }));
+    mutate(
+      (d) => ({ ...d, activities: [...d.activities, ...rows] }),
+      () => db.addActivities(rows, userId)
+    );
+  };
 
-  const toggleActivity = (id: string) =>
-    update((d) => ({
-      ...d,
-      activities: d.activities.map((a) =>
-        a.id === id ? { ...a, done: !a.done, doneAt: !a.done ? new Date().toISOString() : null } : a
-      ),
-    }));
+  const toggleActivity = (id: string) => {
+    const current = dataRef.current.activities.find((a) => a.id === id);
+    if (!current) return;
+    const done = !current.done;
+    const doneAt = done ? new Date().toISOString() : null;
+    mutate(
+      (d) => ({
+        ...d,
+        activities: d.activities.map((a) => (a.id === id ? { ...a, done, doneAt } : a)),
+      }),
+      () => db.setActivityDone(id, done, doneAt)
+    );
+  };
 
   const removeActivity = (id: string) =>
-    update((d) => ({ ...d, activities: d.activities.filter((a) => a.id !== id) }));
+    mutate(
+      (d) => ({ ...d, activities: d.activities.filter((a) => a.id !== id) }),
+      () => db.deleteActivity(id)
+    );
 
   const addSession = useCallback(
-    (s: Session) => update((d) => ({ ...d, sessions: [...d.sessions, s] })),
-    []
+    (s: Session) =>
+      mutate(
+        (d) => ({ ...d, sessions: [...d.sessions, s] }),
+        () => db.addSession(s, userId)
+      ),
+    [mutate, userId]
   );
 
-  const setTimerSettings = (timer: TimerSettings) => update((d) => ({ ...d, timer }));
+  const setTimerSettings = (timer: TimerSettings) =>
+    mutate(
+      (d) => ({ ...d, timer }),
+      () => db.savePrefs(userId, { timer })
+    );
 
   const timer = useTimer({ settings: data.timer, onSession: addSession, enabled: ready });
 
@@ -190,7 +282,11 @@ export default function Waypoint() {
     return { cleared: r.cleared, planned: r.planned, waypoints: r.waypointsReached };
   }, [pending, pastNine, today, data.activities, data.sessions, projects]);
 
-  const markReviewSeen = () => update((d) => ({ ...d, reviewSeen: thisMonday }));
+  const markReviewSeen = () =>
+    mutate(
+      (d) => ({ ...d, reviewSeen: thisMonday }),
+      () => db.savePrefs(userId, { reviewSeen: thisMonday })
+    );
 
   /* If nine o'clock arrives while the window is in the background, the opened
      modal is not seen by anyone. Only fires on the transition, so reloading on
@@ -207,6 +303,27 @@ export default function Waypoint() {
   const todayItems = data.activities
     .filter((a: Activity) => a.date === today)
     .sort((a, b) => Number(a.done) - Number(b.done));
+
+  /* A failure before the first load means there is nothing to show at all, so
+     it gets the whole screen rather than a banner over an empty app. */
+  if (!ready && failure) {
+    return (
+      <div className="wp-root wp-boot" data-mode="light">
+        <div className="wp-card wp-signin-card">
+          <h3>Could not load your courses</h3>
+          <p className="wp-empty">{failure}</p>
+          <div className="wp-project-actions">
+            <button className="wp-btn wp-btn-solid" onClick={() => window.location.reload()}>
+              Try again
+            </button>
+            <button className="wp-btn" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!ready) {
     return (
@@ -257,14 +374,35 @@ export default function Waypoint() {
           </nav>
           <button
             className="wp-modebtn"
-            onClick={() => update((d) => ({ ...d, mode: mode === "dark" ? "light" : "dark" }))}
+            onClick={() => {
+              const next = mode === "dark" ? "light" : "dark";
+              mutate(
+                (d) => ({ ...d, mode: next }),
+                () => db.savePrefs(userId, { mode: next })
+              );
+            }}
             aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            data-role="mode"
             title={mode === "dark" ? "Light mode" : "Dark mode"}
           >
             {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+          <button className="wp-modebtn" onClick={onSignOut} aria-label="Sign out" title="Sign out">
+            <LogOut size={15} />
+          </button>
         </div>
       </header>
+
+      {/* A write that rolled back has to be said out loud, or the screen and
+          the database quietly disagree. */}
+      {failure && (
+        <div className="wp-failure" role="alert">
+          <span className="wp-failure-text">{failure}</span>
+          <button className="wp-icon" onClick={() => setFailure(null)} aria-label="Dismiss">
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       <main className="wp-main">
         {view === "today" && (

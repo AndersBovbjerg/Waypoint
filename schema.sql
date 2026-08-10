@@ -79,9 +79,16 @@ create table if not exists sessions (
 -- ============================================================
 -- PREFERENCES  (light / dark)
 -- ============================================================
+-- Everything per-user rather than per-record. `review_seen` is the Monday of the
+-- last week whose review was settled, so the Sunday window does not reopen; it is
+-- a plain date for the same local-time reason as everywhere else. Timer settings
+-- are only ever read and written whole, never queried, so they live as one jsonb
+-- rather than seven columns.
 create table if not exists prefs (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  mode    text not null default 'light' check (mode in ('light','dark'))
+  user_id     uuid primary key references auth.users(id) on delete cascade,
+  mode        text not null default 'light' check (mode in ('light','dark')),
+  review_seen date,
+  timer       jsonb not null default '{}'::jsonb
 );
 
 -- ============================================================

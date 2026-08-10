@@ -1,5 +1,5 @@
-import Waypoint from "@/components/Waypoint";
+import App from "@/components/App";
 
 export default function Home() {
-  return <Waypoint />;
+  return <App />;
 }

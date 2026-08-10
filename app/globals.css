@@ -181,6 +181,21 @@
 .wp-statbar-fill { display:block; height:100%; transition:width .4s ease; }
 .wp-statpct { width:38px; text-align:right; flex:none; }
 
+/* sign in */
+.wp-signin { display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+.wp-signin-card { width:100%; max-width:420px; margin:auto; }
+.wp-signin-brand { margin-bottom:14px; }
+.wp-signin-brand h1 { font-family:var(--display); font-size:21px; font-weight:700;
+  letter-spacing:-.01em; margin:0; }
+.wp-signin-error { font-size:14px; color:var(--accent); margin:0 0 12px; }
+
+/* a write that failed and was taken back */
+.wp-failure { position:sticky; top:64px; z-index:19; display:flex; align-items:center; gap:10px;
+  max-width:1000px; margin:14px auto 0; padding:10px 14px;
+  background:var(--panel); border:1px solid var(--accent); border-radius:12px;
+  box-shadow:var(--shadow); }
+.wp-failure-text { flex:1; min-width:0; font-size:14px; }
+
 /* focus timer */
 .wp-timer.is-running { border-color:var(--rule); }
 .wp-timer-clock { display:flex; align-items:baseline; justify-content:space-between; gap:14px;

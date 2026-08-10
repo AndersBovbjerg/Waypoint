@@ -25,7 +25,21 @@ export const fmtLong = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 export const fmtShort = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-export const uid = () => Math.random().toString(36).slice(2, 10);
+/* Real UUIDs, because every primary key in Postgres is one and an optimistic
+   insert has to know the id before the row reaches the server. The fallback
+   covers browsers without randomUUID on an insecure origin. */
+export const uid = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const hex = [...crypto.getRandomValues(new Uint8Array(16))].map((b) =>
+    b.toString(16).padStart(2, "0")
+  );
+  hex[6] = ((parseInt(hex[6], 16) & 0x0f) | 0x40).toString(16).padStart(2, "0");
+  hex[8] = ((parseInt(hex[8], 16) & 0x3f) | 0x80).toString(16).padStart(2, "0");
+  const s = hex.join("");
+  return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20)}`;
+};
 
 /* ms remaining as MM:SS, clamped at zero so a stale tick never shows a negative */
 export const fmtClock = (ms: number) => {
