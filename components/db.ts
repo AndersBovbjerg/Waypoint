@@ -1,6 +1,9 @@
 import type {
   Activity,
   AppData,
+  Goal,
+  GoalEntry,
+  GoalUnit,
   Mode,
   Project,
   ProjectStatus,
@@ -38,6 +41,17 @@ interface ProjectRow {
   ci: number;
   status: string;
   created_at: string;
+  goal_label: string | null;
+  goal_unit: string | null;
+  goal_start: number | null;
+  goal_target: number | null;
+}
+
+interface GoalEntryRow {
+  id: string;
+  project_id: string;
+  date: string;
+  value: number;
 }
 
 interface WaypointRow {
@@ -86,6 +100,25 @@ const toWaypoint = (r: WaypointRow): WaypointItem => ({
   doneAt: r.done_at,
 });
 
+/* A goal only exists once it has a name and both ends of the journey. Half a
+   goal is no goal, and it would make the progress arithmetic meaningless. */
+const toGoal = (r: ProjectRow): Goal | null =>
+  r.goal_label && r.goal_start !== null && r.goal_target !== null
+    ? {
+        label: r.goal_label,
+        unit: (r.goal_unit ?? "number") as GoalUnit,
+        start: Number(r.goal_start),
+        target: Number(r.goal_target),
+      }
+    : null;
+
+const toGoalEntry = (r: GoalEntryRow): GoalEntry => ({
+  id: r.id,
+  projectId: r.project_id,
+  date: r.date,
+  value: Number(r.value),
+});
+
 const toProject = (r: ProjectRow, waypoints: WaypointItem[]): Project => ({
   id: r.id,
   name: r.name,
@@ -97,6 +130,7 @@ const toProject = (r: ProjectRow, waypoints: WaypointItem[]): Project => ({
   status: (r.status === "archived" ? "archived" : "active") as ProjectStatus,
   created: keyOf(new Date(r.created_at)),
   waypoints,
+  goal: toGoal(r),
 });
 
 const toActivity = (r: ActivityRow): Activity => ({
@@ -133,6 +167,10 @@ const projectRow = (p: Project, userId: string) => ({
   ci: p.ci,
   status: p.status,
   created_at: p.created ? fromKey(p.created).toISOString() : new Date().toISOString(),
+  goal_label: p.goal?.label || null,
+  goal_unit: p.goal?.unit ?? null,
+  goal_start: p.goal ? p.goal.start : null,
+  goal_target: p.goal ? p.goal.target : null,
 });
 
 const waypointRow = (w: WaypointItem, projectId: string, position: number) => ({
@@ -164,11 +202,12 @@ function check(error: { message: string } | null, doing: string): void {
 
 export async function loadAll(userId: string): Promise<AppData> {
   const db = getSupabase();
-  const [projects, waypoints, activities, sessions, prefs] = await Promise.all([
+  const [projects, waypoints, activities, sessions, goalEntries, prefs] = await Promise.all([
     db.from("projects").select("*").order("created_at", { ascending: true }),
     db.from("waypoints").select("*").order("position", { ascending: true }),
     db.from("activities").select("*").order("date", { ascending: true }),
     db.from("sessions").select("*").order("started_at", { ascending: true }),
+    db.from("goal_entries").select("*").order("date", { ascending: true }),
     db.from("prefs").select("mode, review_seen, timer").eq("user_id", userId).maybeSingle(),
   ]);
 
@@ -176,6 +215,7 @@ export async function loadAll(userId: string): Promise<AppData> {
   check(waypoints.error, "load your waypoints");
   check(activities.error, "load your activities");
   check(sessions.error, "load your focus sessions");
+  check(goalEntries.error, "load your goal readings");
   check(prefs.error, "load your preferences");
 
   const byProject = new Map<string, WaypointItem[]>();
@@ -194,6 +234,7 @@ export async function loadAll(userId: string): Promise<AppData> {
     ),
     activities: ((activities.data ?? []) as ActivityRow[]).map(toActivity),
     sessions: ((sessions.data ?? []) as SessionRow[]).map(toSession),
+    goalEntries: ((goalEntries.data ?? []) as GoalEntryRow[]).map(toGoalEntry),
     timer: { ...DEFAULT_TIMER, ...(p?.timer ?? {}) },
     reviewSeen: p?.review_seen ?? null,
   };
@@ -310,4 +351,27 @@ export async function savePrefs(
   if (prefs.reviewSeen !== undefined) row.review_seen = prefs.reviewSeen;
   if (prefs.timer !== undefined) row.timer = prefs.timer;
   check((await db.from("prefs").upsert(row)).error, "save your preferences");
+}
+
+/* ---------- goal readings ---------- */
+
+export async function addGoalEntry(e: GoalEntry, userId: string) {
+  const db = getSupabase();
+  check(
+    (
+      await db.from("goal_entries").insert({
+        id: e.id,
+        user_id: userId,
+        project_id: e.projectId,
+        date: e.date,
+        value: e.value,
+      })
+    ).error,
+    "log the reading"
+  );
+}
+
+export async function deleteGoalEntry(id: string) {
+  const db = getSupabase();
+  check((await db.from("goal_entries").delete().eq("id", id)).error, "delete the reading");
 }

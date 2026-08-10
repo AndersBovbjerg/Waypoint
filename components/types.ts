@@ -12,6 +12,32 @@ export interface WaypointItem {
   doneAt?: string | null;
 }
 
+/* How a goal's numbers should be read and written. Everything is stored as a
+   plain number — seconds for a time, kroner for money — and the unit only
+   decides how it is shown and parsed. That keeps the progress arithmetic
+   identical for every kind of goal. */
+export type GoalUnit = "number" | "time" | "currency" | "percent";
+
+export interface Goal {
+  /* what is being measured: "Half marathon time", "Monthly revenue" */
+  label: string;
+  unit: GoalUnit;
+  /* where you began and where you are going. Which way is better is derived
+     from these two rather than asked for: a target below the start means
+     lower is better, which is true of a race time and false of revenue. */
+  start: number;
+  target: number;
+}
+
+/* A reading of the goal's number on a given day. The series is what makes the
+   goal something you can watch move, rather than a sentence you wrote once. */
+export interface GoalEntry {
+  id: string;
+  projectId: string;
+  date: string;
+  value: number;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -23,6 +49,8 @@ export interface Project {
   status: ProjectStatus;
   created: string;
   waypoints: WaypointItem[];
+  /* null when the project has no measurable goal — plenty do not */
+  goal: Goal | null;
   /* resolved from the colour slot at render time; never persisted */
   color?: string;
 }
@@ -99,6 +127,7 @@ export interface AppData {
   projects: Project[];
   activities: Activity[];
   sessions: Session[];
+  goalEntries: GoalEntry[];
   timer: TimerSettings;
   /* Monday key of the last week whose review was opened or dismissed, so the
      Sunday prompt stops nagging once it has been dealt with. */

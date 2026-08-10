@@ -1,6 +1,7 @@
 import React from "react";
 import { Check, Trash2 } from "lucide-react";
-import type { Activity, ColoredProject, WaypointItem } from "./types";
+import type { Activity, ColoredProject, Goal, GoalEntry, WaypointItem } from "./types";
+import { currentValue, formatGoalValue, goalProgress, goalReached } from "./goal";
 
 /* The signature element: today's activities as a plotted course */
 export function CourseStrip({
@@ -100,6 +101,50 @@ export function Kpi({ label, value, sub }: { label: string; value: string; sub: 
       <p className="wp-eyebrow wp-mono">{label}</p>
       <p className="wp-kpi-value">{value}</p>
       <p className="wp-mono wp-muted wp-kpi-sub">{sub}</p>
+    </div>
+  );
+}
+
+/* The goal as a distance travelled. Shown wherever a project is shown, because
+   a number you never see cannot motivate anything. */
+export function GoalMeter({
+  goal,
+  entries,
+  color,
+  compact,
+}: {
+  goal: Goal;
+  entries: GoalEntry[];
+  color: string;
+  compact?: boolean;
+}) {
+  const current = currentValue(goal, entries);
+  const pct = goalProgress(goal, current);
+  const reached = goalReached(goal, current);
+  const moved = entries.length > 0;
+
+  return (
+    <div className={`wp-goal${compact ? " is-compact" : ""}`}>
+      <div className="wp-goal-head">
+        <span className="wp-goal-label">{goal.label}</span>
+        <span className="wp-goal-now" style={{ color }}>
+          {formatGoalValue(current, goal.unit)}
+        </span>
+      </div>
+      <div className="wp-goal-track">
+        <div
+          className="wp-goal-fill"
+          style={{ width: `${pct * 100}%`, background: color }}
+        />
+      </div>
+      <p className="wp-mono wp-muted wp-goal-ends">
+        <span>{formatGoalValue(goal.start, goal.unit)}</span>
+        <span className="wp-goal-pct">
+          {reached ? "REACHED" : `${Math.round(pct * 100)}%`}
+          {!moved && !reached && " · NO READING YET"}
+        </span>
+        <span>{formatGoalValue(goal.target, goal.unit)}</span>
+      </p>
     </div>
   );
 }

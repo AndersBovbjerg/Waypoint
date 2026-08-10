@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Check, Flag, X } from "lucide-react";
-import type { Activity, ColoredProject, Session } from "./types";
+import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
 import { fmtDuration, fmtShort, shiftKey } from "./helpers";
 import { buildReview, fmtWeekRange, reviewNote, startOfWeek } from "./week";
 import type { ProjectWeek } from "./week";
 import { Kpi } from "./shared";
+import { Overlay } from "./Overlay";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -13,6 +14,7 @@ export interface ReviewProps {
   projectsById: Record<string, ColoredProject>;
   activities: Activity[];
   sessions: Session[];
+  goalEntries: GoalEntry[];
   today: string;
 }
 
@@ -20,8 +22,9 @@ export interface ReviewProps {
    there is one implementation and the two can never drift apart. */
 export function ReviewModal({ onClose, ...props }: ReviewProps & { onClose: () => void }) {
   return (
-    <div className="wp-overlay" onClick={onClose}>
-      <div className="wp-modal wp-modal-wide" onClick={(e) => e.stopPropagation()}>
+    <Overlay dirty={false} onClose={onClose} wide>
+      {() => (
+      <>
         <div className="wp-card-head wp-modal-bar">
           <h3>Your week</h3>
           <button className="wp-icon" onClick={onClose} aria-label="Close the review">
@@ -34,8 +37,9 @@ export function ReviewModal({ onClose, ...props }: ReviewProps & { onClose: () =
             Done — plot the next one
           </button>
         </div>
-      </div>
-    </div>
+      </>
+      )}
+    </Overlay>
   );
 }
 
@@ -44,12 +48,13 @@ export function ReviewView({
   projectsById,
   activities,
   sessions,
+  goalEntries,
   today,
 }: ReviewProps) {
   const [anchor, setAnchor] = useState(() => startOfWeek(today));
   const review = useMemo(
-    () => buildReview({ projects, activities, sessions, anchor, today }),
-    [projects, activities, sessions, anchor, today]
+    () => buildReview({ projects, activities, sessions, goalEntries, anchor, today }),
+    [projects, activities, sessions, goalEntries, anchor, today]
   );
 
   const thisWeek = startOfWeek(today);
@@ -206,6 +211,18 @@ function ProjectRow({ p }: { p: ProjectWeek }) {
           <> · {p.daysToTarget >= 0 ? `${p.daysToTarget} DAYS LEFT` : `${-p.daysToTarget} DAYS OVER`}</>
         )}
       </p>
+
+      {p.goalMove?.delta && (
+        <p className="wp-goalmove">
+          <span className="wp-goal-label">{project.goal?.label}</span>
+          <span className="wp-mono wp-muted">
+            {p.goalMove.from} → {p.goalMove.to}
+          </span>
+          <span className={`wp-mono wp-delta${p.goalMove.good ? " is-good" : ""}`}>
+            {p.goalMove.delta}
+          </span>
+        </p>
+      )}
 
       {p.waypointsReached.length > 0 && (
         <ul className="wp-reached">

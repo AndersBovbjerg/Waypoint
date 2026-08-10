@@ -1,4 +1,5 @@
-import type { Activity, ColoredProject, Session, WaypointItem } from "./types";
+import type { Activity, ColoredProject, GoalEntry, Session, WaypointItem } from "./types";
+import { deltaIsGood, formatDelta, formatGoalValue, valueOn } from "./goal";
 import { fromKey, keyOf, shiftKey } from "./helpers";
 
 /* Weeks run Monday to Sunday, matching the calendar grid. All of this works on
@@ -46,6 +47,8 @@ export interface ProjectWeek {
   /* share of waypoints ticked, 0–1, null when the project has none */
   routeDone: number | null;
   daysToTarget: number | null;
+  /* where the goal's number stood at each end of the week, when there is one */
+  goalMove: { from: string; to: string; delta: string | null; good: boolean } | null;
   moved: boolean;
 }
 
@@ -76,12 +79,14 @@ export function buildReview({
   projects,
   activities,
   sessions,
+  goalEntries,
   anchor,
   today,
 }: {
   projects: ColoredProject[];
   activities: Activity[];
   sessions: Session[];
+  goalEntries: GoalEntry[];
   /* any day inside the week being reviewed */
   anchor: string;
   today: string;
@@ -130,6 +135,23 @@ export function buildReview({
           timeGone = elapsed >= 0.05 ? elapsed : null;
         }
       }
+      /* The goal at both ends of the week. Comparing the reading in force on
+         the Sunday with the one in force the day before the Monday means a
+         week with no new reading correctly shows no movement, rather than
+         falling back to the starting value. */
+      let goalMove: ProjectWeek["goalMove"] = null;
+      if (project.goal) {
+        const mine = goalEntries.filter((e) => e.projectId === project.id);
+        const before = valueOn(project.goal, mine, shiftKey(monday, -1));
+        const after = valueOn(project.goal, mine, sunday);
+        goalMove = {
+          from: formatGoalValue(before, project.goal.unit),
+          to: formatGoalValue(after, project.goal.unit),
+          delta: formatDelta(before, after, project.goal),
+          good: deltaIsGood(before, after, project.goal),
+        };
+      }
+
       const routeDone = project.waypoints.length
         ? project.waypoints.filter((w) => w.done).length / project.waypoints.length
         : null;
@@ -143,7 +165,12 @@ export function buildReview({
         timeGone,
         routeDone,
         daysToTarget,
-        moved: cleared > 0 || minutes > 0 || waypointsReached.length > 0,
+        goalMove,
+        moved:
+          cleared > 0 ||
+          minutes > 0 ||
+          waypointsReached.length > 0 ||
+          Boolean(goalMove?.delta),
       };
     })
     /* active projects are always worth seeing — a week with nothing on one is

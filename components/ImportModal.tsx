@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import type { ColoredProject, NewActivity } from "./types";
+import { Overlay } from "./Overlay";
 
 export function ImportModal({
   projects,
@@ -27,12 +28,16 @@ export function ImportModal({
       });
   }, [text, today]);
 
+  /* A pasted list is the worst thing in the app to lose by mis-clicking. */
+  const dirty = text.trim().length > 0;
+
   return (
-    <div className="wp-overlay" onClick={onClose}>
-      <div className="wp-modal" onClick={(e) => e.stopPropagation()}>
+    <Overlay dirty={dirty} onClose={onClose}>
+      {(requestClose) => (
+      <>
         <div className="wp-card-head">
           <h3>Import activities</h3>
-          <button className="wp-icon" onClick={onClose} aria-label="Close">
+          <button className="wp-icon" onClick={requestClose} aria-label="Close">
             <X size={16} />
           </button>
         </div>
@@ -58,7 +63,7 @@ Call the bakery back`}</pre>
         </label>
         <div className="wp-modal-actions">
           <span className="wp-mono wp-muted">{parsed.length} READY</span>
-          <button className="wp-btn" onClick={onClose}>
+          <button className="wp-btn" onClick={requestClose}>
             Cancel
           </button>
           <button
@@ -69,7 +74,8 @@ Call the bakery back`}</pre>
             Import {parsed.length || ""}
           </button>
         </div>
-      </div>
-    </div>
+      </>
+      )}
+    </Overlay>
   );
 }

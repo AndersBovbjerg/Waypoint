@@ -9,6 +9,7 @@ import type {
   NewActivity,
   Project,
   ProjectStatus,
+  GoalEntry,
   Session,
   TimerSettings,
   WaypointItem,
@@ -41,6 +42,7 @@ const EMPTY: AppData = {
   projects: [],
   activities: [],
   sessions: [],
+  goalEntries: [],
   timer: DEFAULT_TIMER,
   reviewSeen: null,
 };
@@ -109,6 +111,21 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
   const mode = data.mode === "dark" ? "dark" : "light";
   const palette = PALETTES[mode];
 
+  /* Carry the mode up to <html>, so the browser's own canvas matches and no
+     pale edge shows around a dark app. The same pass fixes theme-color: the
+     static one in layout.tsx follows the operating system, while the app
+     follows this toggle, so a dark app on a light phone got a light status
+     bar. Written to the DOM rather than held in state — it is the document
+     being kept in step with the app, not the other way round. */
+  useEffect(() => {
+    document.documentElement.dataset.mode = mode;
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = mode === "dark" ? "#17131D" : "#F3F1F5";
+    document.head.appendChild(meta);
+  }, [mode]);
+
   /* ---------- mutations ----------
      Each one changes the screen and writes just the record that moved. */
   const saveProject = (p: Project) =>
@@ -129,6 +146,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
         projects: d.projects.filter((p) => p.id !== id),
         activities: d.activities.filter((a) => a.projectId !== id),
         sessions: d.sessions.filter((s) => s.projectId !== id),
+        goalEntries: d.goalEntries.filter((e) => e.projectId !== id),
       }),
       () => db.deleteProject(id)
     );
@@ -232,6 +250,20 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
     [mutate, userId]
   );
 
+  const addGoalEntry = (projectId: string, value: number) => {
+    const entry: GoalEntry = { id: uid(), projectId, date: today, value };
+    mutate(
+      (d) => ({ ...d, goalEntries: [...d.goalEntries, entry] }),
+      () => db.addGoalEntry(entry, userId)
+    );
+  };
+
+  const removeGoalEntry = (id: string) =>
+    mutate(
+      (d) => ({ ...d, goalEntries: d.goalEntries.filter((e) => e.id !== id) }),
+      () => db.deleteGoalEntry(id)
+    );
+
   const setTimerSettings = (timer: TimerSettings) =>
     mutate(
       (d) => ({ ...d, timer }),
@@ -270,11 +302,12 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
       projects,
       activities: data.activities,
       sessions: data.sessions,
+      goalEntries: data.goalEntries,
       anchor: today,
       today,
     });
     return { cleared: r.cleared, planned: r.planned, waypoints: r.waypointsReached };
-  }, [pending, pastNine, today, data.activities, data.sessions, projects]);
+  }, [pending, pastNine, today, data.activities, data.sessions, data.goalEntries, projects]);
 
   const markReviewSeen = () =>
     mutate(
@@ -430,6 +463,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
           <ProjectsView
             projects={projects}
             activities={data.activities}
+            goalEntries={data.goalEntries}
             onOpen={setOpenProject}
             onNew={() =>
               setEditing({
@@ -443,6 +477,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
                 status: "active",
                 created: today,
                 waypoints: [],
+                goal: null,
               })
             }
             onStatus={setStatus}
@@ -454,6 +489,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
           <ProjectDetail
             project={projectsById[openProject]}
             activities={data.activities.filter((a) => a.projectId === openProject)}
+            goalEntries={data.goalEntries}
             today={today}
             onBack={() => setOpenProject(null)}
             onEdit={() => setEditing(projectsById[openProject])}
@@ -463,6 +499,8 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             onAddActivity={addActivity}
             onToggleActivity={toggleActivity}
             onRemoveActivity={removeActivity}
+            onAddGoalEntry={addGoalEntry}
+            onRemoveGoalEntry={removeGoalEntry}
           />
         )}
 
@@ -485,6 +523,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             projectsById={projectsById}
             activities={data.activities}
             sessions={data.sessions}
+            goalEntries={data.goalEntries}
             today={today}
           />
         )}
@@ -519,6 +558,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
           projectsById={projectsById}
           activities={data.activities}
           sessions={data.sessions}
+          goalEntries={data.goalEntries}
           today={today}
           onClose={markReviewSeen}
         />

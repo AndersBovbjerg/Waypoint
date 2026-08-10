@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Plus, Archive, RotateCcw, Trash2 } from "lucide-react";
-import type { Activity, ColoredProject, ProjectStatus } from "./types";
+import type { Activity, ColoredProject, GoalEntry, ProjectStatus } from "./types";
 import { fmtShort } from "./helpers";
-import { MiniRoute } from "./shared";
+import { GoalMeter, MiniRoute } from "./shared";
 
 export function ProjectsView({
   projects,
   activities,
+  goalEntries,
   onOpen,
   onNew,
   onStatus,
@@ -14,6 +15,7 @@ export function ProjectsView({
 }: {
   projects: ColoredProject[];
   activities: Activity[];
+  goalEntries: GoalEntry[];
   onOpen: (id: string) => void;
   onNew: () => void;
   onStatus: (id: string, status: ProjectStatus) => void;
@@ -58,19 +60,31 @@ export function ProjectsView({
               <article key={p.id} className="wp-card wp-project">
                 <span className="wp-project-bar" style={{ background: p.color }} />
                 <div className="wp-card-head">
-                  <h3>{p.name}</h3>
+                  {/* The title is the real button; its ::after stretches over the
+                      whole card, so anywhere is clickable while there is still
+                      exactly one thing to tab to. */}
+                  <h3>
+                    <button className="wp-cardlink" onClick={() => onOpen(p.id)}>
+                      {p.name}
+                    </button>
+                  </h3>
                   <span className="wp-mono wp-muted">{pct}%</span>
                 </div>
                 <p className="wp-purpose">{p.purpose || "No purpose written yet."}</p>
+                {p.goal && (
+                  <GoalMeter
+                    goal={p.goal}
+                    entries={goalEntries.filter((e) => e.projectId === p.id)}
+                    color={p.color}
+                    compact
+                  />
+                )}
                 <MiniRoute waypoints={p.waypoints} color={p.color} />
                 <p className="wp-mono wp-muted wp-meta">
                   {wDone}/{p.waypoints.length} WAYPOINTS · {aDone}/{acts.length} ACTIVITIES · TARGET{" "}
                   {p.target ? fmtShort(p.target).toUpperCase() : "—"}
                 </p>
                 <div className="wp-project-actions">
-                  <button className="wp-btn" onClick={() => onOpen(p.id)}>
-                    Open
-                  </button>
                   {p.status === "active" ? (
                     <button className="wp-btn" onClick={() => onStatus(p.id, "archived")}>
                       <Archive size={14} /> Archive
