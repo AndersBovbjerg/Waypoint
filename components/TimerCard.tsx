@@ -4,6 +4,7 @@ import type { Activity, ColoredProject, TimerSettings } from "./types";
 import type { TimerApi } from "./useTimer";
 import { PRESETS, resolvePreset } from "./store";
 import { fmtClock } from "./helpers";
+import { Select } from "./Select";
 
 export function TimerCard({
   timer,
@@ -127,32 +128,22 @@ export function TimerCard({
           )}
 
           <div className="wp-addrow">
-            <select
-              className="wp-input wp-select"
+            <Select
+              className="wp-select"
               value={pid}
-              onChange={(e) => setPid(e.target.value)}
-              aria-label="Project to focus on"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="wp-input wp-select"
+              options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              onChange={setPid}
+              ariaLabel="Project to focus on"
+            />
+            <Select
+              className="wp-select"
               value={aid}
-              onChange={(e) => setAid(e.target.value)}
-              aria-label="Activity to focus on"
+              options={options.map((a) => ({ value: a.id, label: a.title }))}
+              onChange={setAid}
+              ariaLabel="Activity to focus on"
               disabled={!options.length}
-            >
-              <option value="">{options.length ? "Whole project" : "No open items today"}</option>
-              {options.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.title}
-                </option>
-              ))}
-            </select>
+              placeholder={options.length ? "Whole project" : "No open items today"}
+            />
             <button
               className="wp-btn wp-btn-solid"
               disabled={!projects.length || !pid}

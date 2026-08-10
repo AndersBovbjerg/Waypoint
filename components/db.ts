@@ -45,6 +45,7 @@ interface ProjectRow {
   goal_unit: string | null;
   goal_start: number | null;
   goal_target: number | null;
+  icon: string | null;
 }
 
 interface GoalEntryRow {
@@ -131,6 +132,7 @@ const toProject = (r: ProjectRow, waypoints: WaypointItem[]): Project => ({
   created: keyOf(new Date(r.created_at)),
   waypoints,
   goal: toGoal(r),
+  icon: r.icon,
 });
 
 const toActivity = (r: ActivityRow): Activity => ({
@@ -171,6 +173,7 @@ const projectRow = (p: Project, userId: string) => ({
   goal_unit: p.goal?.unit ?? null,
   goal_start: p.goal ? p.goal.start : null,
   goal_target: p.goal ? p.goal.target : null,
+  icon: p.icon,
 });
 
 const waypointRow = (w: WaypointItem, projectId: string, position: number) => ({

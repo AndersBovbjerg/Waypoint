@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import type { Goal, GoalUnit, Project } from "./types";
 import { UNITS, formatGoalValue, parseGoalValue } from "./goal";
+import { ICONS } from "./identity";
 import { Overlay } from "./Overlay";
 
 export function ProjectModal({
@@ -144,6 +145,31 @@ export function ProjectModal({
                 onClick={() => set("ci", i)}
                 aria-label={`Use colour ${i + 1}`}
               />
+            ))}
+          </div>
+        </div>
+
+        <div className="wp-field">
+          <span className="wp-eyebrow wp-mono">Icon — optional</span>
+          <div className="wp-icons">
+            <button
+              className={`wp-iconbtn${p.icon === null ? " is-on" : ""}`}
+              onClick={() => set("icon", null)}
+              title="No icon"
+              aria-label="No icon"
+            >
+              <span className="wp-swatch" style={{ background: palette[p.ci] }} />
+            </button>
+            {ICONS.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                className={`wp-iconbtn${p.icon === id ? " is-on" : ""}`}
+                onClick={() => set("icon", id)}
+                title={label}
+                aria-label={label}
+              >
+                <Icon size={16} color={palette[p.ci]} />
+              </button>
             ))}
           </div>
         </div>

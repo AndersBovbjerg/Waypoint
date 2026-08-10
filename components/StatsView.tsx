@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Activity, ColoredProject, Session } from "./types";
 import { fmtDuration, fmtShort, shiftKey } from "./helpers";
 import { Kpi } from "./shared";
+import { ProjectIcon } from "./identity";
 
 export function StatsView({
   activities,
@@ -106,7 +107,7 @@ export function StatsView({
               const w = p.waypoints.filter((x) => x.done).length;
               return (
                 <li key={p.id} className="wp-statrow">
-                  <span className="wp-swatch" style={{ background: p.color }} />
+                  <ProjectIcon icon={p.icon} color={p.color} size={15} />
                   <span className="wp-statname">{p.name}</span>
                   <span className="wp-mono wp-muted">
                     {w}/{p.waypoints.length} WP

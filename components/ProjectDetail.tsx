@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, NewActivity } from "./types";
 import { GoalMeter } from "./shared";
+import { ProjectIcon } from "./identity";
 import { formatDelta, deltaIsGood, formatGoalValue, parseGoalValue } from "./goal";
 import { fmtShort, pad, shiftKey } from "./helpers";
 
@@ -64,7 +65,10 @@ export function ProjectDetail({
       <section className="wp-card">
         <span className="wp-project-bar" style={{ background: project.color }} />
         <div className="wp-card-head">
-          <h2 className="wp-display wp-display-sm">{project.name}</h2>
+          <h2 className="wp-display wp-display-sm wp-cardtitle">
+            <ProjectIcon icon={project.icon} color={project.color} size={20} />
+            {project.name}
+          </h2>
           <button className="wp-btn" onClick={onEdit}>
             Edit details
           </button>

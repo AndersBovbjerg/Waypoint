@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import type { ColoredProject, NewActivity } from "./types";
 import { Overlay } from "./Overlay";
+import { Select } from "./Select";
 
 export function ImportModal({
   projects,
@@ -53,13 +54,12 @@ Call the bakery back`}</pre>
         </label>
         <label className="wp-field">
           <span className="wp-eyebrow wp-mono">Assign to project</span>
-          <select className="wp-input wp-select" value={pid} onChange={(e) => setPid(e.target.value)}>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={pid}
+            options={projects.map((p) => ({ value: p.id, label: p.name }))}
+            onChange={setPid}
+            ariaLabel="Assign to project"
+          />
         </label>
         <div className="wp-modal-actions">
           <span className="wp-mono wp-muted">{parsed.length} READY</span>

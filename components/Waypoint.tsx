@@ -473,11 +473,12 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
                 situation: "",
                 approach: "",
                 target: shiftKey(today, 30),
-                ci: data.projects.length % 6,
+                ci: data.projects.length % 12,
                 status: "active",
                 created: today,
                 waypoints: [],
                 goal: null,
+                icon: null,
               })
             }
             onStatus={setStatus}

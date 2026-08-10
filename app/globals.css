@@ -162,6 +162,27 @@ body { background:inherit; }
   background:var(--field); border:1px solid var(--rule); border-radius:12px; padding:9px 12px; }
 .wp-input::placeholder { color:var(--muted); }
 .wp-select { flex:0 1 180px; }
+
+/* the app's own dropdown — the native control still serves touch */
+.wp-selectwrap { position:relative; flex:0 1 180px; min-width:140px; }
+.wp-selectbtn { display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+  cursor:pointer; }
+.wp-selectbtn:hover:not(:disabled) { border-color:var(--accent); }
+.wp-selectbtn:disabled { opacity:.5; cursor:not-allowed; }
+.wp-selectbtn-text { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; }
+.wp-selectbtn-chev { flex:none; color:var(--muted); }
+.wp-selectlist { position:absolute; z-index:40; top:calc(100% + 4px); left:0; right:0;
+  max-height:260px; overflow-y:auto; list-style:none; margin:0; padding:5px;
+  background:var(--panel); border:1px solid var(--rule); border-radius:12px;
+  box-shadow:0 8px 24px rgba(23,19,29,.16); }
+.wp-root[data-mode="dark"] .wp-selectlist { box-shadow:0 8px 24px rgba(0,0,0,.5); }
+.wp-selectopt { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px;
+  font-size:15px; cursor:pointer; }
+.wp-selectopt-text { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; }
+.wp-selectopt.is-active { background:var(--field); }
+.wp-selectopt.is-chosen { color:var(--accent); }
 .wp-area { width:100%; resize:vertical; }
 .wp-field { display:block; margin-bottom:14px; }
 .wp-field .wp-eyebrow { display:block; }
@@ -334,6 +355,14 @@ body { background:inherit; }
 .wp-colors { display:flex; gap:8px; }
 .wp-colorbtn { width:26px; height:26px; border-radius:50%; border:2px solid transparent; padding:0; }
 .wp-colorbtn.is-on { border-color:var(--ink); }
+.wp-colors { flex-wrap:wrap; }
+.wp-icons { display:flex; flex-wrap:wrap; gap:6px; }
+.wp-iconbtn { display:flex; align-items:center; justify-content:center; width:34px; height:34px;
+  border-radius:10px; border:1px solid var(--rule); background:var(--field); padding:0; }
+.wp-iconbtn:hover { border-color:var(--accent); }
+.wp-iconbtn.is-on { border-color:var(--ink); background:var(--panel); }
+.wp-cardtitle { display:flex; align-items:center; gap:9px; min-width:0; }
+.wp-picon { flex:none; }
 .wp-sample { font-family:var(--body); font-size:12px; background:var(--field); border:1px solid var(--rule);
   border-radius:12px; padding:12px; color:var(--muted); margin:0 0 14px; white-space:pre-wrap; }
 

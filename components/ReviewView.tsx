@@ -6,6 +6,7 @@ import { buildReview, fmtWeekRange, reviewNote, startOfWeek } from "./week";
 import type { ProjectWeek } from "./week";
 import { Kpi } from "./shared";
 import { Overlay } from "./Overlay";
+import { ProjectIcon } from "./identity";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -196,7 +197,7 @@ function ProjectRow({ p }: { p: ProjectWeek }) {
   return (
     <li className={`wp-reviewrow${p.moved ? "" : " is-still"}`}>
       <div className="wp-reviewrow-head">
-        <span className="wp-swatch" style={{ background: project.color }} />
+        <ProjectIcon icon={project.icon} color={project.color} size={15} />
         <span className="wp-reviewrow-name">{project.name}</span>
         <Pace p={p} />
       </div>

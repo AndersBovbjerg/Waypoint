@@ -51,6 +51,8 @@ export interface Project {
   waypoints: WaypointItem[];
   /* null when the project has no measurable goal — plenty do not */
   goal: Goal | null;
+  /* an id from ICONS, or null to fall back to the colour dot */
+  icon: string | null;
   /* resolved from the colour slot at render time; never persisted */
   color?: string;
 }

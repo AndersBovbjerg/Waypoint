@@ -3,6 +3,7 @@ import { Plus, Archive, RotateCcw, Trash2 } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, ProjectStatus } from "./types";
 import { fmtShort } from "./helpers";
 import { GoalMeter, MiniRoute } from "./shared";
+import { ProjectIcon } from "./identity";
 
 export function ProjectsView({
   projects,
@@ -63,7 +64,8 @@ export function ProjectsView({
                   {/* The title is the real button; its ::after stretches over the
                       whole card, so anywhere is clickable while there is still
                       exactly one thing to tab to. */}
-                  <h3>
+                  <h3 className="wp-cardtitle">
+                    <ProjectIcon icon={p.icon} color={p.color} size={17} />
                     <button className="wp-cardlink" onClick={() => onOpen(p.id)}>
                       {p.name}
                     </button>

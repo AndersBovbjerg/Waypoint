@@ -4,7 +4,9 @@ import type { Activity, ColoredProject, NewActivity, TimerSettings } from "./typ
 import type { TimerApi } from "./useTimer";
 import { fmtShort, greeting, courseNote, shiftKey } from "./helpers";
 import { ActivityRow, CourseStrip, MiniRoute } from "./shared";
+import { ProjectIcon } from "./identity";
 import { TimerCard } from "./TimerCard";
+import { Select } from "./Select";
 
 export function TodayView({
   items,
@@ -127,13 +129,13 @@ export function TodayView({
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
-          <select className="wp-input wp-select" value={pid} onChange={(e) => setPid(e.target.value)}>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            className="wp-select"
+            value={pid}
+            options={projects.map((p) => ({ value: p.id, label: p.name }))}
+            onChange={setPid}
+            ariaLabel="Project"
+          />
           <button className="wp-btn wp-btn-solid" onClick={submit} disabled={!projects.length}>
             <Plus size={15} /> Add
           </button>
@@ -156,7 +158,7 @@ export function TodayView({
                 return (
                   <li key={p.id}>
                     <button className="wp-minirow" onClick={() => onOpenProject(p.id)}>
-                      <span className="wp-swatch" style={{ background: p.color }} />
+                      <ProjectIcon icon={p.icon} color={p.color} size={15} />
                       <span className="wp-minirow-name">{p.name}</span>
                       <span className="wp-mono wp-muted">
                         {wDone}/{p.waypoints.length}

@@ -20,12 +20,13 @@ change is where the data lives.
 
 ## Data model
 
-See `schema.sql`. Five tables: `projects`, `waypoints`, `activities`, `sessions`, `prefs`.
+See `schema.sql`. Six tables: `projects`, `waypoints`, `activities`, `sessions`,
+`goal_entries`, `prefs`.
 All protected by row level security keyed on `auth.uid()`.
 
 Field notes that are easy to get wrong:
 
-- **`ci`** is a colour *slot* (0–5), not a hex value. Light and dark mode each have
+- **`ci`** is a colour *slot* (0–11), not a hex value. Light and dark mode each have
   their own six-colour palette; the same slot resolves to a different hex in each mode
   so a project keeps its identity when the mode changes. Never store hex.
 - **`date` on activities is a plain date, not a timestamp.** All date handling is local
@@ -51,7 +52,13 @@ strip (activities as nodes on a progress track), the day's to-do list with check
 active projects with their route lines, and the next seven days.
 
 **Projects** — create and edit with Purpose / Situation / Approach / target date /
-colour slot. Waypoints add, tick, delete. Archive and reactivate. Delete with an inline
+colour slot / optional icon. A project can also carry a **goal**: a label, a unit and
+the two ends of the journey, with readings logged over time so it can be watched
+moving rather than only described. Everything is stored as a plain number — seconds
+for a time, kroner for money — so the progress arithmetic is the same whatever is
+measured. There is no direction field: a target below the start counts downwards,
+which is true of a race time and false of revenue, and a derived answer cannot
+contradict the numbers it describes. Waypoints add, tick, delete. Archive and reactivate. Delete with an inline
 confirm, which cascades to that project's activities.
 
 **Calendar** — Monday-first month grid. One dot per activity in its project's colour:

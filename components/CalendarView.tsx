@@ -3,6 +3,7 @@ import { Plus, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import type { Activity, ColoredProject, NewActivity } from "./types";
 import { fmtLong, fmtShort, fromKey, keyOf } from "./helpers";
 import { ActivityRow } from "./shared";
+import { Select } from "./Select";
 
 export function CalendarView({
   activities,
@@ -158,13 +159,13 @@ export function CalendarView({
               }
             }}
           />
-          <select className="wp-input wp-select" value={pid} onChange={(e) => setPid(e.target.value)}>
-            {active.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            className="wp-select"
+            value={pid}
+            options={active.map((p) => ({ value: p.id, label: p.name }))}
+            onChange={setPid}
+            ariaLabel="Project"
+          />
           <button
             className="wp-btn wp-btn-solid"
             disabled={!active.length}
