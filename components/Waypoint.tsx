@@ -14,7 +14,7 @@ import type {
   WaypointItem,
 } from "./types";
 import { PALETTES, fmtLong, shiftKey, uid } from "./helpers";
-import { DEFAULT_TIMER, localStore, normalise } from "./store";
+import { DEFAULT_TIMER } from "./store";
 import * as db from "./db";
 import { useToday, useMinuteTick } from "./useToday";
 import { useTimer } from "./useTimer";
@@ -71,18 +71,12 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
     let alive = true;
     (async () => {
       try {
-        let loaded = await db.loadAll(userId);
-        /* Nothing in the account yet? Carry over whatever the local build
-           left behind, once. An account that is genuinely empty simply
-           starts empty — the empty states already invite the first move,
-           and seeding a real account with sample projects would be a lie. */
-        if (loaded.projects.length === 0) {
-          const local = await localStore.load();
-          if (local && Array.isArray(local.projects) && local.projects.length) {
-            await db.importLocal(normalise(local), userId, uid);
-            loaded = await db.loadAll(userId);
-          }
-        }
+        /* The account is the only source. There was a carry-over from
+           localStorage here, but the only thing localStorage ever held was
+           the prototype's sample data — so it wrote demo projects into a real
+           account. An empty account starts empty; the empty states already
+           invite the first move. */
+        const loaded = await db.loadAll(userId);
         if (!alive) return;
         dataRef.current = loaded;
         setData(loaded);
