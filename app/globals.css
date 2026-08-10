@@ -188,6 +188,7 @@
 .wp-signin-brand h1 { font-family:var(--display); font-size:21px; font-weight:700;
   letter-spacing:-.01em; margin:0; }
 .wp-signin-error { font-size:14px; color:var(--accent); margin:0 0 12px; }
+.wp-signin-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 
 /* a write that failed and was taken back */
 .wp-failure { position:sticky; top:64px; z-index:19; display:flex; align-items:center; gap:10px;
