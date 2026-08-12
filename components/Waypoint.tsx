@@ -119,11 +119,20 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
      being kept in step with the app, not the other way round. */
   useEffect(() => {
     document.documentElement.dataset.mode = mode;
-    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
-    const meta = document.createElement("meta");
-    meta.name = "theme-color";
+    /* One tag of our own, created once and only ever updated. An earlier
+       version removed every theme-color meta first — but those are rendered
+       by Next from the viewport export, so React owns them. Deleting a node
+       out from under React makes its next update throw on removeChild, in
+       the middle of the commit, which takes the rest of the page down with
+       it. Never remove what React rendered. */
+    let meta = document.head.querySelector<HTMLMetaElement>("meta[data-wp-theme]");
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      meta.setAttribute("data-wp-theme", "");
+      document.head.appendChild(meta);
+    }
     meta.content = mode === "dark" ? "#17131D" : "#F3F1F5";
-    document.head.appendChild(meta);
   }, [mode]);
 
   /* ---------- mutations ----------

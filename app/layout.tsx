@@ -7,11 +7,12 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Waypoint", statusBarStyle: "default" },
 };
 
+/* No themeColor here on purpose. The app's mode is a toggle, not the operating
+   system's preference, so the colour is set at runtime from the one meta tag
+   the app owns — see Waypoint.tsx. Rendering a second pair here would leave the
+   browser choosing between two answers by media query, and the wrong one wins. */
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F3F1F5" },
-    { media: "(prefers-color-scheme: dark)", color: "#17131D" },
-  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
