@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import type { Activity, ColoredProject, Session } from "./types";
-import { fmtDuration, fmtShort, shiftKey } from "./helpers";
+import { fmtDuration, shiftKey } from "./helpers";
 import { Kpi } from "./shared";
 import { ProjectIcon } from "./identity";
+import { buildEffortSeries } from "./effort";
+import { EffortChart } from "./EffortChart";
 
 export function StatsView({
   activities,
@@ -28,12 +30,24 @@ export function StatsView({
   const done = past.filter((a) => a.done).length;
   const rate = past.length ? Math.round((done / past.length) * 100) : 0;
 
-  const days = Array.from({ length: 14 }, (_, i) => shiftKey(today, i - 13));
-  const perDay = days.map((k) => {
-    const items = activities.filter((a) => a.date === k);
-    return { k, planned: items.length, done: items.filter((a) => a.done).length };
+  /* One combined number for how much has gone into everything so far — a
+     cleared activity, a reached waypoint and a block of focus time each
+     convert into the same unit. See effort.ts for the weights and why the
+     line never has a ceiling to plot against. Not wrapped in useMemo: the
+     walk is bounded by real calendar days since the first thing was ever
+     logged, the same order of work as `past`/`done`/`rate` just above,
+     which this file has never memoized either. */
+  const effort = buildEffortSeries({ activities, projects, sessions, today });
+  const effortByProject: Record<string, number> = {};
+  projects.forEach((p) => {
+    effortByProject[p.id] = buildEffortSeries({
+      activities,
+      projects,
+      sessions,
+      today,
+      projectId: p.id,
+    }).total;
   });
-  const peak = Math.max(1, ...perDay.map((d) => d.planned));
 
   const streak = useMemo(() => {
     let count = 0;
@@ -57,6 +71,7 @@ export function StatsView({
   return (
     <div className="wp-stack">
       <div className="wp-kpis">
+        <Kpi label="Effort score" value={String(effort.total)} sub="a cleared task, a waypoint, a focus block — one running total" />
         <Kpi label="Completion rate" value={`${rate}%`} sub={`${done} of ${past.length} cleared`} />
         <Kpi label="Cleared activities" value={String(done)} sub="all time" />
         <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
@@ -74,22 +89,10 @@ export function StatsView({
 
       <section className="wp-card">
         <div className="wp-card-head">
-          <h3>Last fourteen days</h3>
-          <span className="wp-mono wp-muted">CLEARED / PLANNED</span>
+          <h3>Effort</h3>
+          <span className="wp-mono wp-muted">1 CLEARED = 1 · 1 WAYPOINT = 3 · 25 MIN FOCUS = 1</span>
         </div>
-        <div className="wp-bars">
-          {perDay.map((d) => (
-            <div key={d.k} className="wp-barcol" title={`${fmtShort(d.k)} — ${d.done}/${d.planned}`}>
-              <div className="wp-bar" style={{ height: `${(d.planned / peak) * 100}%` }}>
-                <div
-                  className="wp-bar-fill"
-                  style={{ height: d.planned ? `${(d.done / d.planned) * 100}%` : "0%" }}
-                />
-              </div>
-              <span className="wp-mono wp-barlabel">{d.k.slice(-2)}</span>
-            </div>
-          ))}
-        </div>
+        <EffortChart series={effort} />
       </section>
 
       <section className="wp-card">
@@ -112,6 +115,7 @@ export function StatsView({
                   <span className="wp-mono wp-muted">
                     {w}/{p.waypoints.length} WP
                   </span>
+                  <span className="wp-mono wp-muted wp-stateffort">{effortByProject[p.id] ?? 0} PTS</span>
                   <span className="wp-mono wp-muted wp-stattime">
                     {minutesByProject[p.id] ? fmtDuration(minutesByProject[p.id]).toUpperCase() : "—"}
                   </span>

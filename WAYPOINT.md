@@ -65,8 +65,16 @@ confirm, which cascades to that project's activities.
 outlined = planned, filled = cleared. A day where everything is cleared gets a tinted
 background. Click a day to see and edit it.
 
-**Statistics** — completion rate, cleared count, clear streak, a fourteen-day
-cleared-vs-planned chart, and a per-project breakdown.
+**Statistics** — completion rate, cleared count, clear streak, an effort score, and
+a per-project breakdown.
+
+The effort score turns three different kinds of record into one running number: a
+cleared activity is worth 1 point, a reached waypoint 3, and a focus block 1 point
+per 25 minutes, converted continuously off the running total so a 47-minute sitting
+and two 30-minute ones both land at the same rate. It is plotted as a single
+cumulative line with no ceiling — the goal meter and waypoints already answer "how
+close," bounded 0–100%; this answers "how much has gone in so far," and only ever
+grows. See `components/effort.ts`.
 
 **Import** — paste a list, one activity per line, optional leading `YYYY-MM-DD`.
 

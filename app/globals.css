@@ -243,6 +243,29 @@ body { background:inherit; }
   flex-direction:column; justify-content:flex-end; overflow:hidden; }
 .wp-bar-fill { width:100%; background:var(--accent); border-radius:6px; transition:height .4s ease; }
 .wp-barlabel { color:var(--muted); font-size:10px; }
+
+/* screen-reader-only table backing a chart, per the dataviz table-view rule */
+.wp-visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* effort chart — a single cumulative line, no ceiling */
+.wp-effort { position:relative; }
+.wp-effort-svg { width:100%; height:auto; display:block; touch-action:none; }
+.wp-effort-svg:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:8px; }
+.wp-effort-grid { stroke:var(--rule); stroke-width:1; }
+.wp-effort-ytick { fill:var(--muted); font-family:var(--body); font-size:10px; font-weight:700; }
+.wp-effort-xtick { fill:var(--muted); font-family:var(--body); font-size:10px; font-weight:700;
+  letter-spacing:.08em; }
+.wp-effort-line { stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.wp-effort-crosshair { stroke:var(--muted); stroke-width:1; opacity:.5; }
+.wp-effort-dot { fill:var(--accent); stroke:var(--panel); stroke-width:2; }
+.wp-effort-tip { position:absolute; top:8px; transform:translateX(-50%); display:flex;
+  flex-direction:column; align-items:center; gap:1px; pointer-events:none;
+  background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+  padding:6px 10px; box-shadow:var(--shadow); white-space:nowrap; }
+.wp-effort-tip.is-left { transform:translateX(-88%); }
+.wp-effort-tip-val { font-family:var(--display); font-weight:700; font-size:16px; color:var(--ink); }
+.wp-effort-tip-date { font-size:9px; }
 .wp-statrow { display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid var(--rule); }
 .wp-statrow:first-child { border-top:none; }
 .wp-statname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; }
@@ -298,6 +321,7 @@ body { background:inherit; }
 .wp-timerbadge.is-focus { color:var(--ink); border-color:var(--accent); }
 .wp-timerbadge:hover { border-color:var(--accent); color:var(--ink); }
 .wp-stattime { width:56px; text-align:right; flex:none; }
+.wp-stateffort { width:46px; text-align:right; flex:none; }
 
 /* weekly review */
 .wp-weeknav { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0 6px; }
@@ -375,6 +399,7 @@ body { background:inherit; }
   .wp-timer-time { font-size:44px; }
   .wp-timer-on-name { max-width:150px; }
   .wp-stattime { display:none; }
+  .wp-stateffort { display:none; }
   .wp-weeknav .wp-display-sm { font-size:22px; }
   .wp-weekbars { height:96px; }
 }
