@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sun, Moon, LogOut, X } from "lucide-react";
+import { Sun, Moon, LogOut, X, Compass, Layers, Calendar, CalendarCheck, BarChart3 } from "lucide-react";
 import type {
   AppData,
   Activity,
@@ -14,7 +14,7 @@ import type {
   TimerSettings,
   WaypointItem,
 } from "./types";
-import { PALETTES, fmtLong, shiftKey, uid } from "./helpers";
+import { PALETTES, shiftKey, uid } from "./helpers";
 import { DEFAULT_TIMER } from "./store";
 import * as db from "./db";
 import { useToday, useMinuteTick } from "./useToday";
@@ -33,6 +33,17 @@ import { ImportModal } from "./ImportModal";
 
 type View = "today" | "projects" | "calendar" | "review" | "stats";
 
+/* One list drives both the top tab row (desktop) and the bottom tab bar
+   (mobile/tablet) — same views, same order, just a different shell around
+   them depending on where the thumb actually is. */
+const TABS: [View, string, typeof Compass][] = [
+  ["today", "Today", Compass],
+  ["projects", "Courses", Layers],
+  ["calendar", "Calendar", Calendar],
+  ["review", "Review", CalendarCheck],
+  ["stats", "Stats", BarChart3],
+];
+
 /* The hour on a Sunday when the review stops waiting and opens itself. */
 const REVIEW_HOUR = 9;
 
@@ -47,11 +58,30 @@ const EMPTY: AppData = {
   reviewSeen: null,
 };
 
+/* How the Strava consent screen ended. The callback route can only redirect to
+   a URL, so the outcome arrives as a query param and is read once, at load —
+   a redirect is always a fresh document, so there is nothing to re-read later.
+   Safe to seed React state from: nothing is rendered until the account's data
+   has loaded, so the server's markup and the first client render agree. */
+const stravaResult =
+  typeof window === "undefined"
+    ? null
+    : new URLSearchParams(window.location.search).get("strava");
+
+const stravaFailure =
+  stravaResult === "denied"
+    ? "Strava was not connected — the request was declined."
+    : stravaResult === "error"
+      ? "Could not connect Strava. Try again from the Strava card in Statistics."
+      : null;
+
 export default function Waypoint({ userId, onSignOut }: { userId: string; onSignOut: () => void }) {
   const [data, setData] = useState<AppData>(EMPTY);
   const [ready, setReady] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
-  const [view, setView] = useState<View>("today");
+  const [failure, setFailure] = useState<string | null>(stravaFailure);
+  /* landing on Statistics after connecting is the point: the course that
+     synced runs get filed under is still to be chosen */
+  const [view, setView] = useState<View>(stravaResult === "connected" ? "stats" : "today");
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -92,6 +122,14 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
       alive = false;
     };
   }, [userId]);
+
+  /* Coming back from Strava, the outcome is taken out of the address bar so a
+     reload does not replay it. Only the URL is touched here — the state it
+     implies was seeded at first render, because setting it from an effect
+     would render the wrong screen first and then correct it. */
+  useEffect(() => {
+    if (stravaResult) window.history.replaceState(null, "", window.location.pathname);
+  }, []);
 
   /* Change the screen now, tell the database after. If the write fails the
      change is taken back and said out loud, rather than the app quietly
@@ -374,11 +412,23 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
       <header className="wp-head">
         <div className="wp-brand">
           <span className="wp-logo" aria-hidden="true" />
-          <div>
-            <h1>Waypoint</h1>
-            <p className="wp-mono wp-muted wp-date">{fmtLong(today).toUpperCase()}</p>
-          </div>
+          <h1>Waypoint</h1>
         </div>
+
+        <nav className="wp-nav" aria-label="Sections">
+          {TABS.map(([k, label]) => (
+            <button
+              key={k}
+              className={`wp-tab${view === k ? " is-on" : ""}`}
+              onClick={() => {
+                setView(k);
+                setOpenProject(null);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
         <div className="wp-headright">
           <TimerBadge
@@ -388,26 +438,6 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
               setOpenProject(null);
             }}
           />
-          <nav className="wp-nav" aria-label="Sections">
-            {([
-              ["today", "Today"],
-              ["projects", "Projects"],
-              ["calendar", "Calendar"],
-              ["review", "Review"],
-              ["stats", "Statistics"],
-            ] as [View, string][]).map(([k, label]) => (
-              <button
-                key={k}
-                className={`wp-tab${view === k ? " is-on" : ""}`}
-                onClick={() => {
-                  setView(k);
-                  setOpenProject(null);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
           <button
             className="wp-modebtn"
             onClick={() => {
@@ -544,9 +574,27 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             projects={projects}
             sessions={data.sessions}
             today={today}
+            userId={userId}
           />
         )}
       </main>
+
+      <nav className="wp-tabbar" aria-label="Sections">
+        {TABS.map(([k, label, Icon]) => (
+          <button
+            key={k}
+            className={`wp-tabbar-btn${view === k ? " is-on" : ""}`}
+            onClick={() => {
+              setView(k);
+              setOpenProject(null);
+            }}
+            aria-current={view === k ? "page" : undefined}
+          >
+            <Icon size={19} aria-hidden="true" />
+            {label}
+          </button>
+        ))}
+      </nav>
 
       {editing && (
         <ProjectModal

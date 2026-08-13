@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, ArrowUpRight, X, CalendarCheck } from "lucide-react";
 import type { Activity, ColoredProject, NewActivity, TimerSettings } from "./types";
 import type { TimerApi } from "./useTimer";
-import { fmtShort, greeting, courseNote, shiftKey } from "./helpers";
+import { fmtLong, fmtShort, greeting, courseNote, shiftKey } from "./helpers";
 import { ActivityRow, CourseStrip, MiniRoute } from "./shared";
 import { ProjectIcon } from "./identity";
 import { TimerCard } from "./TimerCard";
@@ -62,9 +62,10 @@ export function TodayView({
   return (
     <div className="wp-stack">
       <section className="wp-hero">
-        <p className="wp-eyebrow wp-mono">Today&rsquo;s course</p>
-        <h2 className="wp-display">{greeting()}, Anders.</h2>
-        <p className="wp-note">{courseNote(items)}</p>
+        <h2 className="wp-greet">{greeting()}, Anders</h2>
+        <p className="wp-note wp-note-sm">
+          {fmtLong(today)} · {courseNote(items)}
+        </p>
         <CourseStrip items={items} projectsById={projectsById} />
       </section>
 
@@ -87,15 +88,6 @@ export function TodayView({
           </button>
         </section>
       )}
-
-      <TimerCard
-        timer={timer}
-        settings={timerSettings}
-        onSettings={onTimerSettings}
-        projects={projects}
-        projectsById={projectsById}
-        todayItems={items}
-      />
 
       <section className="wp-card">
         <div className="wp-card-head">
@@ -142,6 +134,15 @@ export function TodayView({
         </div>
         {!projects.length && <p className="wp-empty">Create a project first — every activity belongs to one.</p>}
       </section>
+
+      <TimerCard
+        timer={timer}
+        settings={timerSettings}
+        onSettings={onTimerSettings}
+        projects={projects}
+        projectsById={projectsById}
+        todayItems={items}
+      />
 
       <div className="wp-grid-2">
         <section className="wp-card">

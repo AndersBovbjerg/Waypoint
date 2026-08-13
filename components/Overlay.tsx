@@ -11,12 +11,16 @@ export function Overlay({
   dirty,
   onClose,
   wide,
+  scroll,
   children,
 }: {
   /* true once the contents are worth protecting */
   dirty: boolean;
   onClose: () => void;
   wide?: boolean;
+  /* pins a head/body/actions layout so a long form's title and buttons never
+     scroll out of reach — only the fields between them do */
+  scroll?: boolean;
   children: (requestClose: () => void) => React.ReactNode;
 }) {
   const [confirming, setConfirming] = useState(false);
@@ -40,7 +44,7 @@ export function Overlay({
   return (
     <div className="wp-overlay" onClick={requestClose}>
       <div
-        className={`wp-modal${wide ? " wp-modal-wide" : ""}`}
+        className={`wp-modal${wide ? " wp-modal-wide" : ""}${scroll ? " wp-modal-scroll" : ""}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

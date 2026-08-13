@@ -64,6 +64,21 @@ export const fmtDuration = (minutes: number) => {
   return rest ? `${h}h ${rest}m` : `${h}h`;
 };
 
+/* "5.2 km · 28m · avg HR 152" for a synced Strava activity — null when the
+   activity has none of the fields (manual/import rows, or a Strava type
+   with no distance, like a strength workout). */
+export function formatStravaMetrics(a: {
+  distanceM?: number | null;
+  movingTimeS?: number | null;
+  avgHr?: number | null;
+}): string | null {
+  const parts: string[] = [];
+  if (a.distanceM) parts.push(`${(a.distanceM / 1000).toFixed(1)} km`);
+  if (a.movingTimeS) parts.push(fmtDuration(a.movingTimeS / 60));
+  if (a.avgHr) parts.push(`avg HR ${Math.round(a.avgHr)}`);
+  return parts.length ? parts.join(" · ") : null;
+}
+
 /* ms until the next local midnight — used to re-date an app left open overnight */
 export const msUntilMidnight = (now = new Date()) => {
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);

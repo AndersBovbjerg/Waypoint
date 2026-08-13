@@ -64,6 +64,15 @@ export interface Activity {
   date: string;
   done: boolean;
   doneAt?: string | null;
+  source?: string;
+  /* present only on source === "strava" */
+  distanceM?: number | null;
+  movingTimeS?: number | null;
+  elapsedTimeS?: number | null;
+  avgHr?: number | null;
+  maxHr?: number | null;
+  elevationGainM?: number | null;
+  activityType?: string | null;
 }
 
 /* ---------- focus timer ---------- */

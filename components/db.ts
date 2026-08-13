@@ -72,6 +72,14 @@ interface ActivityRow {
   date: string;
   done: boolean;
   done_at: string | null;
+  source?: string | null;
+  distance_m?: number | null;
+  moving_time_s?: number | null;
+  elapsed_time_s?: number | null;
+  avg_hr?: number | null;
+  max_hr?: number | null;
+  elevation_gain_m?: number | null;
+  activity_type?: string | null;
 }
 
 interface SessionRow {
@@ -142,6 +150,14 @@ const toActivity = (r: ActivityRow): Activity => ({
   date: r.date,
   done: r.done,
   doneAt: r.done_at,
+  source: r.source ?? "manual",
+  distanceM: r.distance_m ?? null,
+  movingTimeS: r.moving_time_s ?? null,
+  elapsedTimeS: r.elapsed_time_s ?? null,
+  avgHr: r.avg_hr ?? null,
+  maxHr: r.max_hr ?? null,
+  elevationGainM: r.elevation_gain_m ?? null,
+  activityType: r.activity_type ?? null,
 });
 
 const toSession = (r: SessionRow): Session => ({
@@ -377,4 +393,33 @@ export async function addGoalEntry(e: GoalEntry, userId: string) {
 export async function deleteGoalEntry(id: string) {
   const db = getSupabase();
   check((await db.from("goal_entries").delete().eq("id", id)).error, "delete the reading");
+}
+
+/* ---------- Strava ---------- */
+
+export interface StravaConnection {
+  athleteId: number;
+  syncProjectId: string | null;
+}
+
+/* Only the columns the UI needs — never the tokens themselves, which stay
+   server-side. RLS still scopes this to the signed-in user's own row. */
+export async function getStravaConnection(userId: string): Promise<StravaConnection | null> {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from("strava_tokens")
+    .select("athlete_id, sync_project_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  check(error, "load your Strava connection");
+  return data ? { athleteId: data.athlete_id, syncProjectId: data.sync_project_id } : null;
+}
+
+export async function setStravaSyncProject(userId: string, projectId: string) {
+  const db = getSupabase();
+  check(
+    (await db.from("strava_tokens").update({ sync_project_id: projectId }).eq("user_id", userId))
+      .error,
+    "set your Strava sync project"
+  );
 }

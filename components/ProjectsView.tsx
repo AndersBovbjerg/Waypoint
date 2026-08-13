@@ -1,9 +1,88 @@
-import { useState } from "react";
-import { Plus, Archive, RotateCcw, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Archive, RotateCcw, Trash2, MoreHorizontal } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, ProjectStatus } from "./types";
 import { fmtShort } from "./helpers";
 import { GoalMeter, MiniRoute } from "./shared";
 import { ProjectIcon } from "./identity";
+
+/* Archive and delete used to be the two most prominent buttons on every
+   card — a sizeable, bordered "Archive" pill sitting right below the
+   purpose text. They're the rarest actions on a project you open daily.
+   Tucked behind this menu, visual weight finally matches how often each
+   thing actually happens. */
+function ProjectMenu({
+  status,
+  onArchive,
+  onDelete,
+}: {
+  status: ProjectStatus;
+  onArchive: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) {
+        setOpen(false);
+        setConfirming(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  return (
+    <div className="wp-kebab" ref={ref}>
+      <button
+        className="wp-kebab-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        aria-label="Project options"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <MoreHorizontal size={17} />
+      </button>
+      {open && (
+        <div className="wp-kebab-menu" role="menu" onClick={(e) => e.stopPropagation()}>
+          {confirming ? (
+            <>
+              <button className="wp-kebab-item is-danger" role="menuitem" onClick={onDelete}>
+                <Trash2 size={14} /> Delete for good
+              </button>
+              <button className="wp-kebab-item" role="menuitem" onClick={() => setConfirming(false)}>
+                Keep it
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="wp-kebab-item" role="menuitem" onClick={onArchive}>
+                {status === "active" ? (
+                  <>
+                    <Archive size={14} /> Archive
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw size={14} /> Reactivate
+                  </>
+                )}
+              </button>
+              <button className="wp-kebab-item is-danger" role="menuitem" onClick={() => setConfirming(true)}>
+                <Trash2 size={14} /> Delete
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ProjectsView({
   projects,
@@ -23,7 +102,6 @@ export function ProjectsView({
   onDelete: (id: string) => void;
 }) {
   const [filter, setFilter] = useState<"active" | "archive">("active");
-  const [confirm, setConfirm] = useState<string | null>(null);
   const shown = projects.filter((p) => (filter === "archive" ? p.status !== "active" : p.status === "active"));
 
   return (
@@ -56,10 +134,14 @@ export function ProjectsView({
             const acts = activities.filter((a) => a.projectId === p.id);
             const aDone = acts.filter((a) => a.done).length;
             const wDone = p.waypoints.filter((w) => w.done).length;
-            const pct = p.waypoints.length ? Math.round((wDone / p.waypoints.length) * 100) : 0;
             return (
               <article key={p.id} className="wp-card wp-project">
                 <span className="wp-project-bar" style={{ background: p.color }} />
+                <ProjectMenu
+                  status={p.status}
+                  onArchive={() => onStatus(p.id, p.status === "active" ? "archived" : "active")}
+                  onDelete={() => onDelete(p.id)}
+                />
                 <div className="wp-card-head">
                   {/* The title is the real button; its ::after stretches over the
                       whole card, so anywhere is clickable while there is still
@@ -70,7 +152,6 @@ export function ProjectsView({
                       {p.name}
                     </button>
                   </h3>
-                  <span className="wp-mono wp-muted">{pct}%</span>
                 </div>
                 <p className="wp-purpose">{p.purpose || "No purpose written yet."}</p>
                 {p.goal && (
@@ -82,35 +163,15 @@ export function ProjectsView({
                   />
                 )}
                 <MiniRoute waypoints={p.waypoints} color={p.color} />
-                <p className="wp-mono wp-muted wp-meta">
-                  {wDone}/{p.waypoints.length} WAYPOINTS · {aDone}/{acts.length} ACTIVITIES · TARGET{" "}
-                  {p.target ? fmtShort(p.target).toUpperCase() : "—"}
+                <p className="wp-meta-line wp-muted">
+                  <span>
+                    {wDone}/{p.waypoints.length} waypoints
+                  </span>
+                  <span>
+                    {aDone}/{acts.length} activities
+                  </span>
+                  <span>{p.target ? fmtShort(p.target) : "no target date"}</span>
                 </p>
-                <div className="wp-project-actions">
-                  {p.status === "active" ? (
-                    <button className="wp-btn" onClick={() => onStatus(p.id, "archived")}>
-                      <Archive size={14} /> Archive
-                    </button>
-                  ) : (
-                    <button className="wp-btn" onClick={() => onStatus(p.id, "active")}>
-                      <RotateCcw size={14} /> Reactivate
-                    </button>
-                  )}
-                  {confirm === p.id ? (
-                    <span className="wp-confirm">
-                      <button className="wp-btn wp-btn-danger" onClick={() => onDelete(p.id)}>
-                        Delete for good
-                      </button>
-                      <button className="wp-btn" onClick={() => setConfirm(null)}>
-                        Keep
-                      </button>
-                    </span>
-                  ) : (
-                    <button className="wp-icon" onClick={() => setConfirm(p.id)} aria-label={`Delete ${p.name}`}>
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
               </article>
             );
           })}

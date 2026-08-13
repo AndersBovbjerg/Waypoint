@@ -20,8 +20,8 @@ change is where the data lives.
 
 ## Data model
 
-See `schema.sql`. Six tables: `projects`, `waypoints`, `activities`, `sessions`,
-`goal_entries`, `prefs`.
+See `schema.sql`. Seven tables: `projects`, `waypoints`, `activities`, `sessions`,
+`goal_entries`, `prefs`, `strava_tokens`.
 All protected by row level security keyed on `auth.uid()`.
 
 Field notes that are easy to get wrong:
@@ -163,10 +163,44 @@ Public sign-up is turned off in Supabase. The app is on a public URL, and row le
 security keeps one user's rows to themselves, but there is no reason to let a
 stranger create an account.
 
-**Phase 3 — Garmin.** OAuth against the Garmin Connect API, pull completed activities,
-write them in with `source = 'garmin'` and the Garmin activity id as `external_id`.
-The unique index handles repeat syncs. The existing paste-importer already produces the
-same shape, so the write path is shared.
+**Phase 3 — Strava.** OAuth against Strava, and a webhook that writes a finished
+run in as an activity that is already cleared.
+
+It was planned as Garmin and built against Strava. Garmin's Connect Developer
+Program is not self-serve — it approves business partners, not personal apps —
+while Strava's API is open to anyone. The watch already syncs Garmin → Strava,
+so the run arrives either way; this only changes which door Waypoint knocks on.
+
+Activities land with `source = 'strava'` and the Strava activity id as
+`external_id`. The unique index on `(user_id, source, external_id)` is what makes
+a re-delivered webhook a no-op rather than a duplicate — Strava retries, so this
+is load-bearing, not belt-and-braces.
+
+A run also carries its numbers: distance, moving and elapsed time, average and
+maximum heart rate, elevation, and Strava's sport type. They sit as nullable
+columns on `activities` and show as a quiet second line on the activity row.
+Nothing else in the app reads them yet — the effort score still counts a cleared
+activity as one point whether it was a 5k or a marathon.
+
+**This is the first server-side code in the app.** Everything else runs in the
+browser as the signed-in user, with row level security doing the work. A webhook
+has no session — Strava calls it, not the browser — so `app/api/strava/*` uses a
+service-role client (`components/supabase-admin.ts`) that bypasses row level
+security, keyed on the athlete id to find whose run it is. That key must never
+reach the browser: `SUPABASE_SERVICE_ROLE_KEY`, no `NEXT_PUBLIC_` prefix.
+
+Which course a synced run is filed under is a choice, not a guess:
+`strava_tokens.sync_project_id`, set from the Strava card on Statistics. Until it
+is set the webhook logs and does nothing, rather than inventing a project.
+
+*The date trap, in its sharpest form.* Strava sends `start_date_local` as an ISO
+string ending in `Z` that is not UTC at all — it is local wall-clock time wearing
+a UTC suffix. The day key is the first ten characters of that string and nothing
+else; putting it through `Date` would read 01:30 on the 13th as an instant and
+file a late-night run on the 12th. `done_at` is the opposite case — a genuine
+instant, built from `start_date` plus `elapsed_time` — so the two fields in the
+same object are handled by deliberately opposite rules. Neither should be
+"corrected" to match the other.
 
 ## Working agreements
 

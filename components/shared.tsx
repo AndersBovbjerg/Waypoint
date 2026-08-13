@@ -2,6 +2,7 @@ import React from "react";
 import { Check, Trash2 } from "lucide-react";
 import type { Activity, ColoredProject, Goal, GoalEntry, WaypointItem } from "./types";
 import { currentValue, formatGoalValue, goalProgress, goalReached } from "./goal";
+import { formatStravaMetrics } from "./helpers";
 
 /* The signature element: today's activities as a plotted course */
 export function CourseStrip({
@@ -73,6 +74,7 @@ export function ActivityRow({
   onRemove: (id: string) => void;
 }) {
   const color = project?.color || "var(--rule)";
+  const metrics = a.source === "strava" ? formatStravaMetrics(a) : null;
   return (
     <li className={`wp-row${a.done ? " is-done" : ""}`}>
       <button
@@ -84,7 +86,10 @@ export function ActivityRow({
       >
         {a.done && <Check size={13} strokeWidth={3} color="currentColor" />}
       </button>
-      <span className="wp-row-title">{a.title}</span>
+      <span className="wp-row-title">
+        {a.title}
+        {metrics && <span className="wp-row-sub wp-muted"> · {metrics}</span>}
+      </span>
       <span className="wp-tag" style={{ color, borderColor: color }}>
         {project?.name || "No project"}
       </span>
@@ -137,13 +142,14 @@ export function GoalMeter({
           style={{ width: `${pct * 100}%`, background: color }}
         />
       </div>
+      {/* Two numbers, not four: the big figure above is where things stand
+          right now: here is only the target to read it against, and a status
+          word. The starting value still drives the math (goalProgress,
+          direction) — it just doesn't need to print a second time next to a
+          "current" reading that looks identical until the first entry lands. */}
       <p className="wp-mono wp-muted wp-goal-ends">
-        <span>{formatGoalValue(goal.start, goal.unit)}</span>
-        <span className="wp-goal-pct">
-          {reached ? "REACHED" : `${Math.round(pct * 100)}%`}
-          {!moved && !reached && " · NO READING YET"}
-        </span>
-        <span>{formatGoalValue(goal.target, goal.unit)}</span>
+        <span>{reached ? "Reached" : moved ? `${Math.round(pct * 100)}%` : "No reading yet"}</span>
+        <span>Target {formatGoalValue(goal.target, goal.unit)}</span>
       </p>
     </div>
   );

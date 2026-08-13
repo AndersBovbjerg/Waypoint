@@ -1,21 +1,97 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Activity, ColoredProject, Session } from "./types";
 import { fmtDuration, shiftKey } from "./helpers";
 import { Kpi } from "./shared";
 import { ProjectIcon } from "./identity";
 import { buildEffortSeries } from "./effort";
 import { EffortChart } from "./EffortChart";
+import { Select } from "./Select";
+import * as db from "./db";
+import type { StravaConnection } from "./db";
+
+/* Off until Strava's API is actually paid for and the migration/env vars are
+   in place — see WAYPOINT.md's Phase 3 section. Flip to true to bring the
+   card back; the underlying feature is built and was verified before this
+   flag was added. */
+const STRAVA_ENABLED = false;
+
+/* Connect once, then pick which course a synced run gets filed under.
+   Loads its own state rather than threading it through Waypoint's mutate()
+   machinery — this is one row, read once, edited rarely, and the OAuth
+   round trip happens on a server route this component never touches. */
+function StravaCard({ userId, projects }: { userId: string; projects: ColoredProject[] }) {
+  const [connection, setConnection] = useState<StravaConnection | null | "loading">("loading");
+  const [savingProject, setSavingProject] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    db.getStravaConnection(userId)
+      .then((c) => {
+        if (!cancelled) setConnection(c);
+      })
+      .catch(() => {
+        if (!cancelled) setConnection(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  return (
+    <section className="wp-card">
+      <div className="wp-card-head">
+        <h3>Strava</h3>
+      </div>
+      {connection === "loading" ? (
+        <p className="wp-empty">Checking your connection…</p>
+      ) : connection === null ? (
+        <div className="wp-stravaconnect">
+          <p className="wp-empty">
+            Connect Strava to have a finished run show up here already logged.
+          </p>
+          <a className="wp-btn" href={`/api/strava/connect?state=${encodeURIComponent(userId)}`}>
+            Connect Strava
+          </a>
+        </div>
+      ) : (
+        <div className="wp-stravaconnect">
+          <p className="wp-empty">
+            Connected — new runs are logged automatically as they land in Strava.
+          </p>
+          <label className="wp-stravaproject">
+            <span className="wp-mono wp-muted">FILE SYNCED RUNS UNDER</span>
+            <Select
+              value={connection.syncProjectId ?? ""}
+              placeholder="Choose a course"
+              disabled={savingProject}
+              ariaLabel="Course synced Strava activities are filed under"
+              options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              onChange={(v) => {
+                if (!v) return;
+                setSavingProject(true);
+                setConnection((c) => (c && c !== "loading" ? { ...c, syncProjectId: v } : c));
+                db.setStravaSyncProject(userId, v).finally(() => setSavingProject(false));
+              }}
+            />
+          </label>
+        </div>
+      )}
+    </section>
+  );
+}
 
 export function StatsView({
   activities,
   projects,
   sessions,
   today,
+  userId,
 }: {
   activities: Activity[];
   projects: ColoredProject[];
   sessions: Session[];
   today: string;
+  userId: string;
 }) {
   const focusToday = sessions.filter((s) => s.date === today).reduce((n, s) => n + s.minutes, 0);
   const focusTotal = sessions.reduce((n, s) => n + s.minutes, 0);
@@ -70,16 +146,21 @@ export function StatsView({
 
   return (
     <div className="wp-stack">
+      {/* Completion and streak lead — the two numbers that answer "am I
+          keeping up" at a glance. Effort score used to sit first with the
+          longest explanation of the six; it's the most abstract measure
+          here, so it moved off the strongest position (first read, best
+          recalled) rather than occupying it by accident of code order. */}
       <div className="wp-kpis">
-        <Kpi label="Effort score" value={String(effort.total)} sub="a cleared task, a waypoint, a focus block — one running total" />
         <Kpi label="Completion rate" value={`${rate}%`} sub={`${done} of ${past.length} cleared`} />
-        <Kpi label="Cleared activities" value={String(done)} sub="all time" />
         <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
+        <Kpi label="Cleared activities" value={String(done)} sub="all time" />
         <Kpi
           label="Focused today"
           value={fmtDuration(focusToday)}
           sub={`${fmtDuration(focusTotal)} all time`}
         />
+        <Kpi label="Effort score" value={String(effort.total)} sub="a cleared task, a waypoint, a focus block — one running total" />
         <Kpi
           label="Active courses"
           value={String(projects.filter((p) => p.status === "active").length)}
@@ -129,6 +210,8 @@ export function StatsView({
           </ul>
         )}
       </section>
+
+      {STRAVA_ENABLED && <StravaCard userId={userId} projects={projects} />}
     </div>
   );
 }
