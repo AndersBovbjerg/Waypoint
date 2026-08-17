@@ -6,9 +6,15 @@
    around the app, behind the sticky header, and on overscroll. The app writes
    data-mode up here so the two agree. The colours repeat --paper on purpose:
    the variables are scoped to .wp-root, and html sits above it. */
-html { background:#F3F1F5; color-scheme:light; }
+/* Standalone on iOS has no browser chrome to absorb a stray rubber-band —
+   any element even 1px wider than the viewport (a rounding error, a card
+   that forgot a max-width) turns into a sideways bounce the user can
+   trigger, not just a visual glitch caught by scrolling deliberately. Two
+   layers: the browser's own elastic overscroll is told not to fire
+   sideways, and overflow-x is cut off as a hard backstop regardless. */
+html { background:#F3F1F5; color-scheme:light; overflow-x:hidden; overscroll-behavior-x:none; }
 html[data-mode="dark"] { background:#17131D; color-scheme:dark; }
-body { background:inherit; }
+body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-width:100vw; }
 
 /* ---------- light (normal) ---------- */
 .wp-root {
