@@ -202,6 +202,18 @@ instant, built from `start_date` plus `elapsed_time` — so the two fields in th
 same object are handled by deliberately opposite rules. Neither should be
 "corrected" to match the other.
 
+**Home screen widget.** iOS has no way for a web app, even one installed to
+the home screen, to have a real WidgetKit widget — that needs a native
+companion app. The workaround is `app/api/widget/streak`, a single endpoint
+returning the clear streak as JSON, called from an iOS Shortcut whose result
+is shown by the Shortcuts app's own home-screen widget. Not push, not
+live — Shortcuts widgets refresh on the OS's own schedule (a few times a
+day, or on demand by opening the Shortcut). Auth is a fixed bearer token
+rather than a real session, since Shortcuts can't run this app's login flow;
+acceptable for one endpoint on a single-user app. The streak math itself
+(`clearStreak` in `components/helpers.ts`) is shared with Statistics rather
+than duplicated, so the widget can't drift from what the app itself shows.
+
 ## Working agreements
 
 - Small commits, one concern each.

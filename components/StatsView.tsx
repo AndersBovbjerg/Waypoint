@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Activity, ColoredProject, Session } from "./types";
-import { fmtDuration, shiftKey } from "./helpers";
+import { clearStreak, fmtDuration } from "./helpers";
 import { Kpi } from "./shared";
 import { ProjectIcon } from "./identity";
 import { buildEffortSeries } from "./effort";
@@ -125,24 +125,7 @@ export function StatsView({
     }).total;
   });
 
-  const streak = useMemo(() => {
-    let count = 0;
-    let k = today;
-    const todayItems = activities.filter((a) => a.date === today);
-    if (todayItems.length > 0 && !todayItems.every((a) => a.done)) k = shiftKey(today, -1);
-    for (let i = 0; i < 400; i++) {
-      const items = activities.filter((a) => a.date === k);
-      if (items.length === 0) {
-        k = shiftKey(k, -1);
-        continue;
-      }
-      if (items.every((a) => a.done)) {
-        count++;
-        k = shiftKey(k, -1);
-      } else break;
-    }
-    return count;
-  }, [activities, today]);
+  const streak = useMemo(() => clearStreak(activities, today), [activities, today]);
 
   return (
     <div className="wp-stack">

@@ -44,6 +44,17 @@ exercised end to end. Treat it as unproven until a real run has landed.
   anyone who opened devtools. The webhook subscription itself is registered
   once by hand against Strava's `push_subscriptions` endpoint after the
   routes are deployed; it cannot point at localhost.
+- **Widget env vars, not yet set anywhere:** `WIDGET_API_TOKEN` (any random
+  string — it's a shared secret, not a real auth flow, which is fine for one
+  endpoint on a single-user app with no public sign-up) and `WIDGET_USER_ID`
+  (the Supabase auth user id, from Dashboard → Authentication → Users).
+  `app/api/widget/streak` reuses `SUPABASE_SERVICE_ROLE_KEY` above — no new
+  Supabase-side setup needed, just the two new env vars. Feeds an iOS
+  Shortcuts home-screen widget; the `today` it's called with must come from
+  the phone (`?today=YYYY-MM-DD`), never computed from the server's clock —
+  same local-date rule as everywhere else in this app, and getting it backwards
+  here specifically would read as a broken streak in the evening for anyone
+  east of UTC.
 - **Unfinished housekeeping:** two stray Vercel projects (`waypoint-vbue`,
   `waypoint-vxdj`) were created by a duplicate GitHub import and were never
   confirmed deleted — worth checking before they cause confusion about which

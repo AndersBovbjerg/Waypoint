@@ -29,6 +29,31 @@ export const shiftKey = (k: string, n: number) => {
   d.setDate(d.getDate() + n);
   return keyOf(d);
 };
+/* Consecutive days, going back from today, where every planned activity was
+   cleared. A day with nothing planned is skipped rather than breaking the
+   streak. If today still has open items, the count starts from yesterday —
+   today is still in progress, not yet a miss. Pulled out of StatsView so the
+   streak widget endpoint computes the exact same number the app shows,
+   never a second implementation that can quietly drift from the first. */
+export function clearStreak(activities: { date: string; done: boolean }[], today: string): number {
+  let count = 0;
+  let k = today;
+  const todayItems = activities.filter((a) => a.date === today);
+  if (todayItems.length > 0 && !todayItems.every((a) => a.done)) k = shiftKey(today, -1);
+  for (let i = 0; i < 400; i++) {
+    const items = activities.filter((a) => a.date === k);
+    if (items.length === 0) {
+      k = shiftKey(k, -1);
+      continue;
+    }
+    if (items.every((a) => a.done)) {
+      count++;
+      k = shiftKey(k, -1);
+    } else break;
+  }
+  return count;
+}
+
 export const fmtLong = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 export const fmtShort = (k: string) =>
