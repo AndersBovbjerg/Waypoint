@@ -1,11 +1,18 @@
 import { adminConfigured, getSupabaseAdmin } from "@/components/supabase-admin";
-import { clearStreak } from "@/components/helpers";
+import { engagementStreak } from "@/components/helpers";
 
 /* Feeds an iOS Shortcuts home-screen widget. There's no Supabase session to
    check here — Shortcuts can't run the browser's login flow — so this is
    gated by a fixed bearer token instead (WIDGET_API_TOKEN) and scoped to one
    hardcoded user (WIDGET_USER_ID), which is fine for an app with exactly one
-   account and no public sign-up. Not a pattern to reach for if that changes. */
+   account and no public sign-up. Not a pattern to reach for if that changes.
+
+   Deliberately not the same "clear streak" Statistics shows — that one skips
+   days with nothing planned rather than breaking on them, which is right for
+   reviewing history but wrong here: it would leave a widget meant to nudge
+   daily use sitting frozen on an old number through days of not opening the
+   app at all. engagementStreak (helpers.ts) breaks to 0 on a truly empty day
+   instead. */
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -75,7 +82,7 @@ export async function GET(request: Request) {
       return Response.json({ error: error.message }, { status: 500 });
     }
 
-    const streak = clearStreak(data, today);
+    const streak = engagementStreak(data, today);
     return Response.json({ streak });
   } catch (e) {
     return Response.json(

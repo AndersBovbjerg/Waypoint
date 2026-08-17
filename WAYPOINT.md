@@ -210,9 +210,17 @@ is shown by the Shortcuts app's own home-screen widget. Not push, not
 live — Shortcuts widgets refresh on the OS's own schedule (a few times a
 day, or on demand by opening the Shortcut). Auth is a fixed bearer token
 rather than a real session, since Shortcuts can't run this app's login flow;
-acceptable for one endpoint on a single-user app. The streak math itself
-(`clearStreak` in `components/helpers.ts`) is shared with Statistics rather
-than duplicated, so the widget can't drift from what the app itself shows.
+acceptable for one endpoint on a single-user app.
+
+The widget deliberately does *not* use Statistics' `clearStreak`. That one
+skips a day with nothing planned rather than breaking on it — right for
+reviewing history, wrong for a widget meant to pull you back in: it would
+sit frozen on an old number through days of not opening the app at all,
+found the hard way when it kept reading "4" after nearly a week untouched.
+`engagementStreak`, its stricter sibling in the same file, breaks to 0 on a
+genuinely empty day instead. Both still give today the same grace — still
+in progress, not yet a miss — so a same-day partial doesn't zero out a real
+streak before the day is over.
 
 ## Working agreements
 

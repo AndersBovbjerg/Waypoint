@@ -32,9 +32,9 @@ export const shiftKey = (k: string, n: number) => {
 /* Consecutive days, going back from today, where every planned activity was
    cleared. A day with nothing planned is skipped rather than breaking the
    streak. If today still has open items, the count starts from yesterday —
-   today is still in progress, not yet a miss. Pulled out of StatsView so the
-   streak widget endpoint computes the exact same number the app shows,
-   never a second implementation that can quietly drift from the first. */
+   today is still in progress, not yet a miss. Used by Statistics, where the
+   point is "did you follow through on what you planned" — a day you never
+   scheduled anything shouldn't read as a failure when looking back. */
 export function clearStreak(activities: { date: string; done: boolean }[], today: string): number {
   let count = 0;
   let k = today;
@@ -50,6 +50,30 @@ export function clearStreak(activities: { date: string; done: boolean }[], today
       count++;
       k = shiftKey(k, -1);
     } else break;
+  }
+  return count;
+}
+
+/* A stricter cousin of clearStreak, for the home-screen widget only: a day
+   with nothing logged ENDS the streak instead of being skipped over. The
+   whole point of a "don't break the chain" widget is to make inactivity
+   visible — clearStreak's leniency (right for reviewing history in
+   Statistics) would otherwise leave the widget frozen on an old number
+   through days of not opening the app at all, which is exactly backwards
+   for something meant to pull you back in. Today itself still gets the same
+   grace as clearStreak: still in progress, not yet a miss, so an empty or
+   partly-done today doesn't zero out a real streak before the day is over. */
+export function engagementStreak(activities: { date: string; done: boolean }[], today: string): number {
+  const todayItems = activities.filter((a) => a.date === today);
+  const todayDone = todayItems.length > 0 && todayItems.every((a) => a.done);
+
+  let count = todayDone ? 1 : 0;
+  let k = shiftKey(today, -1);
+  for (let i = 0; i < 400; i++) {
+    const items = activities.filter((a) => a.date === k);
+    if (items.length === 0 || !items.every((a) => a.done)) break;
+    count++;
+    k = shiftKey(k, -1);
   }
   return count;
 }
