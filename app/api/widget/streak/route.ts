@@ -47,11 +47,22 @@ export async function GET(request: Request) {
        UTC, and this app's one hard rule (see WAYPOINT.md) is that a local
        day is never derived from a UTC instant — an evening request from
        Denmark could otherwise land on tomorrow. Shortcuts can format
-       "Current Date" as Y-M-D locally, so the caller supplies it instead. */
-    const today = url.searchParams.get("today");
+       "Current Date" as Y-M-D locally, so the caller supplies it instead.
+
+       Sliced to the first 10 characters rather than matched exactly — the
+       same leniency the Strava webhook uses on start_date_local — so an
+       iOS date format that comes through as a full timestamp
+       ("2026-08-18T21:04:00+02:00", say, from an ISO 8601 preset instead of
+       a custom yyyy-MM-dd one) still works instead of being rejected on a
+       technicality the caller can't easily see. */
+    const raw = url.searchParams.get("today");
+    const today = raw?.slice(0, 10);
     if (!today || !DATE_RE.test(today)) {
       return Response.json(
-        { error: "Missing or malformed ?today=YYYY-MM-DD — pass the phone's local date." },
+        {
+          error: "Missing or malformed ?today=YYYY-MM-DD — pass the phone's local date.",
+          received: raw,
+        },
         { status: 400 }
       );
     }
