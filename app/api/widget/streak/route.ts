@@ -19,8 +19,16 @@ export async function GET(request: Request) {
     );
   }
 
+  const url = new URL(request.url);
+  /* The header is the "real" way in, but Shortcuts' Headers UI is an easy
+     place to get subtly wrong (autocapitalization, a stray space) with no
+     way to see what was actually sent. A query param is a fallback that can
+     be tested by pasting one URL straight into Safari — that isolates a
+     wrong token/user-id (still fails there) from a broken Shortcut (works
+     there, fails from Shortcuts). */
   const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${token}`) {
+  const queryToken = url.searchParams.get("token");
+  if (auth !== `Bearer ${token}` && queryToken !== token) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,7 +37,7 @@ export async function GET(request: Request) {
      is never derived from a UTC instant — an evening request from Denmark
      could otherwise land on tomorrow. Shortcuts can format "Current Date" as
      Y-M-D locally, so the caller supplies it instead. */
-  const today = new URL(request.url).searchParams.get("today");
+  const today = url.searchParams.get("today");
   if (!today || !DATE_RE.test(today)) {
     return Response.json(
       { error: "Missing or malformed ?today=YYYY-MM-DD — pass the phone's local date." },
