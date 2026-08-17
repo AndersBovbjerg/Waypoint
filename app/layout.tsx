@@ -23,6 +23,16 @@ export const metadata: Metadata = {
    browser choosing between two answers by media query, and the wrong one wins. */
 export const viewport: Viewport = {
   colorScheme: "light dark",
+  /* Without this, iOS treats the safe areas (the notch/Dynamic Island strip
+     up top, the home-indicator strip at the bottom) as outside the page
+     entirely and paints them itself — a plain white band, regardless of the
+     app's own light/dark background. "cover" hands that whole area to the
+     page instead, so html/body's own background (already theme-aware, see
+     globals.css) reaches the true edge of the screen and the strip reads as
+     part of the app rather than a seam around it. The bottom tab bar's own
+     safe-area padding (Waypoint.tsx / globals.css) is what keeps its buttons
+     clear of the home indicator once the page owns that space. */
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

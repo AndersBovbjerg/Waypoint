@@ -103,7 +103,12 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
   font-size:11px; font-weight:600; padding:6px 2px; }
 .wp-tabbar-btn.is-on { color:var(--accent); }
 
-.wp-main { max-width:1000px; margin:0 auto; padding:var(--sp-6) var(--sp-4) calc(64px + var(--sp-6)); }
+/* The 64px is the tab bar's own min-height; its safe-area padding wasn't
+   additive until viewport-fit=cover made that env() value real instead of an
+   always-0 no-op, so it has to be added here too or a phone with a home
+   indicator clips the last ~34px of every scrollable view under the bar. */
+.wp-main { max-width:1000px; margin:0 auto;
+  padding:var(--sp-6) var(--sp-4) calc(64px + var(--sp-6) + env(safe-area-inset-bottom, 0px)); }
 .wp-stack { display:flex; flex-direction:column; gap:var(--sp-5); }
 .wp-grid-2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:var(--sp-5); }
 
