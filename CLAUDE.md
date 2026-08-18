@@ -45,6 +45,20 @@ exercised end to end. Treat it as unproven until a real run has landed.
   unconditionally, with no feature flag around it, so deploying it before
   the migration ran wouldn't have left one feature dark, it would have
   broken the entire app's load for the live user.
+  **`migration-phase-5-fix-recurring-conflict.sql` has NOT been run** —
+  found the hard way: recurring activities silently generated zero rows,
+  ever, not even for today, because `activities_external_unique` was a
+  *partial* index (`where external_id is not null`) and Postgres refuses
+  to match a plain `ON CONFLICT (user_id, source, external_id)` against a
+  partial index without repeating its WHERE clause — which supabase-js's
+  `.upsert({onConflict})` has no way to express. Every materialization
+  attempt failed with "no unique or exclusion constraint matching the ON
+  CONFLICT specification," caught by `Waypoint.tsx`'s own try/catch, so it
+  never surfaced as anything louder than a console warning. This also
+  silently affects Strava's webhook the moment that's re-enabled — same
+  upsert pattern, same index. The fix replaces the partial index with a
+  plain one on the same three columns; confirmed safe against the live
+  data (zero existing rows have a non-null `external_id` to conflict).
 - **Strava env vars, not yet set anywhere:** `STRAVA_CLIENT_ID`,
   `STRAVA_CLIENT_SECRET`, `STRAVA_WEBHOOK_VERIFY_TOKEN` and
   `SUPABASE_SERVICE_ROLE_KEY`, all server-only — the last one bypasses row
