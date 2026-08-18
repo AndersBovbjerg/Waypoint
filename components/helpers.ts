@@ -78,6 +78,76 @@ export function engagementStreak(activities: { date: string; done: boolean }[], 
   return count;
 }
 
+/* Monday=0..Sunday=6 — this app's own convention, matching the Monday-first
+   calendar grid. Never JS's native Date.getDay() (0=Sunday) on its own; that
+   would silently disagree with every other day-of-week idea in this app. */
+export const weekdayIndex = (k: string): number => (fromKey(k).getDay() + 6) % 7;
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export const formatWeekdays = (days: number[]): string =>
+  [...days]
+    .sort((a, b) => a - b)
+    .map((d) => WEEKDAY_LABELS[d])
+    .join(", ");
+
+interface RecurringRuleLike {
+  id: string;
+  projectId: string;
+  title: string;
+  weekdays: number[];
+  active: boolean;
+  /* a date key, not an instant — see toRecurring in db.ts */
+  createdAt: string;
+}
+
+interface PendingRecurring {
+  ruleId: string;
+  projectId: string;
+  title: string;
+  date: string;
+  externalId: string;
+}
+
+/* Which recurring rows are missing from the window around today, and need to
+   be created. Pure and DB-free on purpose — every date computation in it is
+   the same string arithmetic as the rest of this file, so it gets the same
+   throwaway-test treatment before being wired to a real upsert.
+
+   Two things keep this honest rather than just convenient:
+   - it walks *backward* too, not just from today forward, so a rule's actual
+     history exists even after days the app wasn't opened at all — that's
+     what makes the streak and the weekly review a true record instead of
+     "whatever got logged."
+   - a rule is never backfilled before its own createdAt: a rule added today
+     shouldn't retroactively invent a plan for last Monday, when it did not
+     yet exist to be planned.
+
+   existingExternalIds is a Set of `${ruleId}_${date}` already present in
+   `activities.external_id` — checked here as a cheap client-side skip (the
+   unique index plus ignoreDuplicates is still what makes writing this
+   list actually safe; this is just why the list stays small). */
+export function pendingRecurringDates(
+  rules: RecurringRuleLike[],
+  existingExternalIds: ReadonlySet<string>,
+  today: string,
+  backDays = 14,
+  fwdDays = 7
+): PendingRecurring[] {
+  const out: PendingRecurring[] = [];
+  for (const rule of rules) {
+    if (!rule.active) continue;
+    for (let offset = -backDays; offset <= fwdDays; offset++) {
+      const date = shiftKey(today, offset);
+      if (date < rule.createdAt) continue;
+      if (!rule.weekdays.includes(weekdayIndex(date))) continue;
+      const externalId = `${rule.id}_${date}`;
+      if (existingExternalIds.has(externalId)) continue;
+      out.push({ ruleId: rule.id, projectId: rule.projectId, title: rule.title, date, externalId });
+    }
+  }
+  return out;
+}
+
 export const fmtLong = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 export const fmtShort = (k: string) =>

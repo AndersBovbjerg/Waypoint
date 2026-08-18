@@ -7,12 +7,13 @@ import type {
   Mode,
   Project,
   ProjectStatus,
+  RecurringActivity,
   Session,
   TimerSettings,
   WaypointItem,
 } from "./types";
 import { DEFAULT_TIMER } from "./store";
-import { fromKey, keyOf } from "./helpers";
+import { fromKey, keyOf, uid } from "./helpers";
 import { getSupabase } from "./supabase";
 
 /* ------------------------------------------------------------------
@@ -73,6 +74,7 @@ interface ActivityRow {
   done: boolean;
   done_at: string | null;
   source?: string | null;
+  external_id?: string | null;
   distance_m?: number | null;
   moving_time_s?: number | null;
   elapsed_time_s?: number | null;
@@ -80,6 +82,15 @@ interface ActivityRow {
   max_hr?: number | null;
   elevation_gain_m?: number | null;
   activity_type?: string | null;
+}
+
+interface RecurringRow {
+  id: string;
+  project_id: string;
+  title: string;
+  weekdays: number[];
+  active: boolean;
+  created_at: string;
 }
 
 interface SessionRow {
@@ -151,6 +162,7 @@ const toActivity = (r: ActivityRow): Activity => ({
   done: r.done,
   doneAt: r.done_at,
   source: r.source ?? "manual",
+  externalId: r.external_id ?? null,
   distanceM: r.distance_m ?? null,
   movingTimeS: r.moving_time_s ?? null,
   elapsedTimeS: r.elapsed_time_s ?? null,
@@ -169,6 +181,18 @@ const toSession = (r: SessionRow): Session => ({
   endedAt: r.ended_at,
   minutes: r.minutes,
   completed: r.completed,
+});
+
+/* created_at is an instant; converted to a local day key on the way in for
+   the same reason projects.created is — pendingRecurringDates compares it
+   against other date keys as a plain string, never through Date again. */
+const toRecurring = (r: RecurringRow): RecurringActivity => ({
+  id: r.id,
+  projectId: r.project_id,
+  title: r.title,
+  weekdays: r.weekdays,
+  active: r.active,
+  createdAt: keyOf(new Date(r.created_at)),
 });
 
 /* ---------- app → row ---------- */
@@ -221,18 +245,26 @@ function check(error: { message: string } | null, doing: string): void {
 
 export async function loadAll(userId: string): Promise<AppData> {
   const db = getSupabase();
-  const [projects, waypoints, activities, sessions, goalEntries, prefs] = await Promise.all([
-    db.from("projects").select("*").order("created_at", { ascending: true }),
-    db.from("waypoints").select("*").order("position", { ascending: true }),
-    db.from("activities").select("*").order("date", { ascending: true }),
-    db.from("sessions").select("*").order("started_at", { ascending: true }),
-    db.from("goal_entries").select("*").order("date", { ascending: true }),
-    db.from("prefs").select("mode, review_seen, timer").eq("user_id", userId).maybeSingle(),
-  ]);
+  const [projects, waypoints, activities, recurring, sessions, goalEntries, prefs] =
+    await Promise.all([
+      db.from("projects").select("*").order("created_at", { ascending: true }),
+      db.from("waypoints").select("*").order("position", { ascending: true }),
+      db.from("activities").select("*").order("date", { ascending: true }),
+      db.from("recurring_activities").select("*").order("created_at", { ascending: true }),
+      db.from("sessions").select("*").order("started_at", { ascending: true }),
+      db.from("goal_entries").select("*").order("date", { ascending: true }),
+      db.from("prefs").select("mode, review_seen, timer").eq("user_id", userId).maybeSingle(),
+    ]);
 
   check(projects.error, "load your projects");
   check(waypoints.error, "load your waypoints");
   check(activities.error, "load your activities");
+  /* Unlike Strava, there's no flag gating this — recurring_activities is
+     queried on every load, not behind a toggle, so unlike Strava's rollout
+     this one genuinely cannot deploy before migration-phase-4-recurring.sql
+     has been run. A missing table here fails the whole app's load, not just
+     one feature. */
+  check(recurring.error, "load your recurring activities");
   check(sessions.error, "load your focus sessions");
   check(goalEntries.error, "load your goal readings");
   check(prefs.error, "load your preferences");
@@ -252,6 +284,7 @@ export async function loadAll(userId: string): Promise<AppData> {
       toProject(r, byProject.get(r.id) ?? [])
     ),
     activities: ((activities.data ?? []) as ActivityRow[]).map(toActivity),
+    recurringActivities: ((recurring.data ?? []) as RecurringRow[]).map(toRecurring),
     sessions: ((sessions.data ?? []) as SessionRow[]).map(toSession),
     goalEntries: ((goalEntries.data ?? []) as GoalEntryRow[]).map(toGoalEntry),
     timer: { ...DEFAULT_TIMER, ...(p?.timer ?? {}) },
@@ -334,6 +367,81 @@ export async function setActivityDone(id: string, done: boolean, doneAt: string 
 export async function deleteActivity(id: string) {
   const db = getSupabase();
   check((await db.from("activities").delete().eq("id", id)).error, "delete the activity");
+}
+
+/* ---------- recurring activities ---------- */
+
+export async function addRecurring(r: RecurringActivity, userId: string) {
+  const db = getSupabase();
+  check(
+    (
+      await db.from("recurring_activities").insert({
+        id: r.id,
+        user_id: userId,
+        project_id: r.projectId,
+        title: r.title,
+        weekdays: r.weekdays,
+        active: r.active,
+        created_at: fromKey(r.createdAt).toISOString(),
+      })
+    ).error,
+    "add the recurring activity"
+  );
+}
+
+export async function setRecurringWeekdays(id: string, weekdays: number[]) {
+  const db = getSupabase();
+  check(
+    (await db.from("recurring_activities").update({ weekdays }).eq("id", id)).error,
+    "update the recurring activity"
+  );
+}
+
+export async function setRecurringActive(id: string, active: boolean) {
+  const db = getSupabase();
+  check(
+    (await db.from("recurring_activities").update({ active }).eq("id", id)).error,
+    active ? "reactivate the recurring activity" : "pause the recurring activity"
+  );
+}
+
+export async function deleteRecurring(id: string) {
+  const db = getSupabase();
+  check(
+    (await db.from("recurring_activities").delete().eq("id", id)).error,
+    "delete the recurring activity"
+  );
+}
+
+/* Turns pendingRecurringDates' candidates into real activity rows. Written
+   with ignoreDuplicates rather than a plain insert: two tabs open at once,
+   or this running twice in a race, must never be able to touch a row that
+   already exists — Postgres does ON CONFLICT DO NOTHING, so `.select()`
+   returns only what was genuinely just inserted, and anything already there
+   (including one already checked off) is left completely alone. */
+export async function materializeRecurring(
+  candidates: { ruleId: string; projectId: string; title: string; date: string; externalId: string }[],
+  userId: string
+): Promise<Activity[]> {
+  if (candidates.length === 0) return [];
+  const db = getSupabase();
+  const rows = candidates.map((c) => ({
+    id: uid(),
+    user_id: userId,
+    project_id: c.projectId,
+    title: c.title,
+    date: c.date,
+    done: false,
+    done_at: null,
+    source: "recurring",
+    external_id: c.externalId,
+  }));
+  const { data, error } = await db
+    .from("activities")
+    .upsert(rows, { onConflict: "user_id,source,external_id", ignoreDuplicates: true })
+    .select();
+  check(error, "generate today's recurring activities");
+  return ((data ?? []) as ActivityRow[]).map(toActivity);
 }
 
 /* ---------- sessions ---------- */

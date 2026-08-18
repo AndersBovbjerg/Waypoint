@@ -37,6 +37,14 @@ exercised end to end. Treat it as unproven until a real run has landed.
   feature works until it is. Any new schema change needs a new migration file,
   applied by the user in the Supabase SQL editor — never assume a column
   exists without checking.
+  `migration-phase-4-recurring.sql` (the `recurring_activities` table) **has
+  been run** — confirmed directly against the live database (a real
+  `select` against the table, not just "the user said so") before this
+  shipped. Worth knowing for next time: this one was a harder blocker than
+  Strava's ever is — `db.loadAll` queries this table on every single load,
+  unconditionally, with no feature flag around it, so deploying it before
+  the migration ran wouldn't have left one feature dark, it would have
+  broken the entire app's load for the live user.
 - **Strava env vars, not yet set anywhere:** `STRAVA_CLIENT_ID`,
   `STRAVA_CLIENT_SECRET`, `STRAVA_WEBHOOK_VERIFY_TOKEN` and
   `SUPABASE_SERVICE_ROLE_KEY`, all server-only — the last one bypasses row

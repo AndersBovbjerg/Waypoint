@@ -20,8 +20,8 @@ change is where the data lives.
 
 ## Data model
 
-See `schema.sql`. Seven tables: `projects`, `waypoints`, `activities`, `sessions`,
-`goal_entries`, `prefs`, `strava_tokens`.
+See `schema.sql`. Eight tables: `projects`, `waypoints`, `activities`, `sessions`,
+`goal_entries`, `prefs`, `strava_tokens`, `recurring_activities`.
 All protected by row level security keyed on `auth.uid()`.
 
 Field notes that are easy to get wrong:
@@ -60,6 +60,29 @@ measured. There is no direction field: a target below the start counts downwards
 which is true of a race time and false of revenue, and a derived answer cannot
 contradict the numbers it describes. Waypoints add, tick, delete. Archive and reactivate. Delete with an inline
 confirm, which cascades to that project's activities.
+
+**Recurring activities** — a project can carry a standing rule ("Gym,
+Mon/Wed/Fri") instead of, or alongside, one-off dated activities. On load,
+the app turns active rules into real `activities` rows for a window around
+today — 14 days back, 7 days ahead — so upcoming recurring days already show
+in "Next seven days," not just on the morning they happen. Written with
+`source = 'recurring'`, `external_id = '<rule_id>_<date>'`, reusing the same
+unique index and dedup pattern as Strava and the paste-importer.
+
+The backward half of that window is the part worth understanding: it
+**backfills honestly**. If the app goes unopened for a few days, those days
+are still materialized as "planned" once it's opened again — a genuinely
+skipped gym day reads as missed, not as a day nothing was scheduled, because
+`clearStreak`/`engagementStreak` and the weekly review are only a true
+record if a day that had a plan is never quietly rewritten into a day that
+didn't. Capped at 14 days so a long absence doesn't dump months of stale
+misses at once, and never before a rule's own `created_at` — a rule added
+today can't invent a plan for last week.
+
+A rule and what it generates are decoupled once created. Turning off a
+weekday, pausing the whole rule, or deleting one generated day only ever
+affects what happens *next* — already-materialized rows are never touched,
+the same principle as archiving a project rather than deleting it.
 
 **Calendar** — Monday-first month grid. One dot per activity in its project's colour:
 outlined = planned, filled = cleared. A day where everything is cleared gets a tinted

@@ -73,6 +73,34 @@ export interface Activity {
   maxHr?: number | null;
   elevationGainM?: number | null;
   activityType?: string | null;
+  /* the dedupe key from source imports (Strava, recurring) — undefined on a
+     plain manual activity, which has no external system to key against */
+  externalId?: string | null;
+}
+
+/* A standing rule — "Gym, Mon/Wed/Fri" — rather than a dated activity.
+   Materialized into real `activities` rows around today (see
+   pendingRecurringDates in helpers.ts); the rule itself is never shown on
+   the calendar or counted in any streak, only what it generates is. */
+export interface RecurringActivity {
+  id: string;
+  projectId: string;
+  title: string;
+  /* 0=Monday..6=Sunday — see weekdayIndex in helpers.ts */
+  weekdays: number[];
+  /* false stops future materialization; past instances are untouched,
+     same principle as archiving a project rather than deleting it */
+  active: boolean;
+  /* a date key, not an instant — the day before which nothing is ever
+     backfilled, so a rule added today can't invent a plan for last week */
+  createdAt: string;
+}
+
+/* The shape passed to the add-recurring handler before an id is assigned. */
+export interface NewRecurringActivity {
+  projectId: string;
+  title: string;
+  weekdays: number[];
 }
 
 /* ---------- focus timer ---------- */
@@ -137,6 +165,7 @@ export interface AppData {
   mode: Mode;
   projects: Project[];
   activities: Activity[];
+  recurringActivities: RecurringActivity[];
   sessions: Session[];
   goalEntries: GoalEntry[];
   timer: TimerSettings;

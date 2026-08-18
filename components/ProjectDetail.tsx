@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp } from "lucide-react";
-import type { Activity, ColoredProject, GoalEntry, NewActivity } from "./types";
+import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp, Repeat, Pause, Play } from "lucide-react";
+import type { Activity, ColoredProject, GoalEntry, NewActivity, NewRecurringActivity, RecurringActivity } from "./types";
 import { GoalMeter } from "./shared";
 import { ProjectIcon } from "./identity";
 import { formatDelta, deltaIsGood, formatGoalValue, parseGoalValue } from "./goal";
-import { fmtShort, pad, shiftKey } from "./helpers";
+import { fmtShort, formatWeekdays, pad, shiftKey } from "./helpers";
+
+const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const DAY_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export function ProjectDetail({
   project,
   activities,
+  recurring,
   goalEntries,
   today,
   onBack,
@@ -17,6 +21,9 @@ export function ProjectDetail({
   onAddWaypoint,
   onRemoveWaypoint,
   onAddActivity,
+  onAddRecurring,
+  onSetRecurringActive,
+  onRemoveRecurring,
   onToggleActivity,
   onRemoveActivity,
   onAddGoalEntry,
@@ -24,6 +31,7 @@ export function ProjectDetail({
 }: {
   project: ColoredProject;
   activities: Activity[];
+  recurring: RecurringActivity[];
   goalEntries: GoalEntry[];
   today: string;
   onBack: () => void;
@@ -32,6 +40,9 @@ export function ProjectDetail({
   onAddWaypoint: (pid: string, title: string, due: string) => void;
   onRemoveWaypoint: (pid: string, wid: string) => void;
   onAddActivity: (a: NewActivity) => void;
+  onAddRecurring: (r: NewRecurringActivity) => void;
+  onSetRecurringActive: (id: string, active: boolean) => void;
+  onRemoveRecurring: (id: string) => void;
   onToggleActivity: (id: string) => void;
   onRemoveActivity: (id: string) => void;
   onAddGoalEntry: (projectId: string, value: number) => void;
@@ -41,6 +52,11 @@ export function ProjectDetail({
   const [wDue, setWDue] = useState(shiftKey(today, 14));
   const [aTitle, setATitle] = useState("");
   const [aDate, setADate] = useState(today);
+  /* Recurring swaps what the same add-row's date field means, rather than
+     being a second form — the user's own framing: check a box, and the date
+     picker becomes a day-of-week picker. */
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [rWeekdays, setRWeekdays] = useState<number[]>([]);
   const [reading, setReading] = useState("");
 
   const sorted = [...activities].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -239,19 +255,80 @@ export function ProjectDetail({
             ))}
           </ul>
         )}
+
+        {recurring.length > 0 && (
+          <ul className="wp-list">
+            {recurring.map((r) => (
+              <li key={r.id} className={`wp-row${r.active ? "" : " is-paused"}`}>
+                <Repeat size={14} className="wp-muted" aria-hidden="true" />
+                <span className="wp-row-title">{r.title}</span>
+                <span className="wp-mono wp-muted">{formatWeekdays(r.weekdays)}</span>
+                <button
+                  className="wp-icon"
+                  onClick={() => onSetRecurringActive(r.id, !r.active)}
+                  aria-label={r.active ? `Pause ${r.title}` : `Resume ${r.title}`}
+                  title={r.active ? "Pause — stops appearing on new days" : "Resume"}
+                >
+                  {r.active ? <Pause size={14} /> : <Play size={14} />}
+                </button>
+                <button
+                  className="wp-icon"
+                  onClick={() => onRemoveRecurring(r.id)}
+                  aria-label={`Delete the recurring rule for ${r.title}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <div className="wp-addrow">
           <input
             className="wp-input"
-            placeholder="Add an activity"
+            placeholder={isRecurring ? "Title, e.g. Gym" : "Add an activity"}
             value={aTitle}
             onChange={(e) => setATitle(e.target.value)}
           />
-          <input className="wp-input wp-mono" type="date" value={aDate} onChange={(e) => setADate(e.target.value)} />
+          {isRecurring ? (
+            <div className="wp-daypills">
+              {DAY_LABELS.map((label, i) => (
+                <button
+                  key={label}
+                  className={`wp-daypill${rWeekdays.includes(i) ? " is-on" : ""}`}
+                  onClick={() =>
+                    setRWeekdays((d) => (d.includes(i) ? d.filter((x) => x !== i) : [...d, i]))
+                  }
+                  aria-pressed={rWeekdays.includes(i)}
+                  aria-label={DAY_FULL[i]}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <input className="wp-input wp-mono" type="date" value={aDate} onChange={(e) => setADate(e.target.value)} />
+          )}
+          <button
+            className={`wp-btn${isRecurring ? " is-on" : ""}`}
+            onClick={() => setIsRecurring((v) => !v)}
+            aria-pressed={isRecurring}
+            title="Recurring — repeats on chosen weekdays instead of one date"
+          >
+            <Repeat size={14} /> Recurring
+          </button>
           <button
             className="wp-btn wp-btn-solid"
+            disabled={!aTitle.trim() || (isRecurring && rWeekdays.length === 0)}
             onClick={() => {
               if (!aTitle.trim()) return;
-              onAddActivity({ projectId: project.id, title: aTitle.trim(), date: aDate });
+              if (isRecurring) {
+                if (rWeekdays.length === 0) return;
+                onAddRecurring({ projectId: project.id, title: aTitle.trim(), weekdays: rWeekdays });
+                setRWeekdays([]);
+              } else {
+                onAddActivity({ projectId: project.id, title: aTitle.trim(), date: aDate });
+              }
               setATitle("");
             }}
           >

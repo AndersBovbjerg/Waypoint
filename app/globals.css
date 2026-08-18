@@ -280,6 +280,21 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-btn:hover { background:var(--ink); color:var(--paper); }
 .wp-btn-solid { background:var(--ink); color:var(--paper); }
 .wp-btn-solid:hover { background:var(--accent); border-color:var(--accent); color:var(--tick); }
+/* a plain .wp-btn used as a toggle (Recurring on the add-row) rather than an
+   action — same filled treatment as .wp-segbtn.is-on, so "this is currently
+   on" reads the same way everywhere it appears */
+.wp-btn.is-on { background:var(--ink); color:var(--paper); }
+
+/* Seven buttons in one row hits the same width math as the calendar's own
+   seven columns — flex:1 + no fixed min-width is what keeps them from
+   forcing an overflow on a 380px phone, same fix, same reason. */
+.wp-daypills { display:flex; gap:4px; flex:1; min-width:0; }
+.wp-daypill { flex:1; min-width:0; min-height:44px; border:1px solid var(--rule); border-radius:var(--r-sm);
+  background:var(--field); color:var(--muted); font-family:var(--body); font-size:var(--fs-1); font-weight:700;
+  padding:0; }
+.wp-daypill.is-on { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+.wp-row.is-paused { opacity:.55; }
 .wp-btn-accent { background:var(--accent); color:var(--tick); border-color:var(--accent); }
 .wp-btn-accent:hover { opacity:.9; }
 .wp-btn-ghost { background:none; border-color:transparent; color:var(--muted); }

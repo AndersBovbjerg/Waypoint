@@ -7,6 +7,7 @@ import type {
   Activity,
   ColoredProject,
   NewActivity,
+  NewRecurringActivity,
   Project,
   ProjectStatus,
   GoalEntry,
@@ -14,7 +15,7 @@ import type {
   TimerSettings,
   WaypointItem,
 } from "./types";
-import { PALETTES, shiftKey, uid } from "./helpers";
+import { PALETTES, pendingRecurringDates, shiftKey, todayKey, uid } from "./helpers";
 import { DEFAULT_TIMER } from "./store";
 import * as db from "./db";
 import { useToday, useMinuteTick } from "./useToday";
@@ -52,6 +53,7 @@ const EMPTY: AppData = {
   mode: "light",
   projects: [],
   activities: [],
+  recurringActivities: [],
   sessions: [],
   goalEntries: [],
   timer: DEFAULT_TIMER,
@@ -109,6 +111,26 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
            account. An empty account starts empty; the empty states already
            invite the first move. */
         const loaded = await db.loadAll(userId);
+        if (!alive) return;
+
+        /* Turning recurring rules into today's (and the next week's, and any
+           genuinely missed) activity rows, before the first paint — so
+           there's never a flash of an empty Today that then pops in a
+           moment later. Its own try/catch: a hiccup here shouldn't block the
+           rest of the app from showing data that already loaded fine. */
+        try {
+          const existingExternalIds = new Set(
+            loaded.activities
+              .filter((a) => a.source === "recurring" && a.externalId)
+              .map((a) => a.externalId as string)
+          );
+          const pending = pendingRecurringDates(loaded.recurringActivities, existingExternalIds, todayKey());
+          const created = await db.materializeRecurring(pending, userId);
+          if (created.length) loaded.activities = [...loaded.activities, ...created];
+        } catch (e) {
+          console.warn("Could not generate recurring activities:", e);
+        }
+
         if (!alive) return;
         dataRef.current = loaded;
         setData(loaded);
@@ -286,6 +308,29 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
     mutate(
       (d) => ({ ...d, activities: d.activities.filter((a) => a.id !== id) }),
       () => db.deleteActivity(id)
+    );
+
+  const addRecurring = (r: NewRecurringActivity) => {
+    const row = { id: uid(), active: true, createdAt: todayKey(), ...r };
+    mutate(
+      (d) => ({ ...d, recurringActivities: [...d.recurringActivities, row] }),
+      () => db.addRecurring(row, userId)
+    );
+  };
+
+  const setRecurringActive = (id: string, active: boolean) =>
+    mutate(
+      (d) => ({
+        ...d,
+        recurringActivities: d.recurringActivities.map((r) => (r.id === id ? { ...r, active } : r)),
+      }),
+      () => db.setRecurringActive(id, active)
+    );
+
+  const removeRecurring = (id: string) =>
+    mutate(
+      (d) => ({ ...d, recurringActivities: d.recurringActivities.filter((r) => r.id !== id) }),
+      () => db.deleteRecurring(id)
     );
 
   const addSession = useCallback(
@@ -529,6 +574,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
           <ProjectDetail
             project={projectsById[openProject]}
             activities={data.activities.filter((a) => a.projectId === openProject)}
+            recurring={data.recurringActivities.filter((r) => r.projectId === openProject)}
             goalEntries={data.goalEntries}
             today={today}
             onBack={() => setOpenProject(null)}
@@ -537,6 +583,9 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             onAddWaypoint={addWaypoint}
             onRemoveWaypoint={removeWaypoint}
             onAddActivity={addActivity}
+            onAddRecurring={addRecurring}
+            onSetRecurringActive={setRecurringActive}
+            onRemoveRecurring={removeRecurring}
             onToggleActivity={toggleActivity}
             onRemoveActivity={removeActivity}
             onAddGoalEntry={addGoalEntry}
