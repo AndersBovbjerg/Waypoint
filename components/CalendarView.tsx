@@ -117,11 +117,6 @@ export function CalendarView({
             );
           })}
         </div>
-        <p className="wp-legend wp-mono">
-          <span className="wp-dot" style={{ border: "1.5px solid var(--ink)" }} /> PLANNED
-          <span className="wp-dot" style={{ background: "var(--ink)", border: "1.5px solid var(--ink)" }} /> CLEARED
-          <span className="wp-legend-clear" /> DAY FULLY CLEARED
-        </p>
       </section>
 
       <section className="wp-card">

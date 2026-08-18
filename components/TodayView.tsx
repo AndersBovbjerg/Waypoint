@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Plus, ArrowUpRight, X, CalendarCheck } from "lucide-react";
-import type { Activity, ColoredProject, NewActivity, TimerSettings } from "./types";
+import type { Activity, ColoredProject, GoalEntry, NewActivity, TimerSettings } from "./types";
 import type { TimerApi } from "./useTimer";
 import { fmtLong, fmtShort, greeting, courseNote, shiftKey } from "./helpers";
-import { ActivityRow, CourseStrip, MiniRoute } from "./shared";
+import { currentValue, goalProgress } from "./goal";
+import { ActivityRow, MiniRoute } from "./shared";
 import { ProjectIcon } from "./identity";
 import { TimerCard } from "./TimerCard";
 import { Select } from "./Select";
@@ -13,6 +14,7 @@ export function TodayView({
   projects,
   projectsById,
   activities,
+  goalEntries,
   today,
   timer,
   timerSettings,
@@ -29,6 +31,7 @@ export function TodayView({
   projects: ColoredProject[];
   projectsById: Record<string, ColoredProject>;
   activities: Activity[];
+  goalEntries: GoalEntry[];
   today: string;
   timer: TimerApi;
   timerSettings: TimerSettings;
@@ -66,7 +69,6 @@ export function TodayView({
         <p className="wp-note wp-note-sm">
           {fmtLong(today)} · {courseNote(items)}
         </p>
-        <CourseStrip items={items} projectsById={projectsById} />
       </section>
 
       {reviewDue && (
@@ -135,15 +137,6 @@ export function TodayView({
         {!projects.length && <p className="wp-empty">Create a project first — every activity belongs to one.</p>}
       </section>
 
-      <TimerCard
-        timer={timer}
-        settings={timerSettings}
-        onSettings={onTimerSettings}
-        projects={projects}
-        projectsById={projectsById}
-        todayItems={items}
-      />
-
       <div className="wp-grid-2">
         <section className="wp-card">
           <div className="wp-card-head">
@@ -155,6 +148,15 @@ export function TodayView({
           ) : (
             <ul className="wp-minilist">
               {projects.map((p) => {
+                /* A goal is a more honest answer to "how far along is
+                   this" than a waypoint count — it says how far from the
+                   actual target, not just how many checkpoints were ticked.
+                   Projects without one (not every course has a number to
+                   chase) keep the waypoint reading rather than showing
+                   nothing. */
+                const goalPct = p.goal
+                  ? goalProgress(p.goal, currentValue(p.goal, goalEntries.filter((e) => e.projectId === p.id)))
+                  : null;
                 const wDone = p.waypoints.filter((w) => w.done).length;
                 return (
                   <li key={p.id}>
@@ -162,11 +164,20 @@ export function TodayView({
                       <ProjectIcon icon={p.icon} color={p.color} size={15} />
                       <span className="wp-minirow-name">{p.name}</span>
                       <span className="wp-mono wp-muted">
-                        {wDone}/{p.waypoints.length}
+                        {p.goal ? `${Math.round((goalPct ?? 0) * 100)}%` : `${wDone}/${p.waypoints.length}`}
                       </span>
                       <ArrowUpRight size={14} className="wp-muted" />
                     </button>
-                    <MiniRoute waypoints={p.waypoints} color={p.color} />
+                    {p.goal ? (
+                      <div className="wp-goal-track">
+                        <div
+                          className="wp-goal-fill"
+                          style={{ width: `${(goalPct ?? 0) * 100}%`, background: p.color }}
+                        />
+                      </div>
+                    ) : (
+                      <MiniRoute waypoints={p.waypoints} color={p.color} />
+                    )}
                   </li>
                 );
               })}
@@ -197,6 +208,15 @@ export function TodayView({
           )}
         </section>
       </div>
+
+      <TimerCard
+        timer={timer}
+        settings={timerSettings}
+        onSettings={onTimerSettings}
+        projects={projects}
+        projectsById={projectsById}
+        todayItems={items}
+      />
     </div>
   );
 }

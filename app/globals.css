@@ -162,16 +162,9 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-greet { font-family:var(--display); font-weight:700; font-size:var(--fs-5); line-height:1.25;
   letter-spacing:-.01em; margin:0 0 4px; }
 .wp-greet-date { font-weight:500; color:var(--muted); font-size:var(--fs-3); }
-.wp-strip { position:relative; padding:var(--sp-3) 0 0; }
-.wp-strip-track { height:2px; background:var(--rule); position:relative; }
-.wp-strip-fill { position:absolute; left:0; top:0; height:100%; background:var(--accent); transition:width .5s ease; }
-.wp-strip-nodes { position:relative; height:0; }
-.wp-node { position:absolute; top:-8px; width:13px; height:13px; border-radius:50%;
-  border:2px solid var(--accent); transform:translateX(-50%); transition:background .2s ease; }
-.wp-strip-ends { display:flex; justify-content:space-between; padding-top:var(--sp-4); color:var(--muted); }
 
 /* lists */
-.wp-list, .wp-minilist, .wp-waypoints, .wp-statlist { list-style:none; margin:0; padding:0; }
+.wp-list, .wp-minilist, .wp-waypoints { list-style:none; margin:0; padding:0; }
 .wp-row, .wp-waypoint { display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-3) 0; border-top:1px solid var(--rule); min-height:44px; }
 .wp-row:first-child, .wp-waypoint:first-child { border-top:none; }
 .wp-row-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -348,12 +341,6 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-cell-num { color:var(--muted); }
 .wp-cell.is-today .wp-cell-num { color:var(--ink); }
 .wp-cell-dots { display:flex; flex-wrap:wrap; gap:2px; justify-content:center; }
-.wp-legend { display:flex; align-items:center; gap:6px; flex-wrap:wrap; color:var(--muted); margin:var(--sp-4) 0 0; font-size:var(--fs-1); }
-.wp-legend .wp-dot { margin-left:10px; }
-.wp-legend .wp-dot:first-child { margin-left:0; }
-.wp-legend-clear { width:12px; height:12px; border-radius:4px; background:var(--clear);
-  border:1px solid var(--rule); margin-left:10px; }
-
 /* stats */
 .wp-kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:var(--sp-3); }
 .wp-kpi { background:var(--panel); border:1px solid transparent; border-radius:var(--r-md); padding:var(--sp-4); box-shadow:var(--shadow); }
@@ -389,12 +376,6 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-effort-tip.is-left { transform:translateX(-88%); }
 .wp-effort-tip-val { font-family:var(--display); font-weight:700; font-size:var(--fs-3); color:var(--ink); }
 .wp-effort-tip-date { font-size:9px; }
-.wp-statrow { display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-3) 0; border-top:1px solid var(--rule); min-height:44px; }
-.wp-statrow:first-child { border-top:none; }
-.wp-statname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-3); }
-.wp-statbar { width:110px; height:6px; background:var(--rule); border-radius:var(--r-pill); overflow:hidden; flex:none; }
-.wp-statbar-fill { display:block; height:100%; transition:width .4s ease; }
-.wp-statpct { width:38px; text-align:right; flex:none; font-size:var(--fs-1); }
 
 /* sign in */
 .wp-signin { display:flex; align-items:center; justify-content:center; padding:var(--sp-5) var(--sp-4); }
@@ -443,8 +424,6 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
   font-variant-numeric:tabular-nums; font-size:var(--fs-1); }
 .wp-timerbadge.is-focus { color:var(--ink); border-color:var(--accent); }
 .wp-timerbadge:hover { border-color:var(--accent); color:var(--ink); }
-.wp-stattime { width:56px; text-align:right; flex:none; }
-.wp-stateffort { width:46px; text-align:right; flex:none; }
 
 /* weekly review */
 .wp-weeknav { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0 6px; }
@@ -548,10 +527,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 @media (max-width:560px) {
   .wp-card { padding:var(--sp-4); }
   .wp-tag { display:none; }
-  .wp-statbar { width:70px; }
   .wp-timer-on-name { max-width:150px; }
-  .wp-stattime { display:none; }
-  .wp-stateffort { display:none; }
   .wp-weekbars { height:96px; }
 }
 @media (prefers-reduced-motion: reduce) {

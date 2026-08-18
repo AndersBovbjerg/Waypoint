@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Activity, ColoredProject, Session } from "./types";
+import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
 import { clearStreak, fmtDuration } from "./helpers";
-import { Kpi } from "./shared";
+import { Kpi, Pace } from "./shared";
 import { ProjectIcon } from "./identity";
 import { buildEffortSeries } from "./effort";
 import { EffortChart } from "./EffortChart";
+import { buildProjectStandings } from "./week";
+import type { ProjectStanding } from "./week";
 import { Select } from "./Select";
 import * as db from "./db";
 import type { StravaConnection } from "./db";
@@ -84,24 +86,19 @@ export function StatsView({
   activities,
   projects,
   sessions,
+  goalEntries,
   today,
   userId,
 }: {
   activities: Activity[];
   projects: ColoredProject[];
   sessions: Session[];
+  goalEntries: GoalEntry[];
   today: string;
   userId: string;
 }) {
   const focusToday = sessions.filter((s) => s.date === today).reduce((n, s) => n + s.minutes, 0);
   const focusTotal = sessions.reduce((n, s) => n + s.minutes, 0);
-  const minutesByProject = useMemo(() => {
-    const map: Record<string, number> = {};
-    sessions.forEach((s) => {
-      map[s.projectId] = (map[s.projectId] || 0) + s.minutes;
-    });
-    return map;
-  }, [sessions]);
   const past = activities.filter((a) => a.date <= today);
   const done = past.filter((a) => a.done).length;
   const rate = past.length ? Math.round((done / past.length) * 100) : 0;
@@ -114,26 +111,22 @@ export function StatsView({
      logged, the same order of work as `past`/`done`/`rate` just above,
      which this file has never memoized either. */
   const effort = buildEffortSeries({ activities, projects, sessions, today });
-  const effortByProject: Record<string, number> = {};
-  projects.forEach((p) => {
-    effortByProject[p.id] = buildEffortSeries({
-      activities,
-      projects,
-      sessions,
-      today,
-      projectId: p.id,
-    }).total;
-  });
 
   const streak = useMemo(() => clearStreak(activities, today), [activities, today]);
+
+  /* Same shape of information the weekly review gives per project — pace,
+     a goal's movement, waypoints reached — just never window-bound to one
+     week. Replaced a denser "By project" list that packed a waypoint count,
+     an effort-points figure already visible in the chart above, a focus
+     time and a completion percentage into one row; this says less at a
+     glance but what it says is the thing actually worth knowing: how far
+     from the real target, not how many boxes got ticked. */
+  const standings = buildProjectStandings({ projects, activities, sessions, goalEntries, today });
 
   return (
     <div className="wp-stack">
       {/* Completion and streak lead — the two numbers that answer "am I
-          keeping up" at a glance. Effort score used to sit first with the
-          longest explanation of the six; it's the most abstract measure
-          here, so it moved off the strongest position (first read, best
-          recalled) rather than occupying it by accident of code order. */}
+          keeping up" at a glance. */}
       <div className="wp-kpis">
         <Kpi label="Completion rate" value={`${rate}%`} sub={`${done} of ${past.length} cleared`} />
         <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
@@ -143,7 +136,6 @@ export function StatsView({
           value={fmtDuration(focusToday)}
           sub={`${fmtDuration(focusTotal)} all time`}
         />
-        <Kpi label="Effort score" value={String(effort.total)} sub="a cleared task, a waypoint, a focus block — one running total" />
         <Kpi
           label="Active courses"
           value={String(projects.filter((p) => p.status === "active").length)}
@@ -161,40 +153,58 @@ export function StatsView({
 
       <section className="wp-card">
         <div className="wp-card-head">
-          <h3>By project</h3>
+          <h3>Progress by project</h3>
         </div>
-        {projects.length === 0 ? (
+        {standings.length === 0 ? (
           <p className="wp-empty">No projects to measure yet.</p>
         ) : (
-          <ul className="wp-statlist">
-            {projects.map((p) => {
-              const acts = activities.filter((a) => a.projectId === p.id && a.date <= today);
-              const d = acts.filter((a) => a.done).length;
-              const pc = acts.length ? Math.round((d / acts.length) * 100) : 0;
-              const w = p.waypoints.filter((x) => x.done).length;
-              return (
-                <li key={p.id} className="wp-statrow">
-                  <ProjectIcon icon={p.icon} color={p.color} size={15} />
-                  <span className="wp-statname">{p.name}</span>
-                  <span className="wp-mono wp-muted">
-                    {w}/{p.waypoints.length} WP
-                  </span>
-                  <span className="wp-mono wp-muted wp-stateffort">{effortByProject[p.id] ?? 0} PTS</span>
-                  <span className="wp-mono wp-muted wp-stattime">
-                    {minutesByProject[p.id] ? fmtDuration(minutesByProject[p.id]).toUpperCase() : "—"}
-                  </span>
-                  <span className="wp-statbar">
-                    <span className="wp-statbar-fill" style={{ width: `${pc}%`, background: p.color }} />
-                  </span>
-                  <span className="wp-mono wp-statpct">{pc}%</span>
-                </li>
-              );
-            })}
+          <ul className="wp-reviewlist">
+            {standings.map((p) => (
+              <ProjectStandingRow key={p.project.id} p={p} />
+            ))}
           </ul>
         )}
       </section>
 
       {STRAVA_ENABLED && <StravaCard userId={userId} projects={projects} />}
     </div>
+  );
+}
+
+function ProjectStandingRow({ p }: { p: ProjectStanding }) {
+  const { project } = p;
+  return (
+    <li className="wp-reviewrow">
+      <div className="wp-reviewrow-head">
+        <ProjectIcon icon={project.icon} color={project.color} size={15} />
+        <span className="wp-reviewrow-name">{project.name}</span>
+        <Pace timeGone={p.timeGone} routeDone={p.routeDone} />
+      </div>
+
+      <p className="wp-mono wp-muted wp-reviewrow-meta">
+        {p.clearedActivities}/{p.totalActivities} ACTIVITIES
+        {p.minutes > 0 && <> · {fmtDuration(p.minutes).toUpperCase()} FOCUSED</>}
+        {p.waypointsTotal > 0 && (
+          <> · {p.waypointsReached}/{p.waypointsTotal} WAYPOINTS</>
+        )}
+        {p.daysToTarget !== null && (
+          <> · {p.daysToTarget >= 0 ? `${p.daysToTarget} DAYS LEFT` : `${-p.daysToTarget} DAYS OVER`}</>
+        )}
+      </p>
+
+      {p.goalMove && (
+        <p className="wp-goalmove">
+          <span className="wp-goal-label">{project.goal?.label}</span>
+          <span className="wp-mono wp-muted">
+            {p.goalMove.from} → {p.goalMove.to}
+          </span>
+          {p.goalMove.delta && (
+            <span className={`wp-mono wp-delta${p.goalMove.good ? " is-good" : ""}`}>
+              {p.goalMove.delta}
+            </span>
+          )}
+        </p>
+      )}
+    </li>
   );
 }

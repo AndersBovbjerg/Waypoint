@@ -4,44 +4,24 @@ import type { Activity, ColoredProject, Goal, GoalEntry, WaypointItem } from "./
 import { currentValue, formatGoalValue, goalProgress, goalReached } from "./goal";
 import { formatStravaMetrics } from "./helpers";
 
-/* The signature element: today's activities as a plotted course */
-export function CourseStrip({
-  items,
-  projectsById,
-}: {
-  items: Activity[];
-  projectsById: Record<string, ColoredProject>;
-}) {
-  const n = items.length;
-  const done = items.filter((i) => i.done).length;
-  const pct = n ? (done / n) * 100 : 0;
+/* Route walked against time spent. Stated plainly — it's a fact about the
+   dates, not a verdict. Takes the two numbers directly rather than a whole
+   ProjectWeek/ProjectStanding, so both the weekly review and Statistics'
+   all-time project list can render the exact same pace reading without
+   either one importing the other's data shape. */
+export function Pace({ timeGone, routeDone }: { timeGone: number | null; routeDone: number | null }) {
+  if (timeGone === null || routeDone === null) return null;
+  const gap = routeDone - timeGone;
+  const label = gap >= 0.05 ? "AHEAD" : gap <= -0.15 ? "BEHIND PACE" : "ON PACE";
+  const tone = gap <= -0.15 ? "is-behind" : gap >= 0.05 ? "is-ahead" : "";
   return (
-    <div className="wp-strip" role="img" aria-label={`${done} of ${n} activities cleared today`}>
-      <div className="wp-strip-track">
-        <div className="wp-strip-fill" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="wp-strip-nodes">
-        {items.map((a, i) => {
-          const c = projectsById[a.projectId]?.color || "var(--accent)";
-          return (
-            <span
-              key={a.id}
-              className={`wp-node${a.done ? " is-done" : ""}`}
-              style={{
-                left: n === 1 ? "50%" : `${(i / (n - 1)) * 100}%`,
-                background: a.done ? c : "var(--panel)",
-                borderColor: c,
-              }}
-              title={a.title}
-            />
-          );
-        })}
-      </div>
-      <div className="wp-strip-ends wp-mono">
-        <span>START</span>
-        <span>{n ? `${done}/${n}` : "—"}</span>
-      </div>
-    </div>
+    <span
+      className={`wp-pace wp-mono ${tone}`}
+      title={`${Math.round(routeDone * 100)}% of the route, ${Math.round(timeGone * 100)}% of the time`}
+    >
+      {label === "AHEAD" && <Check size={11} strokeWidth={3} />}
+      {label}
+    </span>
   );
 }
 

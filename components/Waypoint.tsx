@@ -522,6 +522,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             projects={activeProjects}
             projectsById={projectsById}
             activities={data.activities}
+            goalEntries={data.goalEntries}
             today={today}
             timer={timer}
             timerSettings={data.timer}
@@ -622,6 +623,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
             activities={data.activities}
             projects={projects}
             sessions={data.sessions}
+            goalEntries={data.goalEntries}
             today={today}
             userId={userId}
           />

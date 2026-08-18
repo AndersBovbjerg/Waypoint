@@ -1,5 +1,5 @@
 import type { Activity, ColoredProject, GoalEntry, Session, WaypointItem } from "./types";
-import { deltaIsGood, formatDelta, formatGoalValue, valueOn } from "./goal";
+import { currentValue, deltaIsGood, formatDelta, formatGoalValue, valueOn } from "./goal";
 import { fromKey, keyOf, shiftKey } from "./helpers";
 
 /* Weeks run Monday to Sunday, matching the calendar grid. All of this works on
@@ -66,6 +66,35 @@ export interface Review {
   projects: ProjectWeek[];
 }
 
+/* How much of the route is walked against how much of the run to the target
+   is spent — always a fact about the project's own dates, never about which
+   week is being looked at, so both the weekly review and an all-time view
+   compute it identically. */
+function projectPace(
+  project: ColoredProject,
+  today: string
+): { timeGone: number | null; routeDone: number | null; daysToTarget: number | null } {
+  let timeGone: number | null = null;
+  let daysToTarget: number | null = null;
+  if (project.target) {
+    const target = fromKey(project.target).getTime();
+    const start = project.created ? fromKey(project.created).getTime() : NaN;
+    const now = fromKey(today).getTime();
+    daysToTarget = Math.round((target - now) / 86_400_000);
+    if (Number.isFinite(start) && target > start) {
+      const elapsed = Math.min(1, Math.max(0, (now - start) / (target - start)));
+      /* Pace means nothing in the opening days — with barely any of the run
+         gone, ticking one waypoint would read as "ahead". Stay quiet until
+         the project has actually been under way for a while. */
+      timeGone = elapsed >= 0.05 ? elapsed : null;
+    }
+  }
+  const routeDone = project.waypoints.length
+    ? project.waypoints.filter((w) => w.done).length / project.waypoints.length
+    : null;
+  return { timeGone, routeDone, daysToTarget };
+}
+
 const inWeek = (date: string, monday: string, sunday: string) => date >= monday && date <= sunday;
 
 /* A waypoint counts for the week only if we know when it was reached. */
@@ -117,24 +146,8 @@ export function buildReview({
         .filter((s) => s.projectId === project.id)
         .reduce((n, s) => n + s.minutes, 0);
       const waypointsReached = project.waypoints.filter((w) => reachedIn(w, monday, sunday));
+      const { timeGone, routeDone, daysToTarget } = projectPace(project, today);
 
-      /* pace: how much of the run to the target has elapsed, against how much
-         of the route is walked */
-      let timeGone: number | null = null;
-      let daysToTarget: number | null = null;
-      if (project.target) {
-        const target = fromKey(project.target).getTime();
-        const start = project.created ? fromKey(project.created).getTime() : NaN;
-        const now = fromKey(today).getTime();
-        daysToTarget = Math.round((target - now) / 86_400_000);
-        if (Number.isFinite(start) && target > start) {
-          const elapsed = Math.min(1, Math.max(0, (now - start) / (target - start)));
-          /* Pace means nothing in the opening days — with barely any of the run
-             gone, ticking one waypoint would read as "ahead". Stay quiet until
-             the project has actually been under way for a while. */
-          timeGone = elapsed >= 0.05 ? elapsed : null;
-        }
-      }
       /* The goal at both ends of the week. Comparing the reading in force on
          the Sunday with the one in force the day before the Monday means a
          week with no new reading correctly shows no movement, rather than
@@ -151,10 +164,6 @@ export function buildReview({
           good: deltaIsGood(before, after, project.goal),
         };
       }
-
-      const routeDone = project.waypoints.length
-        ? project.waypoints.filter((w) => w.done).length / project.waypoints.length
-        : null;
 
       return {
         project,
@@ -215,4 +224,77 @@ export function reviewNote(r: Review) {
     return `${head}. A clean week — every activity on the board is done.`;
   }
   return `${head}. Most movement on ${best.project.name}.`;
+}
+
+/* All-time counterpart to ProjectWeek, for Statistics — same shape of
+   information (pace, a goal's movement, waypoints reached) but never
+   window-bound to one week. waypointsReached here is a count of everything
+   ever reached, and goalMove compares the goal's start to its current
+   reading rather than the two ends of a week — the honest answer to "how
+   far have I actually come," which is what a lifetime view should say. */
+export interface ProjectStanding {
+  project: ColoredProject;
+  clearedActivities: number;
+  totalActivities: number;
+  minutes: number;
+  waypointsReached: number;
+  waypointsTotal: number;
+  timeGone: number | null;
+  routeDone: number | null;
+  daysToTarget: number | null;
+  goalMove: { from: string; to: string; delta: string | null; good: boolean } | null;
+}
+
+export function buildProjectStandings({
+  projects,
+  activities,
+  sessions,
+  goalEntries,
+  today,
+}: {
+  projects: ColoredProject[];
+  activities: Activity[];
+  sessions: Session[];
+  goalEntries: GoalEntry[];
+  today: string;
+}): ProjectStanding[] {
+  return projects
+    .filter((p) => p.status === "active")
+    .map((project) => {
+      const acts = activities.filter((a) => a.projectId === project.id);
+      const cleared = acts.filter((a) => a.done).length;
+      const minutes = sessions
+        .filter((s) => s.projectId === project.id)
+        .reduce((n, s) => n + s.minutes, 0);
+      const { timeGone, routeDone, daysToTarget } = projectPace(project, today);
+
+      let goalMove: ProjectStanding["goalMove"] = null;
+      if (project.goal) {
+        const mine = goalEntries.filter((e) => e.projectId === project.id);
+        const current = currentValue(project.goal, mine);
+        goalMove = {
+          from: formatGoalValue(project.goal.start, project.goal.unit),
+          to: formatGoalValue(current, project.goal.unit),
+          delta: formatDelta(project.goal.start, current, project.goal),
+          good: deltaIsGood(project.goal.start, current, project.goal),
+        };
+      }
+
+      return {
+        project,
+        clearedActivities: cleared,
+        totalActivities: acts.length,
+        minutes,
+        waypointsReached: project.waypoints.filter((w) => w.done).length,
+        waypointsTotal: project.waypoints.length,
+        timeGone,
+        routeDone,
+        daysToTarget,
+        goalMove,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.clearedActivities + b.waypointsReached * 3 - (a.clearedActivities + a.waypointsReached * 3)
+    );
 }

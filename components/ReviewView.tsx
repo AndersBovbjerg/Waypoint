@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Check, Flag, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
 import { fmtDuration, fmtShort, shiftKey } from "./helpers";
 import { buildReview, fmtWeekRange, reviewNote, startOfWeek } from "./week";
-import type { ProjectWeek } from "./week";
 import { Kpi } from "./shared";
 import { Overlay } from "./Overlay";
-import { ProjectIcon } from "./identity";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -126,22 +124,6 @@ export function ReviewView({
         </div>
       </section>
 
-      <section className="wp-card">
-        <div className="wp-card-head">
-          <h3>Progress by project</h3>
-          <span className="wp-mono wp-muted">{review.projects.filter((p) => p.moved).length} MOVED</span>
-        </div>
-        {review.projects.length === 0 ? (
-          <p className="wp-empty">No projects yet. Create one to start plotting a course.</p>
-        ) : (
-          <ul className="wp-reviewlist">
-            {review.projects.map((p) => (
-              <ProjectRow key={p.project.id} p={p} />
-            ))}
-          </ul>
-        )}
-      </section>
-
       <div className="wp-grid-2">
         <section className="wp-card">
           <div className="wp-card-head">
@@ -189,71 +171,5 @@ export function ReviewView({
         </section>
       </div>
     </div>
-  );
-}
-
-function ProjectRow({ p }: { p: ProjectWeek }) {
-  const { project } = p;
-  return (
-    <li className={`wp-reviewrow${p.moved ? "" : " is-still"}`}>
-      <div className="wp-reviewrow-head">
-        <ProjectIcon icon={project.icon} color={project.color} size={15} />
-        <span className="wp-reviewrow-name">{project.name}</span>
-        <Pace p={p} />
-      </div>
-
-      <p className="wp-mono wp-muted wp-reviewrow-meta">
-        {p.cleared}/{p.planned} ACTIVITIES
-        {p.minutes > 0 && <> · {fmtDuration(p.minutes).toUpperCase()} FOCUSED</>}
-        {p.routeDone !== null && (
-          <> · {Math.round(p.routeDone * 100)}% OF ROUTE</>
-        )}
-        {p.daysToTarget !== null && (
-          <> · {p.daysToTarget >= 0 ? `${p.daysToTarget} DAYS LEFT` : `${-p.daysToTarget} DAYS OVER`}</>
-        )}
-      </p>
-
-      {p.goalMove?.delta && (
-        <p className="wp-goalmove">
-          <span className="wp-goal-label">{project.goal?.label}</span>
-          <span className="wp-mono wp-muted">
-            {p.goalMove.from} → {p.goalMove.to}
-          </span>
-          <span className={`wp-mono wp-delta${p.goalMove.good ? " is-good" : ""}`}>
-            {p.goalMove.delta}
-          </span>
-        </p>
-      )}
-
-      {p.waypointsReached.length > 0 && (
-        <ul className="wp-reached">
-          {p.waypointsReached.map((w) => (
-            <li key={w.id}>
-              <span className="wp-reached-mark" style={{ background: project.color, color: "var(--tick)" }}>
-                <Flag size={10} />
-              </span>
-              <span>{w.title}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {!p.moved && <p className="wp-empty wp-reviewrow-still">Nothing logged this week.</p>}
-    </li>
-  );
-}
-
-/* Route walked against time spent. Stated plainly — it is a fact about the
-   dates, not a verdict on the week. */
-function Pace({ p }: { p: ProjectWeek }) {
-  if (p.timeGone === null || p.routeDone === null) return null;
-  const gap = p.routeDone - p.timeGone;
-  const label = gap >= 0.05 ? "AHEAD" : gap <= -0.15 ? "BEHIND PACE" : "ON PACE";
-  const tone = gap <= -0.15 ? "is-behind" : gap >= 0.05 ? "is-ahead" : "";
-  return (
-    <span className={`wp-pace wp-mono ${tone}`} title={`${Math.round(p.routeDone * 100)}% of the route, ${Math.round(p.timeGone * 100)}% of the time`}>
-      {label === "AHEAD" && <Check size={11} strokeWidth={3} />}
-      {label}
-    </span>
   );
 }
