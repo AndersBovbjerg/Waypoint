@@ -59,6 +59,19 @@ exercised end to end. Treat it as unproven until a real run has landed.
   upsert pattern, same index. The fix replaces the partial index with a
   plain one on the same three columns; confirmed safe against the live
   data (zero existing rows have a non-null `external_id` to conflict).
+  **`migration-phase-6-recurring-skips.sql` has NOT been run** — a second
+  recurring-activities bug, reported by the user directly: deleting a
+  generated instance "worked" (removed from the list, stayed removed
+  across a manual click-around) but came back on every reload. Cause: the
+  materializer has no way to distinguish "the user deleted this on
+  purpose" from "this was never generated" — both look identical, an
+  absent activities row — so it faithfully recreated whatever was just
+  removed. `recurring_skips` is the missing memory: one row per
+  `(rule_id, date)` explicitly dismissed, checked in `Waypoint.tsx`
+  alongside the existing-activity set before materializing. Until this
+  migration runs, deleting a recurring activity will fail outright (the
+  failure banner, not a silent revert) rather than just being undone —
+  `removeActivity` now writes to a table that doesn't exist yet.
 - **Strava env vars, not yet set anywhere:** `STRAVA_CLIENT_ID`,
   `STRAVA_CLIENT_SECRET`, `STRAVA_WEBHOOK_VERIFY_TOKEN` and
   `SUPABASE_SERVICE_ROLE_KEY`, all server-only — the last one bypasses row

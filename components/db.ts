@@ -413,6 +413,33 @@ export async function deleteRecurring(id: string) {
   );
 }
 
+/* Every (rule, date) pair explicitly dismissed by deleting a recurring
+   instance. Returned pre-formatted as `${ruleId}_${date}` strings — the
+   exact same shape as an activity's external_id — so the caller can merge
+   this straight into the "already exists" set pendingRecurringDates already
+   checks, rather than pendingRecurringDates needing to know skips exist as
+   their own concept. */
+export async function getRecurringSkips(): Promise<Set<string>> {
+  const db = getSupabase();
+  const { data, error } = await db.from("recurring_skips").select("rule_id, date");
+  check(error, "load dismissed recurring activities");
+  return new Set(
+    ((data ?? []) as { rule_id: string; date: string }[]).map((r) => `${r.rule_id}_${r.date}`)
+  );
+}
+
+/* Marks one generated day as deliberately gone, so the next load's
+   materialization pass never recreates it. Called alongside deleteActivity
+   whenever the activity being removed is recurring-sourced — see
+   removeActivity in Waypoint.tsx. */
+export async function addRecurringSkip(ruleId: string, date: string) {
+  const db = getSupabase();
+  check(
+    (await db.from("recurring_skips").insert({ rule_id: ruleId, date })).error,
+    "remember that this day was skipped"
+  );
+}
+
 /* Turns pendingRecurringDates' candidates into real activity rows. Written
    with ignoreDuplicates rather than a plain insert: two tabs open at once,
    or this running twice in a race, must never be able to touch a row that

@@ -124,6 +124,15 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
               .filter((a) => a.source === "recurring" && a.externalId)
               .map((a) => a.externalId as string)
           );
+          /* A day the user deleted on purpose looks identical to a day that
+             was simply never generated, from the activities table's point of
+             view — recurring_skips is the only place that distinction still
+             exists, so it has to be folded in here or a deleted instance
+             just comes back on the next load. Same key shape as an
+             external_id, so it merges into the same set pendingRecurringDates
+             already checks rather than needing its own concept. */
+          const skips = await db.getRecurringSkips();
+          for (const key of skips) existingExternalIds.add(key);
           const pending = pendingRecurringDates(loaded.recurringActivities, existingExternalIds, todayKey());
           const created = await db.materializeRecurring(pending, userId);
           if (created.length) loaded.activities = [...loaded.activities, ...created];
@@ -304,11 +313,25 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
     );
   };
 
-  const removeActivity = (id: string) =>
+  const removeActivity = (id: string) => {
+    /* Read before the optimistic filter drops it — a recurring-sourced
+       activity needs its rule id and date pulled out of its own externalId
+       (`${ruleId}_${date}`, never anything else, so the split is safe) so
+       the deletion can be remembered. Without this, the next load's
+       materialization pass can't tell "deleted on purpose" apart from
+       "never generated" and recreates exactly what was just removed. */
+    const current = dataRef.current.activities.find((a) => a.id === id);
     mutate(
       (d) => ({ ...d, activities: d.activities.filter((a) => a.id !== id) }),
-      () => db.deleteActivity(id)
+      async () => {
+        await db.deleteActivity(id);
+        if (current?.source === "recurring" && current.externalId) {
+          const [ruleId, date] = current.externalId.split("_");
+          await db.addRecurringSkip(ruleId, date);
+        }
+      }
     );
+  };
 
   const addRecurring = (r: NewRecurringActivity) => {
     const row = { id: uid(), active: true, createdAt: todayKey(), ...r };
