@@ -73,9 +73,9 @@ The backward half of that window is the part worth understanding: it
 **backfills honestly**. If the app goes unopened for a few days, those days
 are still materialized as "planned" once it's opened again — a genuinely
 skipped gym day reads as missed, not as a day nothing was scheduled, because
-`clearStreak`/`engagementStreak` and the weekly review are only a true
-record if a day that had a plan is never quietly rewritten into a day that
-didn't. Capped at 14 days so a long absence doesn't dump months of stale
+`clearStreak` and the weekly review are only a true record if a day that
+had a plan is never quietly rewritten into a day that didn't. Capped at 14
+days so a long absence doesn't dump months of stale
 misses at once, and never before a rule's own `created_at` — a rule added
 today can't invent a plan for last week.
 
@@ -149,9 +149,13 @@ Waypoint is meant to sit open all day, which the timer has to survive:
 
 - **Completion rate** counts only activities dated today or earlier. Future activities
   are not failures.
-- **Clear streak** counts consecutive days, going back from today, where every planned
-  activity was cleared. Days with nothing planned are skipped rather than breaking the
-  streak. If today still has open items, the count starts from yesterday.
+- **Clear streak** counts consecutive real calendar days, going back from today, where
+  everything planned was cleared. A day with nothing logged at all ends the streak — it
+  is not skipped — so the number is always a count the user could arrive at themselves
+  by counting days on the calendar. If today still has open items, the count starts
+  from yesterday: today is still in progress, not yet a miss. One definition
+  (`clearStreak` in `components/helpers.ts`), shared by Statistics and the home-screen
+  widget, so the two can never quietly disagree.
 - **A week runs Monday to Sunday**, matching the calendar grid. On a Sunday the week
   under review is the one ending that day, not the one before.
 - **The week's activities are the ones dated inside it**, cleared or not. An old item
@@ -235,15 +239,17 @@ day, or on demand by opening the Shortcut). Auth is a fixed bearer token
 rather than a real session, since Shortcuts can't run this app's login flow;
 acceptable for one endpoint on a single-user app.
 
-The widget deliberately does *not* use Statistics' `clearStreak`. That one
-skips a day with nothing planned rather than breaking on it — right for
-reviewing history, wrong for a widget meant to pull you back in: it would
-sit frozen on an old number through days of not opening the app at all,
-found the hard way when it kept reading "4" after nearly a week untouched.
-`engagementStreak`, its stricter sibling in the same file, breaks to 0 on a
-genuinely empty day instead. Both still give today the same grace — still
-in progress, not yet a miss — so a same-day partial doesn't zero out a real
-streak before the day is over.
+The widget uses the exact same `clearStreak` Statistics shows — one
+definition, so the two numbers can never quietly disagree. That wasn't
+always true: an earlier version had the widget use a stricter sibling
+function while Statistics kept a lenient one that skipped empty days
+instead of breaking on them, on the theory that skipping was more honest
+for *reviewing history*. In practice it just read as a wrong number — it
+kept showing a streak through days the user hadn't opened the app at all,
+which is a bug whether it's on the widget or in Statistics. `clearStreak`
+now always breaks on a genuinely empty day; today itself still gets a
+grace (still in progress, not yet a miss) so a same-day partial doesn't
+zero out a real streak before the day is over.
 
 ## Working agreements
 

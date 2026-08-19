@@ -126,7 +126,9 @@ export function StatsView({
   return (
     <div className="wp-stack">
       {/* Completion and streak lead — the two numbers that answer "am I
-          keeping up" at a glance. */}
+          keeping up" at a glance. Active courses was cut: the count is
+          already right there to count on the Courses tab, so the tile was
+          answering a question nobody needed answered twice. */}
       <div className="wp-kpis">
         <Kpi label="Completion rate" value={`${rate}%`} sub={`${done} of ${past.length} cleared`} />
         <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
@@ -135,11 +137,6 @@ export function StatsView({
           label="Focused today"
           value={fmtDuration(focusToday)}
           sub={`${fmtDuration(focusTotal)} all time`}
-        />
-        <Kpi
-          label="Active courses"
-          value={String(projects.filter((p) => p.status === "active").length)}
-          sub={`${projects.length} total`}
         />
       </div>
 

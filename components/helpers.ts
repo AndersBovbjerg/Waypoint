@@ -29,41 +29,19 @@ export const shiftKey = (k: string, n: number) => {
   d.setDate(d.getDate() + n);
   return keyOf(d);
 };
-/* Consecutive days, going back from today, where every planned activity was
-   cleared. A day with nothing planned is skipped rather than breaking the
-   streak. If today still has open items, the count starts from yesterday —
-   today is still in progress, not yet a miss. Used by Statistics, where the
-   point is "did you follow through on what you planned" — a day you never
-   scheduled anything shouldn't read as a failure when looking back. */
+/* Consecutive real calendar days, going back from today, where everything
+   planned was cleared. A day with nothing logged at all ENDS the streak —
+   it does not get skipped over — because "days in a row with everything
+   cleared" has to mean actual days in a row, not just the days that
+   happened to have something on them. (An earlier version skipped empty
+   days instead; it read as a higher number than the days the user could
+   actually count for themselves, which is exactly backwards for a figure
+   whose only job is to be trusted at a glance.) Today itself still gets a
+   grace: still in progress, not yet a miss, so an empty or partly-done
+   today doesn't zero out a real streak before the day is over. Shared by
+   Statistics and the home-screen widget — one definition, so the two can
+   never quietly disagree with each other. */
 export function clearStreak(activities: { date: string; done: boolean }[], today: string): number {
-  let count = 0;
-  let k = today;
-  const todayItems = activities.filter((a) => a.date === today);
-  if (todayItems.length > 0 && !todayItems.every((a) => a.done)) k = shiftKey(today, -1);
-  for (let i = 0; i < 400; i++) {
-    const items = activities.filter((a) => a.date === k);
-    if (items.length === 0) {
-      k = shiftKey(k, -1);
-      continue;
-    }
-    if (items.every((a) => a.done)) {
-      count++;
-      k = shiftKey(k, -1);
-    } else break;
-  }
-  return count;
-}
-
-/* A stricter cousin of clearStreak, for the home-screen widget only: a day
-   with nothing logged ENDS the streak instead of being skipped over. The
-   whole point of a "don't break the chain" widget is to make inactivity
-   visible — clearStreak's leniency (right for reviewing history in
-   Statistics) would otherwise leave the widget frozen on an old number
-   through days of not opening the app at all, which is exactly backwards
-   for something meant to pull you back in. Today itself still gets the same
-   grace as clearStreak: still in progress, not yet a miss, so an empty or
-   partly-done today doesn't zero out a real streak before the day is over. */
-export function engagementStreak(activities: { date: string; done: boolean }[], today: string): number {
   const todayItems = activities.filter((a) => a.date === today);
   const todayDone = todayItems.length > 0 && todayItems.every((a) => a.done);
 
