@@ -41,17 +41,16 @@ export function GoalChart({
 
   const n = points.length;
 
-  /* The axis is the goal's own range — start to target — not a padded
-     fit to the data: a page count or a race time has a real floor, and
-     stretching the bottom out by a fraction of the span (as a generic
-     chart would) put the axis at a nonsense negative number. Only widen
-     past start/target when a reading actually overshoots one of them. */
+  /* The axis is exactly the goal's own range — start to target — with no
+     padding added on top: a page count or a race time has a real floor,
+     and any fraction-of-span padding (even a small one) can push the
+     axis past it into a nonsense number. It only ever widens past
+     start/target when a logged reading actually lands there — that's
+     the user putting it there, not the chart inventing headroom. */
   const values = points.map((p) => p.value).concat(goal.start, goal.target);
-  const lo = Math.min(...values);
-  const hi = Math.max(...values);
-  const span = hi - lo || 1;
-  const min = lo - span * 0.04;
-  const max = hi + span * 0.04;
+  const min = Math.min(...values);
+  const max0 = Math.max(...values);
+  const max = max0 > min ? max0 : min + 1;
 
   const xAt = (i: number) => padL + (n <= 1 ? 0 : (i / (n - 1)) * innerW);
   const yAt = (v: number) => padT + innerH - ((v - min) / (max - min)) * innerH;
