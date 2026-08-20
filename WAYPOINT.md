@@ -47,9 +47,10 @@ Field notes that are easy to get wrong:
 
 ## Features (all working in the prototype)
 
-**Today** — greeting, a one-line note generated from the day's activities, the course
-strip (activities as nodes on a progress track), the day's to-do list with checkboxes,
-active projects with their route lines, and the next seven days.
+**Today** — greeting, a one-line note generated from the day's activities, the day's
+to-do list with checkboxes, active projects (goal-based progress for any project that
+has one, a waypoint count for those that don't — never hidden either way), the next
+seven days, and the focus timer at the bottom.
 
 **Projects** — create and edit with Purpose / Situation / Approach / target date /
 colour slot / optional icon. A project can also carry a **goal**: a label, a unit and
@@ -88,8 +89,8 @@ the same principle as archiving a project rather than deleting it.
 outlined = planned, filled = cleared. A day where everything is cleared gets a tinted
 background. Click a day to see and edit it.
 
-**Statistics** — completion rate, cleared count, clear streak, an effort score, and
-a per-project breakdown.
+**Statistics** — completion rate, cleared count, clear streak, focus time, the effort
+chart, and "Progress by project."
 
 The effort score turns three different kinds of record into one running number: a
 cleared activity is worth 1 point, a reached waypoint 3, and a focus block 1 point
@@ -97,7 +98,19 @@ per 25 minutes, converted continuously off the running total so a 47-minute sitt
 and two 30-minute ones both land at the same rate. It is plotted as a single
 cumulative line with no ceiling — the goal meter and waypoints already answer "how
 close," bounded 0–100%; this answers "how much has gone in so far," and only ever
-grows. See `components/effort.ts`.
+grows. See `components/effort.ts`. It only ever appears as the chart — there is no
+separate "Effort score" number alongside it, which would just be the same figure
+said twice.
+
+"Progress by project" lists every active project, whether or not anything moved on
+it — a project that's sat untouched is exactly the thing worth seeing plainly, not
+hiding. Each row states Pace: route walked against time elapsed toward the target
+date — *ahead*, *on pace*, *behind pace* — staying silent for the first stretch of a
+project's run, when barely any time has passed and a single tick would misleadingly
+read as "ahead." Alongside Pace: activities cleared, waypoints reached, and — for a
+project with a goal — how far the goal has moved since it was set, start to now.
+`buildProjectStandings` in `components/week.ts`, sharing its pace math with
+`buildReview` via the `projectPace` helper so the two can't quietly drift apart.
 
 **Import** — paste a list, one activity per line, optional leading `YYYY-MM-DD`.
 
@@ -109,9 +122,12 @@ answer where the hours went, not just which boxes were ticked. Stopping early st
 logs the minutes that were actually worked.
 
 **Review** — a Monday-to-Sunday look back at the week: what was cleared and what was
-left open, which waypoints were reached, focus time logged, and a per-project
-breakdown. Available from its own tab at any time, and any past week can be paged
-back to.
+left open, which waypoints were reached, and focus time logged. Available from its
+own tab at any time, and any past week can be paged back to. (The per-project
+breakdown that used to live here moved to Statistics' "Progress by project" — freed
+from the weekly window, it says how far from the real target rather than how much
+moved in the last seven days specifically, which reads as the more useful of the two
+questions when it can only be asked once, not both places.)
 
 It also comes to you. Early on a Sunday it waits as a quiet card on Today; from
 09:00 it opens itself in a window over the app — either as the hour passes on a
@@ -121,12 +137,6 @@ are derived from the same two facts, the clock and whether the week is settled, 
 there is no separate open/closed flag able to disagree with them. If notifications
 have been granted for the timer, nine o'clock also sends one, since a window that
 opens behind other things is a window nobody sees.
-
-Each project row states route walked against time elapsed toward the target date —
-*ahead*, *on pace*, *behind pace*. It stays silent for the first stretch of a
-project's run, when barely any time has passed and a single tick would read as being
-ahead. Projects that did not move are listed too, plainly. A week where nothing
-happened on a course is exactly what a review exists to show.
 
 **Light / dark** — a toggle in the header, persisted per user in `prefs`.
 

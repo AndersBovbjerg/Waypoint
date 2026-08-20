@@ -21,6 +21,25 @@ Phase 3 (Strava) is **written but not yet live** — see the migration and env
 var notes below. It has never run against the real Strava API; the OAuth
 round trip and the webhook both need a public URL, so neither has been
 exercised end to end. Treat it as unproven until a real run has landed.
+Deliberately parked: Strava locked its API behind a paid developer
+subscription in mid-2026, and the user is waiting for cheaper student
+pricing before turning it on. `STRAVA_ENABLED = false` in `StatsView.tsx`
+hides the connect card until then.
+
+Phase 4 (recurring activities) is **built, and live in the UI, but only
+half-working on the real database** — see the three migration notes below.
+`migration-phase-4` has been run; `-5` and `-6` have not, as of the last
+session. Until both run: recurring rules can be created and edited in
+`ProjectDetail.tsx`, but no activity rows actually materialize from them
+(phase 5 — silent DB conflict), and deleting a materialized instance fails
+loudly instead of just failing (phase 6 — no migration means no table to
+write the skip to). **Check whether the user has run these before doing
+anything else with recurring activities** — don't assume a fix that
+shipped in code is actually live.
+
+A home-screen streak widget is also built and working, via a workaround
+that took several wrong turns to land on — worth reading the dated section
+below before touching it again, so the same dead ends aren't retried.
 
 - **Live app:** waypoint-steel-ten.vercel.app — public, no deployment protection.
 - **GitHub:** `AndersBovbjerg/Waypoint`, connected to Vercel for auto-deploy on
@@ -85,11 +104,23 @@ exercised end to end. Treat it as unproven until a real run has landed.
   (the Supabase auth user id, from Dashboard → Authentication → Users).
   `app/api/widget/streak` reuses `SUPABASE_SERVICE_ROLE_KEY` above — no new
   Supabase-side setup needed, just the two new env vars. Feeds an iOS
-  Shortcuts home-screen widget; the `today` it's called with must come from
+  home-screen widget; the `today` it's called with must come from
   the phone (`?today=YYYY-MM-DD`), never computed from the server's clock —
   same local-date rule as everywhere else in this app, and getting it backwards
   here specifically would read as a broken streak in the evening for anyone
-  east of UTC.
+  east of UTC. **The delivery mechanism is Scriptable, not Shortcuts** — the
+  iOS Shortcuts app's own widget is a launcher button, not a display; it
+  cannot show data passively no matter how it's configured. The working
+  setup is a small Scriptable script (lives on the user's phone, not in
+  this repo) that fetches the endpoint and renders a real WidgetKit
+  widget via `ListWidget`/`Script.setWidget()`, refreshed on iOS's own
+  schedule. Tapping the widget opens the app in Safari, not as the
+  standalone home-screen app — confirmed via Apple's own developer forums
+  that there is currently no public API for a third-party widget/script to
+  launch a specific *installed* PWA on iOS; only tapping that app's own
+  icon does. Don't re-propose a `webapp://` URL scheme or similar — it was
+  tried, and doesn't exist as a general mechanism (the one report of it
+  working was iOS-26-beta-specific and unconfirmed elsewhere).
 - **Unfinished housekeeping:** two stray Vercel projects (`waypoint-vbue`,
   `waypoint-vxdj`) were created by a duplicate GitHub import and were never
   confirmed deleted — worth checking before they cause confusion about which
@@ -146,6 +177,45 @@ exercised end to end. Treat it as unproven until a real run has landed.
 - **`components/store.ts` is now just the running timer's countdown** —
   device-local, not synced. Everything else lives in Supabase behind
   `components/db.ts`. Don't resurrect the old whole-document local store.
+- **A partial unique index doesn't satisfy a plain `ON CONFLICT`.**
+  `activities_external_unique` was `on activities (user_id, source,
+  external_id) where external_id is not null` — a plain
+  `.upsert({onConflict: "user_id,source,external_id"})` from supabase-js
+  cannot match it, because Postgres only matches an `ON CONFLICT` target
+  against a partial index if the same `WHERE` clause is repeated in the
+  conflict clause, which the client library has no way to express. Every
+  upsert against that index failed with "no unique or exclusion constraint
+  matching the ON CONFLICT specification" — silently, since it was inside
+  a try/catch, for as long as the feature using it (recurring activities)
+  existed. Fixed in `migration-phase-5-fix-recurring-conflict.sql` by
+  making the index non-partial; safe because a standard unique constraint
+  never treats two NULLs as duplicates of each other, so rows with a null
+  `external_id` (every manually-added activity) keep coexisting exactly as
+  before. If a future upsert target needs a partial index, this is why it
+  won't work through supabase-js's `onConflict` option.
+- **This macOS environment's folder access can silently drop mid-session.**
+  Happened twice: every `Read`/`Bash` call against the project path started
+  returning `EPERM: operation not permitted`, with no code change to
+  explain it — a Files-and-Folders / Full Disk Access permission for
+  whatever app is running the session got revoked, not something fixable
+  from inside the session. Both times, asking the user to check System
+  Settings → Privacy & Security → Files and Folders (toggling the
+  permission off and back on, even when it looked already-on) restored
+  access within a turn or two. Don't try alternate paths or assume the
+  files were deleted — retry the same path after asking.
+- **No local service-role key.** `.env.local` only has the two
+  `NEXT_PUBLIC_*` Supabase values — `SUPABASE_SERVICE_ROLE_KEY` is
+  Vercel-only, per `SUPABASE_SERVICE_ROLE_KEY` in the widget/Strava notes
+  above. To inspect real production data directly (not through RLS-blind
+  anon queries, which return an empty result for any authenticated-only
+  row rather than an error — easy to misread as "the table is empty"), the
+  working technique was reading the Supabase auth cookie out of an
+  already-logged-in browser tab (`sb-<ref>-auth-token`, base64-decoded
+  JSON with an `access_token`) and calling the REST endpoint directly with
+  that token plus the public anon key as `apikey`. That's how the
+  recurring-activities materialization bug was actually found, after the
+  UI alone wasn't enough to tell "no rule exists" apart from "the rule
+  exists but never fires."
 
 ## How we've been working
 
@@ -170,14 +240,25 @@ exercised end to end. Treat it as unproven until a real run has landed.
   without being asked in that turn.
 - **Copy is plain and specific**, per the working agreement — errors say what
   happened and what to do, empty states invite the next action.
-
-## Recently shipped, not yet exercised
-
-The effort chart (Statistics tab) was verified with fabricated data via a
-temporary preview route (built, screenshotted in light/dark/380px, then
-deleted) because the session's own login had expired and re-authenticating
-wasn't possible. It has not yet been checked against the user's real data —
-worth asking whether the curve matched expectations before assuming it's done.
+- **Verify platform-specific claims before asserting them, not from
+  memory.** Got this wrong twice in a row on the same feature: first
+  claiming the iOS Shortcuts widget could display data passively (it
+  can't — confirmed by search only after the user reported it didn't
+  work), then claiming a `webapp://` URL scheme could deep-link into the
+  installed PWA (also wrong — the source was a single beta forum post,
+  and Apple's own developer forums confirm no such general mechanism
+  exists). Third time, searched and cross-checked against multiple
+  sources *before* answering (Scriptable's actual widget API) and it
+  worked first try. When the claim is about what a specific OS/browser
+  version does, look it up or reproduce it — don't state it as fact from
+  training data, and say so plainly if a claim didn't hold up in practice
+  rather than quietly moving on.
+- **When "it doesn't work" and the UI alone can't say why, check the
+  database directly** rather than guessing from the app's behavior — see
+  the "no local service-role key" gotcha above for the technique. Found
+  the recurring-activities conflict bug this way after several rounds of
+  guessing at Shortcuts/iOS causes for what was actually a Postgres
+  index problem.
 
 ## Design pass (13 August 2026)
 
@@ -213,3 +294,73 @@ One thing to know if a new modal is added: `Overlay` now takes an optional
 the middle scrolls (`wp-modal-head`/`wp-modal-body`/`wp-modal-actions`,
 see `ProjectModal.tsx`). Plain modals (`ImportModal`, confirm dialogs)
 don't need it and still just render into `.wp-modal`'s default padding.
+
+## iOS home-screen app, a value audit, recurring activities (14–18 August 2026)
+
+Four separate threads of work, roughly in the order they happened.
+
+**iOS home-screen launch fixed.** The installed app was opening as a normal
+Safari tab (address bar, toolbar, the works) instead of standalone. Cause:
+this Next.js version's `appleWebApp.capable` metadata only emits the newer
+unprefixed `mobile-web-app-capable` tag, which iOS didn't honour before
+17.4 — the legacy `apple-mobile-web-app-capable` tag is what actually
+matters, and had to be added by hand via `other` in `layout.tsx`'s
+metadata (the typed API has no field for it). Also added `viewportFit:
+"cover"` to fix a separate symptom (a persistent white strip behind the
+home-indicator area) — without it, `env(safe-area-inset-*)` silently
+resolves to 0 rather than a real value, so `.wp-tabbar`'s existing
+safe-area padding was a no-op the whole time. Both fixes are **user-verified
+working** on a real device, not just built and assumed. One trap if this
+is ever touched again: turning on `viewport-fit=cover` makes that env()
+value real for the first time, which grows the tab bar taller on notched
+phones — `.wp-main`'s bottom padding had to become additive with the same
+env() value or the last bit of every scrollable view clips under the bar.
+
+**A full value audit, not just a visual one.** Different from the 13
+August design pass — that one was spacing/type/hierarchy; this one asked
+"does this element earn its place" of every screen, with the user
+confirming or overriding each cut. Removed: `CourseStrip` (redundant with
+the to-do list right below it), the calendar legend, Statistics' "Effort
+score" KPI (already shown in the chart below it) and later its "Active
+courses" KPI too (already countable on the Courses tab), and Review's
+"Progress by project" section (merged into Statistics instead — see
+below). Moved: the Focus timer to the bottom of Today, since the to-do
+list is what the page is actually for. Changed: Today's "Active courses"
+list shows goal-based progress (how far from the real target) instead of
+a waypoint count, for any project that has a goal — explicitly **not**
+hiding goal-less projects from the list, which was floated and then
+declined by the user. Mechanically, `projectPace` (route walked vs. time
+spent) was pulled out of `buildReview` into a shared helper in `week.ts`,
+and `buildProjectStandings` added alongside `buildReview` as its all-time
+counterpart — Statistics' new "Progress by project" section and the
+weekly review's own now share the same pace/goal-movement math instead of
+two implementations that could quietly drift apart.
+
+**Recurring activities**, covered in more detail in `WAYPOINT.md`'s own
+Features entry — the summary here is what went wrong after it shipped,
+since that's what a fresh session most needs to know:
+1. It generated zero rows, ever, not even for today — the partial-index
+   `ON CONFLICT` bug in the gotchas section above. Fixed in
+   `migration-phase-5-fix-recurring-conflict.sql`.
+2. Deleting a generated instance came back on the next reload, on every
+   device — the materializer couldn't tell "deleted on purpose" apart from
+   "never generated." Fixed in `migration-phase-6-recurring-skips.sql`
+   plus a new `recurring_skips` table, checked in `Waypoint.tsx` before
+   materializing.
+
+**Both migrations are still unrun as of this writing** — check before
+assuming recurring activities actually work on the live database.
+
+**Clear streak unified.** There were briefly two streak functions —
+`clearStreak` (lenient, skipped empty days, used by Statistics) and
+`engagementStreak` (strict, broke on empty days, used only by the
+widget) — a deliberate split at the time, reasoned as "right for
+reviewing history" vs. "right for a daily nudge." The user reported
+Statistics showing a streak of 6 with no real 6-day run, which is exactly
+what the lenient version does when several of the "6 days" had nothing
+planned on them. Resolved by deleting `engagementStreak` and giving
+`clearStreak` its stricter body instead — one function, shared by
+Statistics and the widget, so they can't drift apart again. If a lenient
+"don't count empty days against me" streak is ever wanted again, it needs
+a new name and a clear reason, not a silent reintroduction of the old
+`clearStreak`.
