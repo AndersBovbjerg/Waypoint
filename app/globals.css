@@ -369,6 +369,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-effort-line { stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .wp-effort-crosshair { stroke:var(--muted); stroke-width:1; opacity:.5; }
 .wp-effort-dot { fill:var(--accent); stroke:var(--panel); stroke-width:2; }
+.wp-goalchart-target { stroke:var(--muted); stroke-width:1; stroke-dasharray:3 3; opacity:.6; }
 .wp-effort-tip { position:absolute; top:8px; transform:translateX(-50%); display:flex;
   flex-direction:column; align-items:center; gap:1px; pointer-events:none;
   background:var(--panel); border:1px solid var(--rule); border-radius:var(--r-sm);

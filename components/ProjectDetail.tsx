@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp, Repeat, Pause, Play } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, NewActivity, NewRecurringActivity, RecurringActivity } from "./types";
-import { GoalMeter } from "./shared";
+import { GoalChart } from "./GoalChart";
 import { ProjectIcon } from "./identity";
-import { formatDelta, deltaIsGood, formatGoalValue, parseGoalValue } from "./goal";
+import { currentValue, formatDelta, deltaIsGood, formatGoalValue, parseGoalValue } from "./goal";
 import { fmtShort, formatWeekdays, pad, shiftKey } from "./helpers";
 
 const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -112,7 +112,22 @@ export function ProjectDetail({
             <span className="wp-mono wp-muted">{entries.length} READINGS</span>
           </div>
 
-          <GoalMeter goal={project.goal} entries={entries} color={project.color} />
+          <div className="wp-goal-head">
+            <span className="wp-goal-label">{project.goal.label}</span>
+            <span className="wp-goal-now" style={{ color: project.color }}>
+              {formatGoalValue(currentValue(project.goal, entries), project.goal.unit)}
+            </span>
+          </div>
+          <GoalChart
+            goal={project.goal}
+            entries={entries}
+            createdDate={project.created}
+            color={project.color}
+          />
+          <p className="wp-mono wp-muted wp-goal-ends">
+            <span>Started {formatGoalValue(project.goal.start, project.goal.unit)}</span>
+            <span>Target {formatGoalValue(project.goal.target, project.goal.unit)}</span>
+          </p>
 
           <div className="wp-addrow">
             <input
