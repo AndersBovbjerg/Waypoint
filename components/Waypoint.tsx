@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sun, Moon, LogOut, X, Compass, Layers, Calendar, CalendarCheck, BarChart3 } from "lucide-react";
+import { Sun, Moon, LogOut, X, Compass, Layers, Calendar, CalendarCheck, BarChart3, Bell, BellOff } from "lucide-react";
 import type {
   AppData,
   Activity,
@@ -23,6 +23,7 @@ import { useTimer } from "./useTimer";
 import { TimerBadge } from "./TimerCard";
 import { buildReview, isSunday, startOfWeek } from "./week";
 import { canNotify, notify } from "./notify";
+import { currentPushSubscription, disableReminders, enableReminders, pushSupported } from "./push";
 import { ReviewModal, ReviewView } from "./ReviewView";
 import { TodayView } from "./TodayView";
 import { ProjectsView } from "./ProjectsView";
@@ -87,10 +88,38 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [remindersOn, setRemindersOn] = useState(false);
+  const [reminderBusy, setReminderBusy] = useState(false);
 
   /* recomputed at midnight, not once per mount — this window stays open */
   const today = useToday();
   const tick = useMinuteTick();
+
+  useEffect(() => {
+    if (!pushSupported) return;
+    currentPushSubscription().then((sub) => setRemindersOn(Boolean(sub)));
+  }, []);
+
+  const toggleReminders = async () => {
+    if (reminderBusy) return;
+    setReminderBusy(true);
+    try {
+      if (remindersOn) {
+        await disableReminders();
+        setRemindersOn(false);
+      } else {
+        const ok = await enableReminders(userId);
+        setRemindersOn(ok);
+        if (!ok) {
+          setFailure(
+            "Couldn't turn reminders on — check that notifications are allowed for this site."
+          );
+        }
+      }
+    } finally {
+      setReminderBusy(false);
+    }
+  };
 
   /* Mutations read and write this rather than React state, so two changes in
      the same tick both build on each other. A rollback snapshot taken from
@@ -506,6 +535,22 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
               setOpenProject(null);
             }}
           />
+          {pushSupported && (
+            <button
+              className="wp-modebtn"
+              onClick={toggleReminders}
+              disabled={reminderBusy}
+              aria-pressed={remindersOn}
+              aria-label={remindersOn ? "Turn off daily reminders" : "Turn on daily reminders"}
+              title={
+                remindersOn
+                  ? "Daily reminder at 17:00 — on"
+                  : "Get a notification at 17:00 for anything not yet crossed off today"
+              }
+            >
+              {remindersOn ? <Bell size={16} /> : <BellOff size={16} />}
+            </button>
+          )}
           <button
             className="wp-modebtn"
             onClick={() => {

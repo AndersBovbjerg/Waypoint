@@ -41,6 +41,12 @@ A home-screen streak widget is also built and working, via a workaround
 that took several wrong turns to land on — worth reading the dated section
 below before touching it again, so the same dead ends aren't retried.
 
+Daily reminder push notifications (a bell icon, 17:00 local) are **built
+and pushed, but not live** — the migration hasn't been run and none of the
+three VAPID/subject env vars are set yet. See the dated env-var note below
+before assuming a user report of "no notification" is a code bug rather
+than missing setup.
+
 - **Live app:** waypoint-steel-ten.vercel.app — public, no deployment protection.
 - **GitHub:** `AndersBovbjerg/Waypoint`, connected to Vercel for auto-deploy on
   push to `main`.
@@ -121,6 +127,36 @@ below before touching it again, so the same dead ends aren't retried.
   icon does. Don't re-propose a `webapp://` URL scheme or similar — it was
   tried, and doesn't exist as a general mechanism (the one report of it
   working was iOS-26-beta-specific and unconfirmed elsewhere).
+- **Daily reminder push notifications, built 23 August 2026, not yet live.**
+  `migration-phase-7-push.sql` (the `push_subscriptions` table) **has not
+  been run.** Env vars, none set anywhere yet: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+  and `VAPID_PRIVATE_KEY` (from `npx web-push generate-vapid-keys` — already
+  generated once this session, see the chat for the actual pair; regenerate
+  if lost, nothing depends on that exact pair persisting) and `VAPID_SUBJECT`
+  (a `mailto:` address, required by the Web Push spec as a contact point).
+  Reuses `SUPABASE_SERVICE_ROLE_KEY` like the widget/Strava routes above.
+  A bell icon in the header (`Waypoint.tsx`) calls `components/push.ts` to
+  register `public/sw.js` and subscribe; the subscription is written
+  straight to `push_subscriptions` via the normal browser client and RLS,
+  the same pattern every other table in this app uses — no new API route
+  needed for that half. `app/api/cron/reminder` is the send side: Vercel
+  Cron (`vercel.json`, Hobby plan — confirmed via the `VERCEL_OIDC_TOKEN`
+  claim in `.env.local`, which allows one cron job run once a day) hits it
+  at a fixed UTC time, it computes "today" from `Intl.DateTimeFormat` fixed
+  to `Europe/Copenhagen` (a deliberate, explicit exception to the "never
+  derive a local date from the server clock" rule — safe here because the
+  zone is hardcoded rather than assumed from a raw UTC instant), and pushes
+  to any subscription whose user still has an undone activity for today.
+  **DST caveat, worth knowing before touching `vercel.json` again:** the
+  cron schedule is a fixed UTC time (`0 15 * * *`, chosen for CEST/UTC+2 —
+  today's DST state), correct for 17:00 local right now but drifting to
+  16:00 local once the clocks fall back in late October, and needing a
+  one-line change back and forth twice a year. Same shape as the
+  Strava/local-date gotchas above, just accepted rather than engineered
+  around, since a once-a-day Hobby-plan cron has no clean way to self-adjust
+  without adding an hourly-poll-plus-dedupe table for one hour of drift.
+  Expired subscriptions (device uninstalled the app, permission revoked)
+  are pruned automatically on a 404/410 from the push service.
 - **Unfinished housekeeping:** two stray Vercel projects (`waypoint-vbue`,
   `waypoint-vxdj`) were created by a duplicate GitHub import and were never
   confirmed deleted — worth checking before they cause confusion about which

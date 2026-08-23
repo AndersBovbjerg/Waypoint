@@ -1,11 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-/* The service-role client, for the Strava routes only.
+/* The service-role client, for the Strava routes and the reminder cron.
 
    Everything else in this app talks to Supabase as the signed-in user, with
    row level security doing the work. A webhook has no session — Strava calls
-   it, not the browser — so those routes need a client that can find the token
-   row by athlete id and write an activity on the user's behalf.
+   it, not the browser — and neither does a cron job, so those routes need a
+   client that can read across every user's rows directly.
 
    The service role key bypasses row level security entirely, so it must never
    reach the browser: no NEXT_PUBLIC_ prefix, and this file is only ever
@@ -47,9 +47,17 @@ type ActivitiesInsert = {
   activity_type: string | null;
 }
 
+export type PushSubscriptionRow = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
 /* The shape supabase-js wants for a typed client. Declared here rather than
-   generated, because these routes only ever touch two tables and a generated
-   file would be one more thing to keep in step with the migrations. */
+   generated, because these routes only ever touch a handful of tables and a
+   generated file would be one more thing to keep in step with the migrations. */
 type AdminSchema = {
   public: {
     Tables: {
@@ -63,6 +71,12 @@ type AdminSchema = {
         Row: ActivitiesInsert;
         Insert: ActivitiesInsert;
         Update: Partial<ActivitiesInsert>;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: PushSubscriptionRow;
+        Insert: PushSubscriptionRow;
+        Update: Partial<PushSubscriptionRow>;
         Relationships: [];
       };
     };
