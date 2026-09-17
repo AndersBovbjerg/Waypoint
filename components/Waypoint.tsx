@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { Sun, Moon, LogOut, X, Compass, Layers, Calendar, CalendarCheck, BarChart3, Bell, BellOff } from "lucide-react";
 import type {
   AppData,
@@ -25,31 +24,14 @@ import { TimerBadge } from "./TimerCard";
 import { buildReview, isSunday, startOfWeek } from "./week";
 import { canNotify, notify } from "./notify";
 import { currentPushSubscription, disableReminders, enableReminders, pushSupported } from "./push";
+import { ReviewModal, ReviewView } from "./ReviewView";
 import { TodayView } from "./TodayView";
-
-/* Today is the tab the app opens on, so it stays a plain import — everything
-   else is a tab the user has to reach for, or a modal they have to open, and
-   shipping all of it up front is what made two thirds of the first bundle
-   unused on arrival (Lighthouse: 68 KiB of unused JavaScript, all of it
-   these files and the charts they pull in). Split out, they cost one small
-   request at the moment of the tap instead of delaying the first paint of
-   the only view anyone sees on load.
-
-   `loading` matters here: without it the tap lands on a blank main area for
-   as long as the chunk takes, which reads as a broken tab rather than a
-   loading one. */
-const loading = () => <p className="wp-empty">Loading…</p>;
-
-const ProjectsView = dynamic(() => import("./ProjectsView").then((m) => m.ProjectsView), { loading });
-const ProjectDetail = dynamic(() => import("./ProjectDetail").then((m) => m.ProjectDetail), { loading });
-const CalendarView = dynamic(() => import("./CalendarView").then((m) => m.CalendarView), { loading });
-const ReviewView = dynamic(() => import("./ReviewView").then((m) => m.ReviewView), { loading });
-const StatsView = dynamic(() => import("./StatsView").then((m) => m.StatsView), { loading });
-/* The modals get no `loading` — a placeholder behind the overlay would be a
-   flash of text in the corner of the screen, not a useful signal. */
-const ReviewModal = dynamic(() => import("./ReviewView").then((m) => m.ReviewModal));
-const ProjectModal = dynamic(() => import("./ProjectModal").then((m) => m.ProjectModal));
-const ImportModal = dynamic(() => import("./ImportModal").then((m) => m.ImportModal));
+import { ProjectsView } from "./ProjectsView";
+import { ProjectDetail } from "./ProjectDetail";
+import { CalendarView } from "./CalendarView";
+import { StatsView } from "./StatsView";
+import { ProjectModal } from "./ProjectModal";
+import { ImportModal } from "./ImportModal";
 
 type View = "today" | "projects" | "calendar" | "review" | "stats";
 
