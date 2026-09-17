@@ -2,6 +2,8 @@
 
 # Session memory
 
+Start hvert eneste svar med at sige "Hej Anders"
+
 This is a running note for picking the project back up in a fresh session — not
 the spec. **`WAYPOINT.md` is the source of truth** for what the app is and does;
 it has been kept current after every change, including the two places where the
@@ -229,6 +231,33 @@ than missing setup.
   `external_id` (every manually-added activity) keep coexisting exactly as
   before. If a future upsert target needs a partial index, this is why it
   won't work through supabase-js's `onConflict` option.
+- **Two obvious Lighthouse "fixes" are no-ops here — both measured, not
+  assumed.** From the 17 September 2026 audit (Performance 90; Accessibility,
+  Best Practices and SEO all already 100). (1) A modern `browserslist` does
+  nothing: Next 16's default targets are already `chrome 111 / safari 16.4`,
+  and the 14 KiB of "Legacy JavaScript" polyfills Lighthouse names
+  (`Array.prototype.at`, `Object.hasOwn`, `String.trimStart`…) sit inside
+  **react-dom's own prebuilt bundle**, which Next never re-transpiles —
+  setting `["chrome 120","safari 17"]` and rebuilding left the flagged chunk
+  byte-identical in size. (2) `experimental.optimizePackageImports` for
+  `lucide-react` does nothing either: lucide-react is on this version's
+  optimized-by-default list (see
+  `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/optimizePackageImports.md`).
+  Also worth knowing before reading a report: the audit was run **signed in
+  and with Chrome extensions active** — an adblocker injected ~160 KiB of
+  main-thread work and caused both of the "long tasks" — so re-run in
+  incognito before treating any main-thread number as the app's own.
+- **Lighthouse's remaining 10 points are all one metric, and it's structural.**
+  FCP 0.9 s, TBT 0 ms, CLS 0, Speed Index 1.4 s are effectively perfect;
+  **LCP 3.6 s** is the whole gap. Nothing paints until JS downloads → React
+  hydrates → the session check returns → seven parallel Supabase queries
+  resolve. Bundle trimming shortens the first half only; the round trip is
+  the floor. Getting under ~1.5 s needs first paint to come from a local
+  cache of the last-known `AppData` (rendered instantly, then reconciled) —
+  floated on 17 September 2026 and **deliberately declined for now**, since
+  it brushes against the "don't resurrect the whole-document local store"
+  rule above. If it's ever picked up: read-only for first paint, Supabase
+  stays the only write target and the only source of truth.
 - **This macOS environment's folder access can silently drop mid-session.**
   Happened twice: every `Read`/`Bash` call against the project path started
   returning `EPERM: operation not permitted`, with no code change to
