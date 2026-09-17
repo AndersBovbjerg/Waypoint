@@ -247,6 +247,16 @@ than missing setup.
   and with Chrome extensions active** — an adblocker injected ~160 KiB of
   main-thread work and caused both of the "long tasks" — so re-run in
   incognito before treating any main-thread number as the app's own.
+- **Code-splitting the tab views was tried, shipped, and reverted — don't
+  re-propose it.** `next/dynamic` on Calendar, Stats, Review, Courses,
+  ProjectDetail and the modals did what it said on paper (main chunk
+  344 KiB → 256 KiB raw, ~28 KiB less transfer, views in their own
+  8–40 KiB chunks) and the user measured **no real difference** in a
+  re-run. What it did change was the feel: every tab now had to load on
+  tap. The user's own call, and the right one — for a single-user app
+  opened many times a day, one slightly longer boot with everything
+  resident beats a visible stall on every navigation. Reverted in
+  b2a1a31. The eager imports in `Waypoint.tsx` are deliberate.
 - **Lighthouse's remaining 10 points are all one metric, and it's structural.**
   FCP 0.9 s, TBT 0 ms, CLS 0, Speed Index 1.4 s are effectively perfect;
   **LCP 3.6 s** is the whole gap. Nothing paints until JS downloads → React
