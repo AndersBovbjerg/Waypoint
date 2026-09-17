@@ -46,7 +46,12 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
   color-scheme:light;
   background:var(--paper); color:var(--ink); font-family:var(--body);
   min-height:100vh; padding:0 0 64px; font-size:var(--fs-3); line-height:1.65;
-  transition:background .25s ease, color .25s ease;
+  /* Background only, deliberately. `color` can't be composited, so animating
+     it here made the whole root a non-composited animation on every theme
+     switch (Lighthouse flags it as one, against CLS). Text inherits the new
+     colour immediately while the surface still fades, which is the part of
+     the transition that was doing the work anyway. */
+  transition:background .25s ease;
 }
 
 /* ---------- dark ---------- */
