@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { PreloadResources } from "@/components/PreloadResources";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -42,7 +43,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <PreloadResources />
+        {children}
+      </body>
     </html>
   );
 }
