@@ -120,7 +120,8 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
             <label className="wp-field">
               <span className="wp-eyebrow wp-mono">Email</span>
               <input
-                className="wp-input"
+                className={`wp-input${error ? " is-error" : ""}`}
+                aria-invalid={error ? true : undefined}
                 type="email"
                 autoComplete="email"
                 autoFocus
@@ -134,7 +135,8 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
               <label className="wp-field">
                 <span className="wp-eyebrow wp-mono">Password</span>
                 <input
-                  className="wp-input"
+                  className={`wp-input${error ? " is-error" : ""}`}
+                  aria-invalid={error ? true : undefined}
                   type="password"
                   autoComplete="current-password"
                   value={password}
@@ -144,7 +146,11 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
               </label>
             )}
 
-            {error && <p className="wp-signin-error">{error}</p>}
+            {error && (
+              <p className="wp-signin-error" role="alert">
+                {error}
+              </p>
+            )}
 
             {method === "password" ? (
               <div className="wp-signin-actions">
