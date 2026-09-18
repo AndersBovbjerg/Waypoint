@@ -307,7 +307,13 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 
 /* forms */
 .wp-addrow { display:flex; gap:var(--sp-2); margin-top:var(--sp-4); flex-wrap:wrap; }
-.wp-input { flex:1; min-width:140px; font-family:var(--body); font-size:var(--fs-3); color:var(--ink);
+/* min-width is sized to the longest placeholder the app actually uses
+   ("Add an activity for today") rather than to a round number. At 140px the
+   input was pinned narrow enough to clip it by 56px in Switzer, which is a
+   little wider than the face this replaced — at 200px the row wraps the
+   select and button onto their own line instead, which is what it already
+   did on mobile. Re-measure this if the body face or that copy changes. */
+.wp-input { flex:1; min-width:200px; font-family:var(--body); font-size:var(--fs-3); color:var(--ink);
   background:var(--field); border:1px solid var(--rule); border-radius:var(--r-md); padding:11px 12px; min-height:44px; }
 .wp-input::placeholder { color:var(--muted); }
 .wp-select { flex:0 1 180px; }

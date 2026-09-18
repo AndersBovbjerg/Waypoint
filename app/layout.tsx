@@ -1,30 +1,52 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Karla } from "next/font/google";
+import localFont from "next/font/local";
 import { PreloadResources } from "@/components/PreloadResources";
 import "./globals.css";
 
-/* These two faces were chosen deliberately and then never actually loaded:
-   globals.css opened with an @import from Google Fonts, which this Next
-   version strips from the build — the production CSS carried no @font-face
-   and no font request at all, so every screen has been rendering in Georgia
-   and system-ui, the fallbacks. next/font self-hosts both, emits a
-   metric-adjusted fallback so nothing shifts as they swap in, and removes
-   the external round trip from a page whose known bottleneck is LCP.
+/* Gambetta (display) and Switzer (body), both from Fontshare / Indian Type
+   Foundry, self-hosted from app/fonts.
 
-   No `weight`: both are variable fonts, so one file covers every weight the
-   stylesheet asks for. Fraunces needs `opsz` named explicitly — optical
-   sizing is the reason to choose it, and Next only ships axes you list. */
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  axes: ["opsz"],
+   Why not the previous pair: Fraunces and Karla are good faces that have
+   been used into the ground — Fraunces is the house serif of a whole era of
+   indie-SaaS landing pages, and Impeccable's own detector flags it as an
+   overused font. The problem was never that they looked bad, it was that
+   they looked like everyone else, which is the same disease the old purple
+   palette had.
+
+   Why these two: Gambetta is an old-style text serif, so it keeps its
+   character at 20px, which is where this app's display face actually lives
+   (every card title) rather than at poster sizes. Its warmth and angled
+   stress sit with the paper-and-brass palette and with a product whose
+   nouns are courses, waypoints and a log. Switzer is a neutral grotesque
+   with the clean, even numerals this app leans on constantly.
+
+   Local rather than next/font/google: neither is on Google Fonts. ITF's
+   Free Font License explicitly permits and recommends self-hosting. It
+   treats subsetting as a derivative work, so these are the official files
+   shipped untouched — `adjustFontFallback` still gives us a metric-matched
+   fallback so nothing reflows as they swap in. Only the weights the
+   stylesheet asks for are here: display 500/700, body 400/500/700. */
+const gambetta = localFont({
+  src: [
+    { path: "./fonts/Gambetta-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Gambetta-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-display",
   display: "swap",
+  fallback: ["Georgia", "serif"],
+  adjustFontFallback: "Times New Roman",
 });
 
-const karla = Karla({
-  subsets: ["latin"],
+const switzer = localFont({
+  src: [
+    { path: "./fonts/Switzer-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Switzer-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Switzer-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-body",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
@@ -67,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${karla.variable}`}>
+    <html lang="en" className={`${gambetta.variable} ${switzer.variable}`}>
       <body>
         <PreloadResources />
         {children}
