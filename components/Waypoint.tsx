@@ -230,7 +230,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
       meta.setAttribute("data-wp-theme", "");
       document.head.appendChild(meta);
     }
-    meta.content = mode === "dark" ? "#17131D" : "#F3F1F5";
+    meta.content = mode === "dark" ? "#131210" : "#F6F4F0";
   }, [mode]);
 
   /* ---------- mutations ----------

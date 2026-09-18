@@ -1,6 +1,31 @@
 import type { Metadata, Viewport } from "next";
+import { Fraunces, Karla } from "next/font/google";
 import { PreloadResources } from "@/components/PreloadResources";
 import "./globals.css";
+
+/* These two faces were chosen deliberately and then never actually loaded:
+   globals.css opened with an @import from Google Fonts, which this Next
+   version strips from the build — the production CSS carried no @font-face
+   and no font request at all, so every screen has been rendering in Georgia
+   and system-ui, the fallbacks. next/font self-hosts both, emits a
+   metric-adjusted fallback so nothing shifts as they swap in, and removes
+   the external round trip from a page whose known bottleneck is LCP.
+
+   No `weight`: both are variable fonts, so one file covers every weight the
+   stylesheet asks for. Fraunces needs `opsz` named explicitly — optical
+   sizing is the reason to choose it, and Next only ships axes you list. */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  axes: ["opsz"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const karla = Karla({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Waypoint",
@@ -42,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${karla.variable}`}>
       <body>
         <PreloadResources />
         {children}

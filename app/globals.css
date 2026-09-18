@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Karla:wght@400;500;700&display=swap');
+/* Fonts are loaded by next/font in app/layout.tsx, not imported here — an
+   @import at the top of this file was silently dropped from the build, so
+   the app rendered in the fallbacks for its whole life. See layout.tsx. */
 
 /* ---------- the canvas ----------
    The theme lives on .wp-root, but the browser paints html behind it. Without
@@ -12,17 +14,52 @@
    trigger, not just a visual glitch caught by scrolling deliberately. Two
    layers: the browser's own elastic overscroll is told not to fire
    sideways, and overflow-x is cut off as a hard backstop regardless. */
-html { background:#F3F1F5; color-scheme:light; overflow-x:hidden; overscroll-behavior-x:none; }
-html[data-mode="dark"] { background:#17131D; color-scheme:dark; }
-body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-width:100vw; }
+/* The two faces live at :root, not on .wp-root, so body and anything
+   rendered outside the app shell can reach them. next/font declares
+   --font-display / --font-body on <html>; these name them for the app. */
+:root {
+  --display:var(--font-display), Georgia, serif;
+  --body:var(--font-body), system-ui, sans-serif;
+}
+
+html { background:#F6F4F0; color-scheme:light; overflow-x:hidden; overscroll-behavior-x:none; }
+html[data-mode="dark"] { background:#131210; color-scheme:dark; }
+/* font-family belongs here as well as on .wp-root: .wp-root does not wrap
+   every rendered surface (modals, the boot screen), and body inheriting
+   nothing meant anything outside it fell back to the browser's Times. */
+body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-width:100vw;
+  font-family:var(--body); }
 
 /* ---------- light (normal) ---------- */
 .wp-root {
-  --paper:#F3F1F5; --panel:#FBFAFC; --field:#F3F1F5; --ink:#2A2431; --muted:#6E6579;
-  --rule:#E2DCE9; --accent:#5E4677; --clear:#EAE4F0; --tick:#FFFFFF;
-  --shadow:0 2px 14px rgba(42,36,49,.06);
-  --display:'Fraunces', Georgia, serif;
-  --body:'Karla', system-ui, sans-serif;
+  /* ---------- palette ----------
+     Every token here used to sit between 305.6 and 308.4 degrees of hue —
+     seven tokens inside a 2.8 degree spread, with the "greys" carrying real
+     chroma (ink .025, muted .033, against under .005 for a true neutral).
+     Nothing was loud about it; the problem was that the app had no neutral
+     at all, so the whole surface read as one hue tinted eight ways, which
+     is what a generated ramp looks like rather than a chosen palette.
+
+     Now: a warm near-neutral stage (hue ~85, chroma under .016) and one
+     chromatic accent. Warm because the display face is a warm serif, and
+     because the product's own metaphor — courses, waypoints, a log — is
+     paper and instrument, not screen. The accent is brass rather than
+     another blue-grey for the same reason.
+
+     The real beneficiary is the twelve-colour course palette in helpers.ts,
+     which was always well spread and was being muddied by chrome sharing a
+     hue with it — including slot 0, a purple that disappeared into it. */
+  --paper:#F6F4F0; --panel:#FFFEFC; --field:#F1EEE8; --ink:#1C1A17; --muted:#6A655C;
+  --rule:#DCD7CB; --accent:#8C5E2A; --clear:#CDD9BE; --tick:#FFFFFF;
+  /* Red and green have never existed here: one purple was focus ring, error
+     border, destructive button, "good delta" and "ahead of pace" all at
+     once, so "discard what you have written" was the same colour as a
+     revenue increase. Colour is the fastest channel in an interface and it
+     was carrying no information. */
+  --positive:#3F6B4A; --negative:#9A3B2E;
+  /* Two layers: a tight contact shadow that seats the card, and a wider
+     soft one. A single 14px blur reads as a glow rather than an object. */
+  --shadow:0 1px 2px rgba(28,26,23,.05), 0 4px 16px rgba(28,26,23,.05);
 
   /* ---------- scale ----------
      Every font-size, gap and radius in this file draws from one of these.
@@ -46,19 +83,23 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
   color-scheme:light;
   background:var(--paper); color:var(--ink); font-family:var(--body);
   min-height:100vh; padding:0 0 64px; font-size:var(--fs-3); line-height:1.65;
-  /* Background only, deliberately. `color` can't be composited, so animating
-     it here made the whole root a non-composited animation on every theme
-     switch (Lighthouse flags it as one, against CLS). Text inherits the new
-     colour immediately while the surface still fades, which is the part of
-     the transition that was doing the work anyway. */
-  transition:background .25s ease;
+  /* No transition on the theme switch, deliberately.
+     Fading `background` while `color` flips instantly puts near-white text
+     on a still-near-white panel for the first frames — caught in a capture
+     mid-switch, text effectively invisible. Fading both instead just moves
+     the problem: ink and paper cross in the middle and meet at roughly 1:1.
+     There is no cross-fade of two themes available on one element, so the
+     honest answer is to swap instantly. At this speed it reads as decisive
+     rather than abrupt, which is what every app with a good theme toggle
+     actually does. */
 }
 
 /* ---------- dark ---------- */
 .wp-root[data-mode="dark"] {
-  --paper:#17131D; --panel:#201B29; --field:#17131D; --ink:#EDE8F2; --muted:#9B90A8;
-  --rule:#332B3E; --accent:#B79BD6; --clear:#2B2338; --tick:#17131D;
-  --shadow:0 2px 16px rgba(0,0,0,.35);
+  --paper:#131210; --panel:#1C1A17; --field:#100F0D; --ink:#F2EFE9; --muted:#9A948A;
+  --rule:#3B372F; --accent:#D4A055; --clear:#2D3725; --tick:#131210;
+  --positive:#7FB08A; --negative:#E0806F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
   color-scheme:dark;
 }
 
@@ -66,6 +107,23 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-root *, .wp-root *::before, .wp-root *::after { box-sizing:border-box; }
 .wp-root button { font-family:inherit; cursor:pointer; }
 .wp-root :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---------- the surfaces the browser draws for you ----------
+   Selection, the caret and the scrollbar ship with defaults that belong to
+   no design system — a stock blue highlight over warm paper is the giveaway
+   that a page was assembled rather than built. They are cheap to own. */
+::selection { background:color-mix(in oklab, var(--accent) 22%, transparent); color:var(--ink); }
+.wp-root { caret-color:var(--accent); scrollbar-color:var(--rule) transparent; scrollbar-width:thin; }
+.wp-root ::-webkit-scrollbar { width:10px; height:10px; }
+.wp-root ::-webkit-scrollbar-track { background:transparent; }
+.wp-root ::-webkit-scrollbar-thumb { background:var(--rule); border-radius:var(--r-pill);
+  border:3px solid transparent; background-clip:content-box; }
+.wp-root ::-webkit-scrollbar-thumb:hover { background:var(--muted); background-clip:content-box; }
+
+/* Every number in this app sits in a column that is read down — counts,
+   times, deltas, dates, goal readings. Proportional digits make those
+   columns shuffle as values change; tabular ones hold the grid still. */
+.wp-root { font-variant-numeric:tabular-nums; }
 /* a label that carries real information (a count, a unit, a timestamp) —
    readable at --fs-1 rather than shouted in tracked caps at 10px */
 .wp-mono { font-family:var(--body); font-size:var(--fs-1); font-weight:700; letter-spacing:.02em;
@@ -118,12 +176,17 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-grid-2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:var(--sp-5); }
 
 /* cards */
-.wp-card { background:var(--panel); border:1px solid transparent; border-radius:var(--r-md); padding:var(--sp-5);
-  position:relative; box-shadow:var(--shadow); transition:background .25s ease; }
-.wp-root[data-mode="dark"] .wp-card { border-color:var(--rule); }
+.wp-card { background:var(--panel); border:1px solid var(--rule); border-radius:var(--r-md); padding:var(--sp-5);
+  position:relative; box-shadow:var(--shadow); }
+/* No background transition here either. A card has no hover state to fade,
+   so this only ever animated the theme swap — and fading the panel while
+   --ink flips instantly is what put dark text on a darkening card for the
+   first 250ms of every switch to dark. The two .15s transitions further
+   down are real interaction states and stay. */
 .wp-card-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--sp-3); flex-wrap:wrap; }
 .wp-card-head h3 { font-family:var(--display); font-size:var(--fs-4); font-weight:500; letter-spacing:0; margin:0; }
-.wp-project-bar { position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:var(--r-md) 0 0 var(--r-md); }
+.wp-project-bar { position:absolute; left:0; top:0; bottom:0; width:3px;
+  border-radius:3px 0 0 3px; }
 .wp-project { padding-left:28px; display:flex; flex-direction:column; }
 .wp-project .wp-card-head { padding-right:36px; }
 /* plain text, not tracked caps — this line used to read "0/4 WAYPOINTS ·
@@ -159,7 +222,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-kebab-item { display:flex; align-items:center; gap:8px; text-align:left; background:none; border:none;
   border-radius:var(--r-sm); padding:10px 10px; font-family:var(--body); font-size:var(--fs-2); color:var(--ink); min-height:40px; }
 .wp-kebab-item:hover { background:var(--field); }
-.wp-kebab-item.is-danger { color:var(--accent); }
+.wp-kebab-item.is-danger { color:var(--negative); }
 
 /* hero + course strip — one compact line, not a headline plus an eyebrow
    plus a repeated "1/1" the card right below it already says */
@@ -234,7 +297,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
   font-size:var(--fs-3); }
 .wp-goalmove .wp-goal-label { flex:none; }
 .wp-delta { color:var(--muted); flex:none; }
-.wp-delta.is-good { color:var(--accent); }
+.wp-delta.is-good { color:var(--positive); }
 
 /* route lines */
 .wp-miniroute { display:flex; align-items:center; margin-top:8px; }
@@ -297,7 +360,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-btn-accent:hover { opacity:.9; }
 .wp-btn-ghost { background:none; border-color:transparent; color:var(--muted); }
 .wp-btn-ghost:hover { background:none; color:var(--ink); }
-.wp-btn-danger { background:var(--accent); border-color:var(--accent); color:var(--tick); }
+.wp-btn-danger { background:var(--negative); border-color:var(--negative); color:#FFFFFF; }
 .wp-btn:disabled { opacity:.35; cursor:not-allowed; }
 .wp-btn-grow { flex:1; }
 .wp-toolbar { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex-wrap:wrap; }
@@ -348,8 +411,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-cell-dots { display:flex; flex-wrap:wrap; gap:2px; justify-content:center; }
 /* stats */
 .wp-kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:var(--sp-3); }
-.wp-kpi { background:var(--panel); border:1px solid transparent; border-radius:var(--r-md); padding:var(--sp-4); box-shadow:var(--shadow); }
-.wp-root[data-mode="dark"] .wp-kpi { border-color:var(--rule); }
+.wp-kpi { background:var(--panel); border:1px solid var(--rule); border-radius:var(--r-md); padding:var(--sp-4); box-shadow:var(--shadow); }
 .wp-kpi-value { font-family:var(--display); font-size:var(--fs-5); font-weight:700; line-height:1; margin:6px 0; }
 .wp-kpi-sub { margin:0; font-size:var(--fs-1); }
 .wp-bars { display:flex; align-items:flex-end; gap:6px; height:150px; padding-top:8px; }
@@ -389,13 +451,13 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-signin-brand { margin-bottom:var(--sp-3); }
 .wp-signin-brand h1 { font-family:var(--display); font-size:var(--fs-4); font-weight:700;
   letter-spacing:-.01em; margin:0; }
-.wp-signin-error { font-size:var(--fs-2); color:var(--accent); margin:0 0 var(--sp-3); }
+.wp-signin-error { font-size:var(--fs-2); color:var(--negative); margin:0 0 var(--sp-3); }
 .wp-signin-actions { display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
 
 /* a write that failed and was taken back */
 .wp-failure { position:sticky; top:64px; z-index:19; display:flex; align-items:center; gap:10px;
   max-width:1000px; margin:var(--sp-3) auto 0; padding:10px 14px;
-  background:var(--panel); border:1px solid var(--accent); border-radius:var(--r-md);
+  background:var(--panel); border:1px solid var(--negative); border-radius:var(--r-md);
   box-shadow:var(--shadow); }
 .wp-failure-text { flex:1; min-width:0; font-size:var(--fs-2); }
 
@@ -452,7 +514,7 @@ body { background:inherit; overflow-x:hidden; overscroll-behavior-x:none; max-wi
 .wp-reviewrow-still { margin:8px 0 0; font-size:var(--fs-1); }
 .wp-pace { display:inline-flex; align-items:center; gap:4px; border:1px solid var(--rule);
   border-radius:var(--r-pill); padding:3px 9px; color:var(--muted); flex:none; font-size:var(--fs-1); }
-.wp-pace.is-ahead { color:var(--accent); border-color:var(--accent); }
+.wp-pace.is-ahead { color:var(--positive); border-color:var(--positive); }
 .wp-pace.is-behind { color:var(--ink); border-color:var(--ink); }
 .wp-reached { list-style:none; margin:10px 0 0; padding:0; display:flex;
   flex-direction:column; gap:6px; }
