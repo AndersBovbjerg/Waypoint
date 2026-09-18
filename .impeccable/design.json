@@ -1,0 +1,447 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T16:10:09.236866Z",
+  "title": "Design System: Waypoint",
+  "extensions": {
+    "colorMeta": {
+      "chart-paper": {
+        "role": "neutral",
+        "displayName": "Chart Paper",
+        "canonical": "#F6F4F0",
+        "tonalRamp": [
+          "#30291D",
+          "#544933",
+          "#796948",
+          "#9D885E",
+          "#B4A382",
+          "#CABEA6",
+          "#E0D9CB",
+          "#F5F3EF"
+        ]
+      },
+      "log-page": {
+        "role": "neutral",
+        "displayName": "Log Page",
+        "canonical": "#FFFEFC",
+        "tonalRamp": [
+          "#4C3300",
+          "#875A00",
+          "#C18100",
+          "#FBA800",
+          "#FFBC37",
+          "#FFD071",
+          "#FFE3AB",
+          "#FFF6E5"
+        ]
+      },
+      "recessed-field": {
+        "role": "neutral",
+        "displayName": "Recessed Field",
+        "canonical": "#F1EEE8",
+        "tonalRamp": [
+          "#30291D",
+          "#544933",
+          "#786849",
+          "#9C885F",
+          "#B3A382",
+          "#C9BEA7",
+          "#DFD9CB",
+          "#F5F3EF"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1C1A17",
+        "tonalRamp": [
+          "#2A2722",
+          "#4A453D",
+          "#6A6257",
+          "#8A8071",
+          "#A59D91",
+          "#BFB9B1",
+          "#D9D6D1",
+          "#F4F2F1"
+        ]
+      },
+      "pencil": {
+        "role": "neutral",
+        "displayName": "Pencil",
+        "canonical": "#6A655C",
+        "tonalRamp": [
+          "#292724",
+          "#48453F",
+          "#67625A",
+          "#878075",
+          "#A29D94",
+          "#BDB9B3",
+          "#D8D6D2",
+          "#F3F3F1"
+        ]
+      },
+      "rule-line": {
+        "role": "neutral",
+        "displayName": "Rule Line",
+        "canonical": "#DCD7CB",
+        "tonalRamp": [
+          "#2E291F",
+          "#514936",
+          "#73684E",
+          "#968865",
+          "#AEA387",
+          "#C6BEAA",
+          "#DDD8CD",
+          "#F5F3F0"
+        ]
+      },
+      "brass": {
+        "role": "primary",
+        "displayName": "Brass",
+        "canonical": "#8C5E2A",
+        "tonalRamp": [
+          "#3B2812",
+          "#68461F",
+          "#95642D",
+          "#C1823A",
+          "#D19E65",
+          "#DEBA92",
+          "#ECD6BF",
+          "#F9F3EB"
+        ]
+      },
+      "cleared-green": {
+        "role": "tertiary",
+        "displayName": "Cleared Green",
+        "canonical": "#CDD9BE",
+        "tonalRamp": [
+          "#27301C",
+          "#455532",
+          "#637A47",
+          "#819F5D",
+          "#9EB581",
+          "#BACBA5",
+          "#D6E0CA",
+          "#F3F6EF"
+        ]
+      },
+      "surveyed-green": {
+        "role": "secondary",
+        "displayName": "Surveyed Green",
+        "canonical": "#3F6B4A",
+        "tonalRamp": [
+          "#1C3021",
+          "#32553B",
+          "#487A54",
+          "#5D9E6D",
+          "#81B58E",
+          "#A6CAAF",
+          "#CAE0D0",
+          "#EFF6F1"
+        ]
+      },
+      "correction-red": {
+        "role": "secondary",
+        "displayName": "Correction Red",
+        "canonical": "#9A3B2E",
+        "tonalRamp": [
+          "#3B1712",
+          "#68281F",
+          "#95392C",
+          "#C24A3A",
+          "#D17265",
+          "#DE9B92",
+          "#ECC4BE",
+          "#F9EDEB"
+        ]
+      },
+      "night-paper": {
+        "role": "neutral",
+        "displayName": "Night Paper",
+        "canonical": "#131210",
+        "tonalRamp": [
+          "#2A2723",
+          "#49453E",
+          "#696358",
+          "#888173",
+          "#A39E92",
+          "#BEBAB2",
+          "#D9D6D2",
+          "#F3F3F1"
+        ]
+      },
+      "night-page": {
+        "role": "neutral",
+        "displayName": "Night Page",
+        "canonical": "#1C1A17",
+        "tonalRamp": [
+          "#2A2722",
+          "#4A453D",
+          "#6A6257",
+          "#8A8071",
+          "#A59D91",
+          "#BFB9B1",
+          "#D9D6D1",
+          "#F4F2F1"
+        ]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#F2EFE9",
+        "tonalRamp": [
+          "#302A1C",
+          "#554932",
+          "#796948",
+          "#9E885D",
+          "#B5A381",
+          "#CABEA6",
+          "#E0D9CA",
+          "#F6F3EF"
+        ]
+      },
+      "night-brass": {
+        "role": "primary",
+        "displayName": "Night Brass",
+        "canonical": "#D4A055",
+        "tonalRamp": [
+          "#3D2A0F",
+          "#6C4B1B",
+          "#9A6B27",
+          "#C98B33",
+          "#D7A65F",
+          "#E2C08E",
+          "#EEDABC",
+          "#FAF4EB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "One per screen at most: today's greeting, the running timer."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Every card title and course name. The most-used display size by a wide margin."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Row titles and prose. Capped at 56ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Counts, dates, units, deltas. Always tabular."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "Uppercase field labels inside a form or project brief."
+      }
+    },
+    "shadows": [
+      {
+        "name": "seated",
+        "value": "0 1px 2px rgba(28,26,23,.05), 0 4px 16px rgba(28,26,23,.05)",
+        "purpose": "Things that rest on the page: cards, KPI tiles, the failure banner. Dark: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3)."
+      },
+      {
+        "name": "floating",
+        "value": "0 8px 24px rgba(28,26,23,.16)",
+        "purpose": "Things that hover over the page and will be dismissed: kebab menu, select listbox. Dark: 0 8px 24px rgba(0,0,0,.5)."
+      },
+      {
+        "name": "scrim",
+        "value": "rgba(28,26,23,.5)",
+        "purpose": "Modal backdrop. Dark: rgba(0,0,0,.6)."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)",
+        "purpose": "Fields only, drawn as a ring so nothing reflows on focus."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "150ms ease",
+        "purpose": "Interaction states only: check fill, toggle dot."
+      },
+      {
+        "name": "value-change",
+        "value": "400ms ease",
+        "purpose": "A progress fill responding to new data."
+      },
+      {
+        "name": "theme-swap",
+        "value": "none",
+        "purpose": "The theme switch is instant, deliberately. Fading surfaces while text colour flips produced a ~250ms window near 1:1 contrast."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "nav-desktop",
+        "value": "769px"
+      },
+      {
+        "name": "compact",
+        "value": "768px"
+      },
+      {
+        "name": "phone",
+        "value": "560px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "The single strongest action in a view. Goes brass on hover.",
+      "html": "<button class=\"ds-btn-solid\">+ Add</button>",
+      "css": ".ds-btn-solid{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--body);font-size:14px;font-weight:700;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer}.ds-btn-solid:hover{background:var(--accent);border-color:var(--accent);color:#fff}.ds-btn-solid:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.ds-btn-solid:disabled{background:var(--field);color:var(--muted);border-color:var(--rule);cursor:not-allowed}"
+    },
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Secondary action. Inverts to ink on hover.",
+      "html": "<button class=\"ds-btn\">Edit details</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--body);font-size:14px;font-weight:700;background:var(--panel);color:var(--ink);border:1px solid var(--ink);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer}.ds-btn:hover{background:var(--ink);color:var(--paper)}.ds-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "All five states: rest, hover, focus, error, disabled.",
+      "html": "<input class=\"ds-input\" placeholder=\"Add an activity for today\">",
+      "css": ".ds-input{font-family:var(--body);font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--rule);border-radius:12px;padding:12px;min-height:44px;min-width:200px}.ds-input::placeholder{color:var(--muted)}.ds-input:hover:not(:disabled):not(:focus){border-color:var(--muted)}.ds-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)}.ds-input.is-error{border-color:var(--negative)}.ds-input:disabled{color:var(--muted);background:var(--paper);cursor:not-allowed}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Every surface. Border first, shadow only to seat it.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-head\"><h3>To do today</h3><span class=\"ds-count\">1/4</span></div><p class=\"ds-body\">Intervals — 6×800 m</p></div>",
+      "css": ".ds-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:24px;box-shadow:0 1px 2px rgba(28,26,23,.05),0 4px 16px rgba(28,26,23,.05);font-variant-numeric:tabular-nums}.ds-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.ds-card-head h3{font-family:var(--display);font-size:20px;font-weight:500;margin:0}.ds-count{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--muted)}.ds-body{font-family:var(--body);font-size:16px;line-height:1.65;margin:0;color:var(--ink)}"
+    },
+    {
+      "name": "Course Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Names the course an activity belongs to, in that course's own colour. Hidden below 560px.",
+      "html": "<span class=\"ds-tag\" style=\"color:#3F6B63;border-color:#3F6B63\">Halvmaraton</span>",
+      "css": ".ds-tag{display:inline-block;font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.02em;border:1px solid;border-radius:999px;padding:4px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+    },
+    {
+      "name": "Bottom Tab Bar",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Primary navigation at or below 768px. Sits in the thumb zone with safe-area padding.",
+      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab is-on\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76\"/></svg><span>Today</span></button><button class=\"ds-tab\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"12 2 2 7 12 12 22 7 12 2\"/><polyline points=\"2 17 12 22 22 17\"/></svg><span>Courses</span></button></nav>",
+      "css": ".ds-tabbar{display:flex;background:var(--paper);border-top:1px solid var(--rule)}.ds-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;padding:8px 2px;background:none;border:0;color:var(--muted);font-family:var(--body);font-size:11px;font-weight:700;cursor:pointer}.ds-tab.is-on{color:var(--ink)}.ds-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}"
+    },
+    {
+      "name": "Course Route",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The signature component: a course as nodes on a line, filled for reached waypoints and outlined for pending ones.",
+      "html": "<div class=\"ds-route\"><span class=\"ds-node is-done\"></span><span class=\"ds-leg is-done\"></span><span class=\"ds-node is-done\"></span><span class=\"ds-leg\"></span><span class=\"ds-node\"></span><span class=\"ds-leg\"></span><span class=\"ds-node\"></span></div>",
+      "css": ".ds-route{display:flex;align-items:center;gap:0;padding:8px 0}.ds-node{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--rule);background:var(--panel);flex:none}.ds-node.is-done{background:var(--accent);border-color:var(--accent)}.ds-leg{flex:1;height:1.5px;background:var(--rule)}.ds-leg.is-done{background:var(--accent)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ship's Log",
+    "overview": "Waypoint is a book you keep, not a dashboard you check. Its own vocabulary gives the system away — projects are courses, checkpoints are waypoints, you plot the week ahead and the calendar is the log of where you actually went. The visual world takes that literally: warm paper, ink, a ruled line, and one brass instrument that marks where you are now.\n\nThe density is deliberately low for a productivity tool. This is a single-person app opened many times a day, usually one-handed on a phone at arm's length, often for five seconds. That scene, not a feature list, sets the rules.\n\nTwo anti-references are confirmed and binding, because the app shipped both and they were rejected: the single-hue tint that left the app with no true neutral, and the saturated default typeface used so widely it had stopped meaning anything. In both cases the fault was not ugliness, it was indistinguishability.",
+    "keyCharacteristics": [
+      "Warm near-neutral stage (hue ~85°, chroma under 0.016) with exactly one chromatic accent",
+      "Content carries colour; chrome never does",
+      "Surfaces are objects: a 1px rule first, shadow only to seat them",
+      "An old-style serif for naming things, a neutral grotesque for reading them",
+      "Tabular numerals everywhere, because every number sits in a column read downward",
+      "Instant theme switching; motion only ever answers an action"
+    ],
+    "rules": [
+      {
+        "name": "The One Brass Rule",
+        "body": "The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If brass is helping something look nice, remove it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Course Colour Rule",
+        "body": "The twelve-colour palette belongs to content and only content. Chrome stays neutral so those twelve can actually be told apart.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Grey Rule",
+        "body": "There are no pure greys. Every neutral carries a trace of the paper's warmth (hue ~85°, chroma ≤0.016).",
+        "section": "colors"
+      },
+      {
+        "name": "The Semantic Colour Rule",
+        "body": "Green and red mean outcome, never emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "tabular-nums is set on the root and never turned off. Every number sits in a column read downward.",
+        "section": "typography"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "Nothing renders below 11px, and 11px is reserved for the tab bar and chart ticks.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Hero Rule",
+        "body": "--fs-7 appears at most once per screen. If two things are hero-sized, neither is.",
+        "section": "typography"
+      },
+      {
+        "name": "The Token Rule",
+        "body": "Every spacing, size and radius is a token. Three documented literal exceptions exist in the whole stylesheet; a new literal is a bug.",
+        "section": "layout"
+      },
+      {
+        "name": "The Thumb Rule",
+        "body": "Every interactive element is at least 44×44px, expanding hit area with a positioned ::before rather than growing visually.",
+        "section": "layout"
+      },
+      {
+        "name": "The Auto-Fit Rule",
+        "body": "Multi-column layouts collapse by available width, not by breakpoint.",
+        "section": "layout"
+      },
+      {
+        "name": "The Edge Before Shadow Rule",
+        "body": "If a surface needs to read as an object, give it a border. Shadow is never the primary means of separation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Two Elevations Rule",
+        "body": "There are exactly two: seated and floating. Seated is for anything that rests on the page; floating is for anything that will be dismissed. There is no third, and a new box-shadow literal anywhere in the stylesheet is drift — that is precisely how five hardcoded shadows tinted with a retired purple survived a full palette replacement.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do draw every spacing, size and radius from a token.",
+      "Do give any new surface a 1px --rule border before you consider a shadow.",
+      "Do keep the accent under 10% of a screen, and use --positive/--negative for outcome rather than emphasis.",
+      "Do let the twelve course colours be the only strong colour on a screen.",
+      "Do hold a 44×44px minimum hit area, expanding with a positioned ::before.",
+      "Do write empty states and errors in the product's own voice.",
+      "Do give every field all five states: rest, hover, focus, error, disabled.",
+      "Do cap prose at 56ch and keep body text at 16px."
+    ],
+    "donts": [
+      "Don't introduce a cool or achromatic grey.",
+      "Don't animate the theme switch.",
+      "Don't animate width, height, padding or margin on anything larger than a progress fill.",
+      "Don't use opacity to express a disabled state.",
+      "Don't render text below 11px, or use 11px outside the tab bar and chart ticks.",
+      "Don't put a second family, a gradient, or a glow into the system.",
+      "Don't use --r-pill on a static container.",
+      "Don't add a breakpoint when auto-fit + minmax would collapse the layout by width.",
+      "Don't let a destructive action share a colour with a positive one."
+    ]
+  }
+}

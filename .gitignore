@@ -41,5 +41,7 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
-# Impeccable critique snapshots — local design notes, not app code
-.impeccable/
+# Impeccable: critique snapshots stay local; the design-system sidecar ships
+# alongside DESIGN.md because tooling reads the two together.
+.impeccable/*
+!.impeccable/design.json
