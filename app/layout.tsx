@@ -1,52 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Work_Sans } from "next/font/google";
 import { PreloadResources } from "@/components/PreloadResources";
 import "./globals.css";
 
-/* Gambetta (display) and Switzer (body), both from Fontshare / Indian Type
-   Foundry, self-hosted from app/fonts.
+/* Work Sans, én variabel fil fra 100 til 900, hentet og self-hostet af
+   next/font/google ved build — ingen forespørgsel til Google fra brugerens
+   browser, og ingen binær i repoet.
 
-   Why not the previous pair: Fraunces and Karla are good faces that have
-   been used into the ground — Fraunces is the house serif of a whole era of
-   indie-SaaS landing pages, and Impeccable's own detector flags it as an
-   overused font. The problem was never that they looked bad, it was that
-   they looked like everyone else, which is the same disease the old purple
-   palette had.
+   Hvorfor skiftet: Schibsted Grotesk var ikke forkert, den var bare uden
+   mening. Den holdt sin neutralitet så godt, at appen ikke lød af noget.
 
-   Why these two: Gambetta is an old-style text serif, so it keeps its
-   character at 20px, which is where this app's display face actually lives
-   (every card title) rather than at poster sizes. Its warmth and angled
-   stress sit with the paper-and-brass palette and with a product whose
-   nouns are courses, waypoints and a log. Switzer is a neutral grotesque
-   with the clean, even numerals this app leans on constantly.
+   Hvorfor netop denne: Work Sans er tegnet af Wei Huang til præcis det
+   bånd, appen lever i — skærmtekst mellem 14 og 48 px — og den stammer fra
+   de tidlige groteske, altså skriftslægten fra skiltning, køreplaner og
+   regnskabsbøger. Det er bogstaveligt talt Waypoints egen metafor: en rute,
+   et checkpunkt, en log. Den har ægte tabulartal (målt, ikke antaget), et
+   smallere sæt der giver flere tegn på en 375 px skærm, og — vigtigst —
+   en vægtakse der starter ved 100. Schibsted-filen gik kun fra 400, så det
+   spring mellem let og fed, som systemet hele tiden har påstået at leve af,
+   var der aldrig rigtig. Nu er det der.
 
-   Local rather than next/font/google: neither is on Google Fonts. ITF's
-   Free Font License explicitly permits and recommends self-hosting. It
-   treats subsetting as a derivative work, so these are the official files
-   shipped untouched — `adjustFontFallback` still gives us a metric-matched
-   fallback so nothing reflows as they swap in. Only the weights the
-   stylesheet asks for are here: display 500/700, body 400/500/700. */
-const gambetta = localFont({
-  src: [
-    { path: "./fonts/Gambetta-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Gambetta-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-display",
+   Begge CSS-variabler --display og --body peger stadig på samme familie, så
+   reglerne i globals.css ikke skulle skrives om. Kontrasten kommer fra vægt
+   og størrelse, ikke fra en skrift nummer to. */
+const workSans = Work_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  /* Ingen egen fallback-liste her: next/font/google laver selv en
+     metrisk justeret fallback og hænger den på --font-sans, og globals.css
+     tilføjer allerede system-ui bagefter. En liste mere gav bare
+     system-ui, sans-serif to gange i den beregnede font-family. */
   display: "swap",
-  fallback: ["Georgia", "serif"],
-  adjustFontFallback: "Times New Roman",
-});
-
-const switzer = localFont({
-  src: [
-    { path: "./fonts/Switzer-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Switzer-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Switzer-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-body",
-  display: "swap",
-  fallback: ["system-ui", "sans-serif"],
-  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
@@ -89,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${gambetta.variable} ${switzer.variable}`}>
+    <html lang="en" className={workSans.variable}>
       <body>
         <PreloadResources />
         {children}
