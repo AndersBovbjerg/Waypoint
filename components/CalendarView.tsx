@@ -103,7 +103,7 @@ export function CalendarView({
                 <span className="wp-mono wp-cell-num">{k.slice(-2)}</span>
                 <span className="wp-cell-dots">
                   {items.slice(0, 6).map((a) => {
-                    const c = projectsById[a.projectId]?.color || "var(--rule)";
+                    const c = projectsById[a.projectId]?.color || "var(--edge)";
                     return (
                       <span
                         key={a.id}

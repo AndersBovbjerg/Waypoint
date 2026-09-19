@@ -137,7 +137,7 @@ export function ReviewView({
               {review.clearedActivities.map((a) => (
                 <li key={a.id} className="wp-upcoming">
                   <span className="wp-mono wp-muted wp-upcoming-date">{fmtShort(a.date)}</span>
-                  <span className="wp-dot" style={{ background: projectsById[a.projectId]?.color || "var(--rule)" }} />
+                  <span className="wp-dot" style={{ background: projectsById[a.projectId]?.color || "var(--edge)" }} />
                   <span className="wp-upcoming-title">{a.title}</span>
                 </li>
               ))}
@@ -160,7 +160,7 @@ export function ReviewView({
                   <span
                     className="wp-dot"
                     style={{
-                      border: `1.5px solid ${projectsById[a.projectId]?.color || "var(--rule)"}`,
+                      border: `1.5px solid ${projectsById[a.projectId]?.color || "var(--edge)"}`,
                     }}
                   />
                   <span className="wp-upcoming-title">{a.title}</span>

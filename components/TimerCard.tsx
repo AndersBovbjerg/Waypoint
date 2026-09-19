@@ -209,8 +209,8 @@ function Cycles({ done, of, color }: { done: number; of: number; color: string }
           key={i}
           className="wp-legnode"
           style={{
-            background: i < lit ? color : "var(--panel)",
-            borderColor: i < lit ? color : "var(--rule)",
+            background: i < lit ? color : "var(--raised)",
+            borderColor: i < lit ? color : "var(--edge)",
           }}
         />
       ))}
