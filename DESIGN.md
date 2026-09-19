@@ -2,123 +2,151 @@
 name: Waypoint
 description: A personal goal planner where projects are courses, waypoints are the checkpoints, and the calendar is the log.
 colors:
-  chart-paper: "#F6F4F0"
-  log-page: "#FFFEFC"
-  recessed-field: "#F1EEE8"
-  ink: "#1C1A17"
-  pencil: "#6A655C"
-  rule-line: "#DCD7CB"
-  brass: "#8C5E2A"
-  cleared-green: "#CDD9BE"
-  surveyed-green: "#3F6B4A"
-  correction-red: "#9A3B2E"
-  tick-white: "#FFFFFF"
-  night-paper: "#131210"
-  night-page: "#1C1A17"
-  night-field: "#100F0D"
-  night-ink: "#F2EFE9"
-  night-pencil: "#9A948A"
-  night-rule: "#3B372F"
-  night-brass: "#D4A055"
-  night-cleared: "#2D3725"
-  night-surveyed: "#7FB08A"
-  night-correction: "#E0806F"
+  surface: "#F5F8F7"
+  raised: "#FFFFFF"
+  sunken: "#EDF3F2"
+  ink: "#06181A"
+  muted: "#5A6E6C"
+  line: "#D6E2E0"
+  edge: "#7D8F8D"
+  signal: "#099D78"
+  signal-text: "#067C5D"
+  signal-soft: "#D4FAEA"
+  on-signal: "#06181A"
+  tick: "#FFFFFF"
+  drift: "#8C6103"
+  drift-soft: "#FFEED4"
+  hazard: "#C03A46"
+  hazard-soft: "#FEEBEA"
+  on-hazard: "#FFFFFF"
+  night-surface: "#05100F"
+  night-raised: "#0D1B1A"
+  night-sunken: "#020A09"
+  night-ink: "#E9F2F0"
+  night-muted: "#8BA4A1"
+  night-line: "#1D2E2C"
+  night-edge: "#586967"
+  night-signal: "#01F3B9"
+  night-signal-soft: "#002B1E"
+  night-tick: "#06181A"
+  night-drift: "#F9B434"
+  night-hazard: "#FB7076"
 typography:
   display:
-    fontFamily: "Gambetta, Georgia, serif"
-    fontSize: "46px"
-    fontWeight: 700
-    lineHeight: 1.05
-    letterSpacing: "-0.01em"
+    fontFamily: "Work Sans, system-ui, sans-serif"
+    fontSize: "52px"
+    fontWeight: 800
+    lineHeight: 1.03
+    letterSpacing: "-0.03em"
+    fontFeature: "tabular-nums"
   headline:
-    fontFamily: "Gambetta, Georgia, serif"
-    fontSize: "34px"
-    fontWeight: 700
-    lineHeight: 1.05
-    letterSpacing: "-0.01em"
+    fontFamily: "Work Sans, system-ui, sans-serif"
+    fontSize: "36px"
+    fontWeight: 800
+    lineHeight: 1.03
+    letterSpacing: "-0.025em"
+    fontFeature: "tabular-nums"
+  value:
+    fontFamily: "Work Sans, system-ui, sans-serif"
+    fontSize: "26px"
+    fontWeight: 800
+    lineHeight: 1
+    letterSpacing: "-0.03em"
+    fontFeature: "tabular-nums"
   title:
-    fontFamily: "Gambetta, Georgia, serif"
+    fontFamily: "Work Sans, system-ui, sans-serif"
     fontSize: "20px"
-    fontWeight: 500
+    fontWeight: 600
     lineHeight: 1.3
-    letterSpacing: "0"
+    letterSpacing: "-0.01em"
   body:
-    fontFamily: "Switzer, system-ui, sans-serif"
+    fontFamily: "Work Sans, system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.65
     fontFeature: "tabular-nums"
   label:
-    fontFamily: "Switzer, system-ui, sans-serif"
+    fontFamily: "Work Sans, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 700
     letterSpacing: "0.02em"
     fontFeature: "tabular-nums"
   eyebrow:
-    fontFamily: "Switzer, system-ui, sans-serif"
+    fontFamily: "Work Sans, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 700
     letterSpacing: "0.1em"
+  micro:
+    fontFamily: "Work Sans, system-ui, sans-serif"
+    fontSize: "11px"
+    fontWeight: 600
 rounded:
   sm: "8px"
-  md: "12px"
-  pill: "999px"
+  md: "14px"
+  lg: "20px"
+  xl: "28px"
+  full: "999px"
 spacing:
-  sp-0: "2px"
-  sp-1: "4px"
-  sp-2: "8px"
-  sp-3: "12px"
-  sp-4: "16px"
-  sp-5: "24px"
-  sp-6: "32px"
-  sp-7: "48px"
+  sp-1: "2px"
+  sp-2: "4px"
+  sp-3: "8px"
+  sp-4: "12px"
+  sp-5: "16px"
+  sp-6: "24px"
+  sp-7: "32px"
+  sp-8: "48px"
+  sp-9: "64px"
 components:
   button:
-    backgroundColor: "{colors.log-page}"
+    backgroundColor: "{colors.raised}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.full}"
     padding: "12px 16px"
     height: "44px"
   button-hover:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.chart-paper}"
+    textColor: "{colors.surface}"
   button-solid:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.chart-paper}"
-    rounded: "{rounded.pill}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.full}"
     padding: "12px 16px"
     height: "44px"
   button-solid-hover:
-    backgroundColor: "{colors.brass}"
-    textColor: "{colors.tick-white}"
+    backgroundColor: "{colors.signal}"
+    textColor: "{colors.on-signal}"
+  button-accent:
+    backgroundColor: "{colors.signal}"
+    textColor: "{colors.on-signal}"
+    rounded: "{rounded.full}"
   button-danger:
-    backgroundColor: "{colors.correction-red}"
-    textColor: "{colors.tick-white}"
-    rounded: "{rounded.pill}"
+    backgroundColor: "{colors.hazard}"
+    textColor: "{colors.on-hazard}"
+    rounded: "{rounded.full}"
   button-disabled:
-    backgroundColor: "{colors.recessed-field}"
-    textColor: "{colors.pencil}"
+    backgroundColor: "{colors.sunken}"
+    textColor: "{colors.muted}"
   input:
-    backgroundColor: "{colors.recessed-field}"
+    backgroundColor: "{colors.sunken}"
     textColor: "{colors.ink}"
     rounded: "{rounded.md}"
-    padding: "12px 12px"
+    padding: "12px"
     height: "44px"
-  input-focus:
-    backgroundColor: "{colors.recessed-field}"
-    textColor: "{colors.ink}"
-  input-error:
-    backgroundColor: "{colors.recessed-field}"
-    textColor: "{colors.ink}"
   card:
-    backgroundColor: "{colors.log-page}"
+    backgroundColor: "{colors.raised}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.lg}"
     padding: "24px"
   tag:
     backgroundColor: "transparent"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.full}"
     padding: "4px 8px"
+    typography: "{typography.label}"
+  disclosure:
+    backgroundColor: "transparent"
+    textColor: "{colors.muted}"
+    rounded: "{rounded.md}"
+    height: "44px"
     typography: "{typography.label}"
 ---
 
@@ -126,188 +154,200 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Ship's Log"**
+Waypoint is a single-person goal planner, and its own vocabulary gives the model away: projects are *courses*, checkpoints are *waypoints*, you *plot* the week ahead and the calendar is the *log* of where you actually went. Use that vocabulary in UI copy; it is the most distinctive thing the product has.
 
-Waypoint is a book you keep, not a dashboard you check. Its own vocabulary gives the system away — projects are *courses*, checkpoints are *waypoints*, you *plot* the week ahead and the calendar is the *log* of where you actually went. The visual world takes that literally: warm paper, ink, a ruled line, and one brass instrument that marks where you are now. Nothing glows. Nothing is chrome-plated. It should feel like a thing that has been carried around.
+**This document deliberately has no governing metaphor.** The previous version had one — paper, brass and ink — and that is the part that rotted. Hex values drift loudly: a colour is either the one in the stylesheet or it is not. A metaphor drifts quietly, staying readable and persuasive while describing an application that no longer exists, which is how this file spent months instructing people to build the wrong thing. What survived nine months of change were the rules about *behaviour* — the token discipline, the touch-target floor, the anti-references. Those are below. If you are tempted to add a north star, don't; add a rule instead.
 
-The density is deliberately low for a productivity tool. This is a single-person app opened many times a day, usually one-handed on a phone at arm's length, often for five seconds. That scene, not a feature list, sets the rules: a 16px body floor, 44px targets, the primary navigation under the thumb, and no screen that requires two hands to finish a thought. Where a denser app would pack more in, Waypoint leaves the space and trusts the page.
+The density is deliberately low for a productivity tool. This is one person's app, opened many times a day, usually one-handed on a phone at arm's length, often for five seconds. That scene sets the rules, not a feature list: a 16px body floor, 44px targets, primary navigation under the thumb, and no screen that needs two hands to finish a thought.
 
-Two anti-references are confirmed and binding, because the app shipped both and they were rejected. The first is the **single-hue tint**: an earlier palette put all fourteen tokens inside a 2.8° hue spread, so the app had no true neutral and read as a theme applied over a design rather than a designed palette. The second is the **saturated default face** — good typefaces (Fraunces, Karla) used so widely they had stopped meaning anything. In both cases the fault was not ugliness, it was indistinguishability. Waypoint would rather be quiet than generic.
+**Two anti-references are confirmed and binding, because the app shipped both and they were rejected.**
+
+1. **The single-hue tint.** An earlier palette put all fourteen tokens inside a 2.8° hue spread, so the app had no true neutral and read as a theme applied over a design rather than a designed palette.
+2. **The saturated default face.** Fraunces, Karla, Inter and Roboto were each considered and rejected — not for being ugly, but for being so widely used they had stopped meaning anything. In both cases the fault was indistinguishability. Waypoint would rather be quiet than generic.
 
 **Key Characteristics:**
-- Warm near-neutral stage (hue ~85°, chroma under 0.016) with exactly one chromatic accent
+- A deep teal-tinted neutral stage with exactly one chromatic accent
 - Content carries colour; chrome never does
 - Surfaces are objects: a 1px rule first, shadow only to seat them
-- An old-style serif for naming things, a neutral grotesque for reading them
+- One typeface across the whole app; contrast comes from weight and size, never a second family
 - Tabular numerals everywhere, because every number sits in a column read downward
 - Instant theme switching; motion only ever answers an action
 
 ## Colors
 
-A warm paper stage with a single brass accent, plus two semantic colours that exist only to say whether something went the right way.
+A near-neutral stage carrying a trace of teal, one chromatic accent, and two semantic colours that exist only to say whether something went the right way. Light and dark are separate palettes, not one palette dimmed.
 
 ### Primary
-- **Brass** (`#8C5E2A` light / `#D4A055` dark): the one chromatic voice. It marks focus rings, the current goal reading, the effort line, and the "your review is ready" prompt. It is an instrument needle, not a brand splash. It never fills a large area.
+- **Signal** (`#099D78` light / `#01F3B9` dark): the one chromatic voice. It marks where you are and what you are touching — the focused field, the current step, the active tab, a reached waypoint, the running timer. It is never a brand splash and never fills a large area. `--signal-text` (`#067C5D`) is the same voice at text weight in light mode, where the fill value only holds 3:1; in dark the two are the same value because the mint clears 12:1 against the deep field.
 
 ### Secondary
-- **Surveyed Green** (`#3F6B4A` / `#7FB08A`): a reading moved the right way; a pace that is ahead. Semantic only.
-- **Correction Red** (`#9A3B2E` / `#E0806F`): destruction and failure — the danger button, the failure banner, an invalid field. Never decorative, never a highlight.
+- **Drift** (`#8C6103` / `#F9B434`): behind pace. Amber rather than red on purpose — being behind is a call for attention, not a failure. Always paired with a word, never colour alone.
+- **Hazard** (`#C03A46` / `#FB7076`): destruction and failure only — the danger button, a failed write, an invalid field. Never decorative, never a highlight.
 
 ### Tertiary
-- **Cleared Green** (`#CDD9BE` / `#2D3725`): fills a calendar day on which everything was cleared. The single most rewarding state in the app and therefore the one that must actually be visible — it carries 1.27:1 (light) and 1.54:1 (dark) against a normal cell, where it previously carried 1.11:1 and was effectively invisible.
-- **The twelve course colours** (`components/helpers.ts`, one light and one dark set): purple, teal, ochre, blue, rose, green, cyan, olive, terracotta, indigo, brown, gold. Muted, evenly spread, and assigned per course. These are **content**, not system colour.
+- **The twelve course colours** (`components/helpers.ts`, one light set and one dark): purple, teal, ochre, blue, rose, green, cyan, olive, terracotta, indigo, brown, gold. Muted, evenly spread, assigned per course. These are **content**, not system colour.
 
 ### Neutral
-- **Chart Paper** (`#F6F4F0` / `#131210`): the canvas behind everything. Warm, barely chromatic.
-- **Log Page** (`#FFFEFC` / `#1C1A17`): every card and raised surface.
-- **Recessed Field** (`#F1EEE8` / `#100F0D`): inputs, calendar cells, day pills — anything that reads as pressed into the page.
-- **Ink** (`#1C1A17` / `#F2EFE9`): body text, and the fill of solid buttons and checked controls.
-- **Pencil** (`#6A655C` / `#9A948A`): metadata, placeholders, secondary labels. 5.0:1 on paper, so it is quiet without being weak.
-- **Rule Line** (`#DCD7CB` / `#3B372F`): every border and divider.
+- **Surface** (`#F5F8F7` / `#05100F`): the canvas behind everything.
+- **Raised** (`#FFFFFF` / `#0D1B1A`): every card and lifted surface.
+- **Sunken** (`#EDF3F2` / `#020A09`): inputs, calendar cells, day pills — anything pressed into the page.
+- **Ink** (`#06181A` / `#E9F2F0`): body text, and the fill of solid buttons and checked controls.
+- **Muted** (`#5A6E6C` / `#8BA4A1`): metadata, placeholders, secondary labels. Measured 5.06:1 on surface and 5.41:1 on a card in light; 7.29:1 and 6.66:1 in dark. Quiet without being weak.
+- **Line** (`#D6E2E0` / `#1D2E2C`): dividers and card borders. A hairline, roughly 1.2:1 — it separates, it does not delineate.
+- **Edge** (`#7D8F8D` / `#586967`): every boundary that has to be *seen* rather than merely felt — field borders, unreached route nodes, the legs of a route not yet walked. Measures 3.0–3.5:1 against both card surfaces.
+- **Tick** (`#FFFFFF` / `#06181A`): the check drawn on a filled course-colour swatch, and the one neutral that must flip. Measured against all twelve course colours in both themes: white holds 4.16:1 at worst in light but collapses to 1.81:1 in dark; dark ink is the reverse.
 
 ### Named Rules
 
-**The One Brass Rule.** The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If brass is helping something look nice, remove it.
+**The One Voice Rule.** The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If the signal is helping something look nice, remove it.
 
-**The Course Colour Rule.** The twelve-colour palette belongs to content and only content: which course a task belongs to, which line is which on a chart. Chrome stays neutral so those twelve can actually be told apart. The chrome was purple once and it swallowed the purple course whole.
+**The Course Colour Rule.** The twelve-colour palette belongs to content and only content: which course a task belongs to, which line is which on a chart. Chrome stays neutral so those twelve can be told apart. The chrome was purple once and it swallowed the purple course whole.
 
-**The No-Grey Rule.** There are no pure greys. Every neutral carries a trace of the paper's warmth (hue ~85°, chroma ≤0.016). Never introduce a cool or achromatic grey; it will read as a foreign element pasted onto the page.
+**The No-Grey Rule.** There are no pure greys. Every neutral carries a trace of the stage's teal. A cool or achromatic grey will read as a foreign element pasted onto the page.
 
-**The Semantic Colour Rule.** Green and red mean outcome, never emphasis. A number is not green because it is important; it is green because it moved the right way.
+**The Semantic Colour Rule.** Drift and hazard mean outcome, never emphasis. A number is not amber because it is important; it is amber because it is behind.
+
+**The Content-Colour-As-Text Rule.** The twelve course colours were drawn for dots, rings and chart strokes, where 3:1 is the bar. Three of them fail AA as 12px text in light mode. Where a course colour must become text, mix it toward `--ink` — `color-mix(in oklab, var(--course) 85%, var(--ink))`, which darkens in light and lightens in dark from one declaration. 85% is measured: it clears 4.5:1 with margin (5.30 light, 7.67 dark) without flattening the hue that tells twelve courses apart.
 
 ## Typography
 
-**Display Font:** Gambetta (with Georgia, serif)
-**Body Font:** Switzer (with system-ui, sans-serif)
+**Typeface:** Work Sans (with `system-ui, sans-serif`), one variable file from 100 to 900, self-hosted at build by `next/font/google`. There is no second family and no display face; `--display` and `--body` both resolve to it.
 
-Both are from Fontshare / Indian Type Foundry, self-hosted from `app/fonts` via `next/font/local`. Neither is on Google Fonts. ITF's Free Font License permits and recommends self-hosting and treats subsetting as a derivative work, so the shipped files are official and untouched.
-
-**Character:** Gambetta is an old-style text serif with an angled stress and real calligraphic warmth — chosen specifically because it holds its character at 20px, which is where this app's display face actually lives (every card title), rather than only at poster sizes. The high-contrast display serifs go spindly there. Switzer is a neutral grotesque that gets out of the way and has the even, unfussy digits this app leans on constantly.
+**Character:** an early-grotesque descendant drawn by Wei Huang specifically for on-screen text in the 14–48px band, which is the band this app lives in. Its lineage is signage, timetables and ledgers — which is the product's own subject matter — and it carries real tabular figures, verified rather than assumed. Its weight axis starts at 100, which is what makes the system's weight contrast possible at all.
 
 ### Hierarchy
-- **Display** (Gambetta 700, 46px `--fs-7`, 1.05): one per screen at most. Today's greeting, the running timer.
-- **Headline** (Gambetta 700, 34px `--fs-6`, 1.05): page-level numbers.
-- **Section value** (Gambetta 700, 26px `--fs-5`, 1.1): the current goal reading, KPI values.
-- **Title** (Gambetta 500, 20px `--fs-4`, 1.3): every card title, course name, modal heading. The most-used display size by a wide margin.
-- **Body** (Switzer 400, 16px `--fs-3`, 1.65): row titles, prose. Prose is capped at 56ch (`.wp-note`).
-- **Secondary** (Switzer 400/500, 14px `--fs-2`, 1.65): supporting sentences, button labels.
-- **Label** (Switzer 700, 12px `--fs-1`, +0.02em): counts, dates, units, deltas. Tabular.
-- **Eyebrow** (Switzer 700, 12px `--fs-1`, +0.1em, uppercase): field labels inside a form or brief.
-- **Micro** (Switzer 700, 11px `--fs-0`): the two densest roles only — bottom tab bar labels and chart axis ticks. Nothing else may use it.
+- **Display** (800, 52px `--fs-7`, 1.03, -0.03em): at most once per screen, and only above 769px. Today's greeting; the running timer.
+- **Headline** (800, 36px `--fs-6`, 1.03, -0.025em): page-level numbers, section headings, and the display/timer roles below 769px.
+- **Value** (800, 26px `--fs-5`, 1, -0.03em): KPI readings, the current goal number, door headings. A figure set loose reads as separate digits rather than one value, so these take the tightest tracking in the system.
+- **Title** (600, 20px `--fs-4`, 1.3, -0.01em): every card title, course name, modal heading, wordmark (800). The most-used size by a wide margin.
+- **Body** (400, 16px `--fs-3`, 1.65): row titles and prose. Prose capped at 56ch.
+- **Secondary** (400/700, 14px `--fs-2`): supporting sentences, button labels.
+- **Label** (700, 12px `--fs-1`, +0.02em): counts, dates, units, deltas. Tabular.
+- **Eyebrow** (700, 12px `--fs-1`, +0.1em, uppercase): field labels inside a form or brief. The only tracked uppercase in the system.
+- **Micro** (600, 11px `--fs-0`): two roles only — bottom tab bar labels and chart axis ticks.
 
 ### Named Rules
 
-**The Tabular Rule.** `font-variant-numeric: tabular-nums` is set on the root and is never turned off. Every number in this app sits in a column that is read downward — counts, times, deltas, percentages — and proportional digits make those columns twitch as values change.
+**The Tabular Rule.** `font-variant-numeric: tabular-nums` is set on the root and never turned off. Every number here sits in a column read downward; proportional digits make those columns twitch as values change. A replacement face must be checked for real `tnum` support before it is adopted — two otherwise good candidates were rejected on this alone.
 
-**The 11px Floor Rule.** Nothing renders below 11px, and 11px is reserved for the tab bar and chart ticks. The app previously drew 9px and 10px text in `--muted`; at phone reading distance that is decoration, not information.
+**The 11px Floor Rule.** Nothing renders below 11px, and 11px is reserved for the tab bar and chart ticks. The app once drew 9px and 10px text in `--muted`; at phone reading distance that is decoration, not information.
 
-**The One Hero Rule.** `--fs-7` appears at most once per screen. If two things are hero-sized, neither is.
+**The One Hero Rule.** `--fs-7` appears at most once per screen, and only where the width exists to hold it on one line. If two things are hero-sized, neither is.
+
+**The Weight Contrast Rule.** Hierarchy comes from the gap between 400 and 800, not from size alone. The system once drew 22 of ~30 weighted declarations at 700 and never used 800, which is why it read as flat regardless of the scale.
+
+**The Re-Measure Rule.** Any value tuned to a specific face — a field's `min-width` sized to its longest placeholder, a tracking value, a line-height — carries a comment saying so and is re-measured when the face changes. Changing the typeface silently clipped a placeholder by 18px the one time this was skipped.
 
 ## Layout
 
-The app is a single centred column: `.wp-main` is capped at **1000px** with `--sp-6` top padding and `--sp-4` side gutters, and a bottom padding that adds `env(safe-area-inset-bottom)` so the last card clears the tab bar on a notched phone. Cards stack in a `.wp-stack` flex column with a `--sp-5` (24px) gap, which is the app's primary rhythm.
+A single centred column: `.wp-main` is capped at 1000px with `--sp-7` top padding, `--sp-5` side gutters, and a bottom padding that adds `env(safe-area-inset-bottom)` so the last card clears the tab bar on a notched phone. `body` carries `margin: 0`; the browser default left every surface 8px in from an edge the fixed tab bar ignored.
 
-Multi-column areas all use `auto-fit` + `minmax` rather than fixed column counts, so they collapse by available width instead of by breakpoint: two-up card grids at `minmax(300px, 1fr)`, the project brief at `minmax(200px, 1fr)`, KPI tiles at `minmax(170px, 1fr)`. The calendar is the one fixed grid — `repeat(7, minmax(0, 1fr))` — because a week has seven days at every width.
+Cards stack in a `.wp-stack` flex column with a `--sp-6` (24px) gap, the app's primary rhythm.
 
-**Breakpoints** (three, all max-width except the nav swap):
-- **769px and up**: navigation is a top tab row; the bottom tab bar is hidden.
+Multi-column areas use `auto-fit` + `minmax` rather than fixed column counts, so they collapse by available width instead of by breakpoint: two-up card grids at `minmax(300px, 1fr)`, KPI tiles at `minmax(170px, 1fr)`. The calendar is the one fixed grid — `repeat(7, minmax(0, 1fr))` — because a week has seven days at every width.
+
+**Breakpoints** (four, plus a motion query):
+- **900px and up**: the door shows its second pane. Below this it is the form alone.
+- **769px and up**: navigation is a top tab row, the bottom tab bar hides, and `--fs-7` becomes available.
 - **768px and down**: navigation moves to the fixed bottom tab bar; KPI tiles go to two columns.
-- **560px and down**: card padding drops from `--sp-5` to `--sp-4`; `.wp-tag` (the course name on an activity row) is hidden.
+- **560px and down**: card padding drops to `--sp-5`; a row's course tag becomes a sub-line instead of a pill.
+- **420px and down**: the step rail keeps only the current step's word.
+- `prefers-reduced-motion: reduce` disables every transition and animation.
 
-**Spacing scale** — eight steps, and every spacing value in the stylesheet draws from one: `--sp-0` 2px (hairline gaps between dots and paired icons), `--sp-1` 4px, `--sp-2` 8px, `--sp-3` 12px, `--sp-4` 16px, `--sp-5` 24px, `--sp-6` 32px, `--sp-7` 48px.
-
-**The device story.** This is a single-user app with two real surfaces: an iPhone with the app installed to the home screen (375–430px, standalone, safe-area insets live, held one-handed at roughly 30–35cm) and a Mac browser. There is no tablet story and no anonymous-visitor story. Design for the thumb first and let the desktop inherit.
+**The device story.** Two real surfaces: an iPhone with the app installed to the home screen (375–430px, standalone, safe-area insets live, held one-handed at roughly 30–35cm) and a Mac browser. There is no tablet story and no anonymous-visitor story. Design for the thumb first and let the desktop inherit — but verify on the desktop, because that is where the maintainer actually looks.
 
 ### Named Rules
 
-**The Token Rule.** Every spacing, size, and radius value is a token. There are exactly three literal exceptions in the entire stylesheet and each is documented in place: the 3px course bar and its matching 3px radius, and the `-1px` of the screen-reader clipping idiom. A new literal is a bug, not a choice.
+**The Token Rule.** Every spacing, size and radius value is a token. The literal exceptions in the stylesheet are individually documented in place; a new undocumented literal is a bug, not a choice.
 
-**The Thumb Rule.** Every interactive element is at least 44×44px. Two exceptions are permitted and both are documented with their arithmetic: calendar day cells (seven columns cannot fit 44px in 375px) and the colour-swatch grid. Both expand their hit area with an absolutely positioned `::before` instead of growing visually.
+**The Thumb Rule.** Every interactive element is at least 44×44px. The two permitted exceptions — calendar day cells and the colour-swatch grid — expand their hit area with an absolutely positioned `::before` rather than growing visually.
 
-**The Auto-Fit Rule.** Multi-column layouts collapse by available width (`auto-fit` + `minmax`), not by breakpoint. Add a breakpoint only when something other than column count must change.
+**The Auto-Fit Rule.** Multi-column layouts collapse by available width, not by breakpoint. Add a breakpoint only when something other than column count must change.
 
 ## Elevation & Depth
 
-Hybrid, and deliberately border-led. A surface is defined first by a **1px `--rule` border**, and only then seated by a shadow. The system previously relied on shadow alone with a `panel`-on-`paper` contrast of 1.08:1, which meant cards were not objects at all — they were slightly different rectangles of the same colour. The border does the structural work; the shadow only says how far off the page a thing sits.
+Hybrid, and deliberately border-led. A surface is defined first by a 1px `--line` border and only then seated by a shadow. The system once relied on shadow alone with a card-to-canvas contrast of 1.08:1, which meant cards were not objects — they were slightly different rectangles of the same colour. The border does the structural work; the shadow only says how far off the page a thing sits.
 
 ### Shadow Vocabulary
-- **Seated** (`--shadow`: `0 1px 2px rgba(28,26,23,.05), 0 4px 16px rgba(28,26,23,.05)`; dark `0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3)`): things that rest *on* the page — cards, KPI tiles, the failure banner. Two layers: a tight contact shadow and a wider ambient one.
-- **Floating** (`--shadow-float`: `0 8px 24px rgba(28,26,23,.16)`; dark `0 8px 24px rgba(0,0,0,.5)`): things that hover *over* the page and will be dismissed — the kebab menu and the select listbox. A menu needs more lift than a card; pretending otherwise is how a system starts leaking one-off shadows.
-- **Scrim** (`--scrim`: `rgba(28,26,23,.5)`; dark `rgba(0,0,0,.6)`): the modal backdrop.
-- **Focus ring** (`box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)`): fields only, drawn as a ring rather than a second border so nothing reflows on focus.
+- **Seated** (`0 1px 2px rgba(6,24,26,.05), 0 2px 10px rgba(6,24,26,.05)`; dark `0 1px 2px rgba(0,0,0,.6), 0 2px 12px rgba(0,0,0,.45)`): things that rest *on* the page. Two layers — a tight contact shadow that seats the card and a wider ambient one. A single blur reads as a glow rather than an object.
+- **Floating** (`0 10px 32px rgba(6,24,26,.14)`; dark `0 14px 40px rgba(0,0,0,.7)`): things that hover *over* the page and will be dismissed — the overflow menu, the select listbox, the door's card.
+- **Scrim** (`rgba(6,24,26,.55)`; dark `rgba(0,0,0,.7)`): the modal backdrop.
+- **Focus ring** (`0 0 0 3px rgba(9,157,120,.30)`; dark `rgba(1,243,185,.28)`): fields only, drawn as a ring rather than a second border so nothing reflows on focus.
 
 ### Named Rules
 
-**The Edge Before Shadow Rule.** If a surface needs to read as an object, give it a border. Shadow is never the primary means of separation — it fails in dark mode, at low brightness, and for anyone with reduced contrast settings.
+**The Edge Before Shadow Rule.** If a surface needs to read as an object, give it a border. Shadow is never the primary means of separation — it fails in dark mode, at low brightness, and under reduced-contrast settings.
 
-**The Two Elevations Rule.** There are exactly two: seated and floating. Seated is for anything that rests on the page; floating is for anything that will be dismissed. There is no third, and a new `box-shadow` literal anywhere in the stylesheet is drift — that is precisely how five hardcoded shadows tinted with a retired purple survived a full palette replacement.
+**The Two Elevations Rule.** There are exactly two: seated and floating. There is no third, and a new `box-shadow` literal anywhere in the stylesheet is drift.
 
 ## Shapes
 
-Three radii and no others: **`--r-sm` 8px** for small recessed controls (day pills, chart focus rings), **`--r-md` 12px** for everything that is a surface or a field (cards, inputs, modals, KPI tiles), and **`--r-pill` 999px** for anything that reads as a control you press or a token you scan — buttons, tags, icon buttons, progress tracks, the toggle dot.
+Five radii: **`--r-sm` 8px** for small recessed controls (day pills, chart focus rings), **`--r-md` 14px** for fields and anything that reads as pressed in, **`--r-lg` 20px** for cards and modals, **`--r-xl` 28px** where a surface needs to read as notably softer, and **`--r-full`** for anything you press or scan as a discrete token.
 
-The form language is: **surfaces are gently rounded rectangles; controls are pills; status dots are circles.** A pill is a promise that something is pressable or is a discrete chunk of information. Do not use `--r-pill` on a static container.
+The form language: **surfaces are gently rounded rectangles; controls are pills; status dots are circles.** A pill promises that something is pressable or is a discrete chunk of information — do not put `--r-full` on a static container.
 
-Borders are always 1px and always `--rule`, except where a semantic colour takes over (`--negative` on an invalid field or the failure banner, `--accent` on focus, the course colour on a tag).
+Borders are 1px. `--line` for structure, `--edge` for a boundary that must be seen, a semantic colour where one takes over (`--hazard` on an invalid field, `--focus` on focus, the course colour on a tag).
+
+**The one documented radius exception** is the 3px course bar down the left edge of a project card, whose `border-radius: 3px` is matched to its own 3px width rather than drawn from the scale. It is deliberately not added to `rounded`: a radius that exists to round one 3px element is not a reusable step, and promoting it would turn a local exception into a system abstraction.
 
 ## Components
 
-Character across the board: **quiet and precise.** Surfaces are flat at rest. Colour, motion, and weight are responses to an action, never decoration at rest.
+Character across the board: **quiet and precise.** Surfaces are flat at rest. Colour, motion and weight are responses to an action, never decoration.
 
 ### Buttons
-- **Shape:** fully rounded pill (`--r-pill`), `--sp-3 --sp-4` padding (12px 16px), 44px minimum height, 14px bold label, 6px gap to a leading icon.
-- **Default:** page-coloured fill (`--panel`) with a 1px `--ink` border and ink label. On hover it inverts — ink fill, paper label.
-- **Solid (primary):** ink fill, paper label. On hover it goes brass. There is at most one solid button in any view.
-- **Danger:** `--negative` fill with white label (6.9:1). Used for irreversible actions only.
-- **Disabled:** `--field` fill, `--pencil` label, `--rule` border, `cursor: not-allowed` — **not** opacity. At `opacity: .35` a disabled primary label computed to 1.93:1, so the first thing anyone saw on the sign-in screen was a button that looked broken rather than merely inactive. The explicit colours hold 5.0:1 light and 6.4:1 dark.
-- **Toggle (`.is-on`):** takes the solid treatment, so "currently on" reads identically wherever it appears.
-- **Focus:** 2px `--accent` outline at 2px offset, inherited from the root rule.
+- **Shape:** full pill (`--r-full`), 12px 16px padding, 44px minimum height, 14px/700 label, 8px gap to a leading icon.
+- **Default:** `--raised` fill, 1px `--edge` border, ink label. On hover it inverts to an ink fill.
+- **Solid (primary):** ink fill, surface label; hover goes `--signal`. At most one solid button in any view.
+- **Accent / Danger:** `--signal` with `--on-signal`; `--hazard` with `--on-hazard`. Danger is for irreversible actions only.
+- **Disabled:** `--sunken` fill, `--muted` label, `--line` border, `cursor: not-allowed` — **not** opacity. At `opacity:.35` a disabled primary label computed to 1.93:1, so the first thing on the sign-in screen looked broken rather than inactive.
+- **Loading:** the label stays and a 14px `--spin` ring is added beside it. Swapping the label changes the button's width mid-press and moves what is under the cursor.
 
 ### Cards / Containers
-- **Corner:** `--r-md` (12px).
-- **Background:** `--panel`. **Border:** 1px `--rule`, in both themes.
-- **Shadow:** the single seated-surface value.
-- **Padding:** `--sp-5` (24px), dropping to `--sp-4` (16px) at 560px and below.
-- **Head:** a flex row pairing a Gambetta 500/20px title with a right-aligned `--fs-1` count. Every card that contains a countable list shows `n/m`.
+- **Corner** `--r-lg`; **background** `--raised`; **border** 1px `--line` in both themes; **shadow** the seated value; **padding** `--sp-6`, dropping to `--sp-5` at 560px.
+- **Head:** a flex row pairing a 20px/600 title with a right-aligned 12px count. Every card containing a countable list shows `n/m`.
 
 ### Inputs / Fields
-- **Style:** `--field` background, 1px `--rule` border, `--r-md`, 12px padding, 44px minimum height, 200px minimum width (sized to the longest placeholder the app uses so it never clips).
-- **Hover:** border shifts to `--pencil`.
-- **Focus:** border goes `--accent` plus a 3px brass ring at 18% alpha. Drawn on the field itself so pointer focus and keyboard focus look the same.
-- **Error (`.is-error`):** border goes `--negative`, the ring turns red on focus, and `aria-invalid` is set. Paired with a `role="alert"` message.
-- **Disabled:** `--pencil` text on `--paper`, `--rule` border, full opacity.
+- `--sunken` background, 1px `--edge` border, `--r-md`, 12px padding, 44px minimum height, 220px minimum width (sized to the longest placeholder the app uses, re-measured per the Re-Measure Rule).
+- **Hover:** border to `--muted`. **Focus:** border to `--focus` plus the 3px ring, drawn on the field so pointer and keyboard focus look the same. **Error:** border and ring to `--hazard`, `aria-invalid` set, paired with a `role="alert"` message. **Disabled:** `--muted` text on `--surface`, full opacity.
 
 ### Chips / Tags
-- **Style:** transparent fill, 1px border and text both in the **course's own colour**, pill radius, `--sp-1 --sp-2` padding, 12px bold, capped at 150px with ellipsis.
-- **Note:** hidden below 560px. On the primary device the course association then survives only as the coloured ring on the checkbox — a known weakness, documented rather than endorsed.
+- Transparent fill, 1px border in the course's own colour, text in that colour mixed 85% toward `--ink`, pill radius, 12px/700, capped at 150px with ellipsis.
+- At 560px and below the pill is replaced by a sub-line trailing the row title (`title · course`), so the course keeps its name while truncation eats it before the title.
 
 ### Navigation
-- **Desktop (769px+):** a text tab row in the header; active tab takes `--ink`, inactive `--muted`.
-- **Mobile (≤768px):** a fixed bottom bar, 5 tabs, 19px icon over an 11px label, 56px tall plus `env(safe-area-inset-bottom)`. Active tab is `--ink` and carries `aria-current="page"`.
-- **Header:** sticky, `--paper` background, 1px `--rule` bottom border, 69px tall. Holds the wordmark and up to three 44px icon buttons.
+- **Desktop (769px+):** a text tab row in the header; active takes `--ink`, inactive `--muted`.
+- **Mobile (≤768px):** a fixed bottom bar, five tabs, 19px icon over an 11px label, 56px tall plus `env(safe-area-inset-bottom)`. Active is `--signal-text` and carries `aria-current="page"`.
+- **Header:** sticky, `--surface`, 1px `--line` bottom border, holding the wordmark and up to three 44px icon buttons. `position: sticky` here is load-bearing and fragile: any `overflow` value other than `visible` on `body` makes body a scroll container that never scrolls, and the header silently stops sticking.
 
-### The Route (signature)
-`MiniRoute` draws a course as nodes on a line — a filled node per reached waypoint, an outlined node per pending one, connected by legs. It is the one component that expresses the product's own metaphor as geometry rather than as vocabulary, and it is currently under-used: the flat progress bar still holds the hero position on both the course card and the goal meter. **When adding a progress display, reach for the route before reaching for a bar.**
+### The disclosure row (signature)
+A full-width 44px row with a 1px **dashed** `--edge` border and a muted 14px/700 label, used wherever a control should be present but not occupy the screen until asked for — the Today screen's add-activity row, the course modal's detail sections. Tapping it replaces the row with the real controls in place and focuses the first field. It is the system's answer to "this needs to exist but not shout": no floating buttons, no modals for tasks that need neither interruption nor protected focus.
+
+### The route (signature)
+`MiniRoute` and the door's route mark draw a course as nodes on a line — a filled node per reached waypoint, an `--edge` ring per pending one, connected by legs in the same two colours, with a dashed straight line between start and finish standing for the ideal no real route follows. It is the one component that expresses the product's metaphor as geometry rather than vocabulary. **When adding a progress display, reach for the route before reaching for a bar.**
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** draw every spacing, size, and radius from a token. The scale is `--sp-0`…`--sp-7`, `--fs-0`…`--fs-7`, `--r-sm`/`--r-md`/`--r-pill`.
-- **Do** give any new surface a 1px `--rule` border before you consider a shadow.
-- **Do** keep the accent under 10% of a screen, and use `--positive`/`--negative` for outcome rather than emphasis.
+- **Do** draw every spacing, size and radius from a token: `--sp-1`…`--sp-9`, `--fs-0`…`--fs-8`, the five radii.
+- **Do** give any new surface a 1px `--line` border before you consider a shadow.
+- **Do** keep the accent under 10% of a screen, and use drift/hazard for outcome rather than emphasis.
 - **Do** let the twelve course colours be the only strong colour on a screen.
 - **Do** hold a 44×44px minimum hit area, expanding with a positioned `::before` rather than growing the visual element.
+- **Do** measure contrast before shipping a colour as text, especially a content colour.
 - **Do** write empty states and errors in the product's own voice — name the actual next activity, name the missing variable, say "A quiet week is still a week."
 - **Do** give every field all five states: rest, hover, focus, error, disabled.
 - **Do** cap prose at 56ch and keep body text at 16px.
 
 ### Don't:
-- **Don't** introduce a cool or achromatic grey. Every neutral carries the paper's warmth.
+- **Don't** add a governing metaphor to this document. Add a rule instead.
+- **Don't** introduce a second typeface. Contrast comes from the 400–800 weight gap.
+- **Don't** adopt a typeface without verifying real `tnum` support.
+- **Don't** introduce a cool or achromatic grey.
 - **Don't** animate the theme switch. Fading surfaces while text colour flips instantly produced a ~250ms window where text sat at roughly 1:1 against its own card.
-- **Don't** animate `width`, `height`, `padding`, or `margin` on anything larger than a progress fill; prefer `transform` and `opacity`.
-- **Don't** use opacity to express a disabled state. Set explicit muted colours so the label stays readable.
+- **Don't** animate `width`, `height`, `padding` or `margin` on anything larger than a progress fill.
+- **Don't** use opacity to express a disabled state.
 - **Don't** render text below 11px, and don't use 11px outside the tab bar and chart ticks.
-- **Don't** put a second family, a gradient, or a glow into the system. Emphasis comes from weight, size, and space.
-- **Don't** use `--r-pill` on a static container; a pill promises a control or a token.
+- **Don't** put `--r-full` on a static container.
 - **Don't** add a breakpoint when `auto-fit` + `minmax` would collapse the layout by width instead.
-- **Don't** let a destructive action share a colour with a positive one. That mistake shipped once: a single purple served as focus ring, error border, destructive fill, "good delta", and "ahead of pace" simultaneously.
+- **Don't** reach for a floating action button or a modal for an ordinary create action; the disclosure row is the system's answer.
+- **Don't** let a destructive action share a colour with a positive one. That shipped once: a single purple served as focus ring, error border, destructive fill, "good delta" and "ahead of pace" simultaneously.

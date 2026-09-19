@@ -1,232 +1,465 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T16:10:09.236866Z",
+  "generatedAt": "2026-09-19T17:36:22.334322Z",
   "title": "Design System: Waypoint",
   "extensions": {
     "colorMeta": {
-      "chart-paper": {
+      "surface": {
         "role": "neutral",
-        "displayName": "Chart Paper",
-        "canonical": "#F6F4F0",
+        "displayName": "Surface",
+        "canonical": "#F5F8F7",
         "tonalRamp": [
-          "#30291D",
-          "#544933",
-          "#796948",
-          "#9D885E",
-          "#B4A382",
-          "#CABEA6",
-          "#E0D9CB",
-          "#F5F3EF"
+          "#0A0C0B",
+          "#222524",
+          "#3E403F",
+          "#5C5E5D",
+          "#7B7E7D",
+          "#9C9F9E",
+          "#C5C8C7",
+          "#ECEFEE"
         ]
       },
-      "log-page": {
+      "raised": {
         "role": "neutral",
-        "displayName": "Log Page",
-        "canonical": "#FFFEFC",
+        "displayName": "Raised",
+        "canonical": "#FFFFFF",
         "tonalRamp": [
-          "#4C3300",
-          "#875A00",
-          "#C18100",
-          "#FBA800",
-          "#FFBC37",
-          "#FFD071",
-          "#FFE3AB",
-          "#FFF6E5"
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C7C7C7",
+          "#EEEEEE"
         ]
       },
-      "recessed-field": {
+      "sunken": {
         "role": "neutral",
-        "displayName": "Recessed Field",
-        "canonical": "#F1EEE8",
+        "displayName": "Sunken",
+        "canonical": "#EDF3F2",
         "tonalRamp": [
-          "#30291D",
-          "#544933",
-          "#786849",
-          "#9C885F",
-          "#B3A382",
-          "#C9BEA7",
-          "#DFD9CB",
-          "#F5F3EF"
+          "#080C0B",
+          "#212524",
+          "#3C4140",
+          "#5A5F5E",
+          "#797E7E",
+          "#9AA09F",
+          "#C3C9C8",
+          "#EAF0EF"
         ]
       },
       "ink": {
         "role": "neutral",
         "displayName": "Ink",
-        "canonical": "#1C1A17",
+        "canonical": "#06181A",
         "tonalRamp": [
-          "#2A2722",
-          "#4A453D",
-          "#6A6257",
-          "#8A8071",
-          "#A59D91",
-          "#BFB9B1",
-          "#D9D6D1",
-          "#F4F2F1"
+          "#000E10",
+          "#15282A",
+          "#304446",
+          "#4E6264",
+          "#6D8284",
+          "#8EA3A6",
+          "#B6CCCF",
+          "#DDF4F6"
         ]
       },
-      "pencil": {
+      "muted": {
         "role": "neutral",
-        "displayName": "Pencil",
-        "canonical": "#6A655C",
+        "displayName": "Muted",
+        "canonical": "#5A6E6C",
         "tonalRamp": [
-          "#292724",
-          "#48453F",
-          "#67625A",
-          "#878075",
-          "#A29D94",
-          "#BDB9B3",
-          "#D8D6D2",
-          "#F3F3F1"
+          "#010E0D",
+          "#162826",
+          "#314442",
+          "#4F6260",
+          "#6E8280",
+          "#8EA4A1",
+          "#B7CDCA",
+          "#DDF4F2"
         ]
       },
-      "rule-line": {
+      "line": {
         "role": "neutral",
-        "displayName": "Rule Line",
-        "canonical": "#DCD7CB",
+        "displayName": "Line",
+        "canonical": "#D6E2E0",
         "tonalRamp": [
-          "#2E291F",
-          "#514936",
-          "#73684E",
-          "#968865",
-          "#AEA387",
-          "#C6BEAA",
-          "#DDD8CD",
-          "#F5F3F0"
+          "#050D0C",
+          "#1D2625",
+          "#384241",
+          "#56605E",
+          "#75807E",
+          "#96A19F",
+          "#BECAC8",
+          "#E5F2EF"
         ]
       },
-      "brass": {
+      "edge": {
+        "role": "neutral",
+        "displayName": "Edge",
+        "canonical": "#7D8F8D",
+        "tonalRamp": [
+          "#020E0D",
+          "#182726",
+          "#334342",
+          "#516260",
+          "#708180",
+          "#90A3A1",
+          "#B9CCCA",
+          "#E0F3F1"
+        ]
+      },
+      "signal": {
         "role": "primary",
-        "displayName": "Brass",
-        "canonical": "#8C5E2A",
+        "displayName": "Signal",
+        "canonical": "#099D78",
         "tonalRamp": [
-          "#3B2812",
-          "#68461F",
-          "#95642D",
-          "#C1823A",
-          "#D19E65",
-          "#DEBA92",
-          "#ECD6BF",
-          "#F9F3EB"
+          "#001702",
+          "#003418",
+          "#005333",
+          "#007350",
+          "#009470",
+          "#39B790",
+          "#6AE1B9",
+          "#94FFDF"
         ]
       },
-      "cleared-green": {
-        "role": "tertiary",
-        "displayName": "Cleared Green",
-        "canonical": "#CDD9BE",
+      "signal-text": {
+        "role": "primary",
+        "displayName": "Signal (text weight)",
+        "canonical": "#067C5D",
         "tonalRamp": [
-          "#27301C",
-          "#455532",
-          "#637A47",
-          "#819F5D",
-          "#9EB581",
-          "#BACBA5",
-          "#D6E0CA",
-          "#F3F6EF"
+          "#001603",
+          "#003219",
+          "#005034",
+          "#007052",
+          "#2C9171",
+          "#53B391",
+          "#7EDDBA",
+          "#A6FFE1"
         ]
       },
-      "surveyed-green": {
-        "role": "secondary",
-        "displayName": "Surveyed Green",
-        "canonical": "#3F6B4A",
+      "signal-soft": {
+        "role": "primary",
+        "displayName": "Signal Soft",
+        "canonical": "#D4FAEA",
         "tonalRamp": [
-          "#1C3021",
-          "#32553B",
-          "#487A54",
-          "#5D9E6D",
-          "#81B58E",
-          "#A6CAAF",
-          "#CAE0D0",
-          "#EFF6F1"
+          "#001108",
+          "#082B20",
+          "#26473B",
+          "#446659",
+          "#638678",
+          "#84A899",
+          "#ACD1C2",
+          "#D3F9E9"
         ]
       },
-      "correction-red": {
-        "role": "secondary",
-        "displayName": "Correction Red",
-        "canonical": "#9A3B2E",
+      "on-signal": {
+        "role": "primary",
+        "displayName": "On Signal",
+        "canonical": "#06181A",
         "tonalRamp": [
-          "#3B1712",
-          "#68281F",
-          "#95392C",
-          "#C24A3A",
-          "#D17265",
-          "#DE9B92",
-          "#ECC4BE",
-          "#F9EDEB"
+          "#000E10",
+          "#15282A",
+          "#304446",
+          "#4E6264",
+          "#6D8284",
+          "#8EA3A6",
+          "#B6CCCF",
+          "#DDF4F6"
         ]
       },
-      "night-paper": {
+      "tick": {
         "role": "neutral",
-        "displayName": "Night Paper",
-        "canonical": "#131210",
+        "displayName": "Tick",
+        "canonical": "#FFFFFF",
         "tonalRamp": [
-          "#2A2723",
-          "#49453E",
-          "#696358",
-          "#888173",
-          "#A39E92",
-          "#BEBAB2",
-          "#D9D6D2",
-          "#F3F3F1"
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C7C7C7",
+          "#EEEEEE"
         ]
       },
-      "night-page": {
-        "role": "neutral",
-        "displayName": "Night Page",
-        "canonical": "#1C1A17",
+      "drift": {
+        "role": "secondary",
+        "displayName": "Drift",
+        "canonical": "#8C6103",
         "tonalRamp": [
-          "#2A2722",
-          "#4A453D",
-          "#6A6257",
-          "#8A8071",
-          "#A59D91",
-          "#BFB9B1",
-          "#D9D6D1",
-          "#F4F2F1"
+          "#210000",
+          "#3F1800",
+          "#5E3500",
+          "#7E5400",
+          "#A07424",
+          "#C3964A",
+          "#EEBF73",
+          "#FFE69A"
+        ]
+      },
+      "drift-soft": {
+        "role": "secondary",
+        "displayName": "Drift Soft",
+        "canonical": "#FFEED4",
+        "tonalRamp": [
+          "#140900",
+          "#2E220D",
+          "#4B3D28",
+          "#6A5B45",
+          "#8A7B64",
+          "#AC9C84",
+          "#D5C5AC",
+          "#FDECD2"
+        ]
+      },
+      "hazard": {
+        "role": "secondary",
+        "displayName": "Hazard",
+        "canonical": "#C03A46",
+        "tonalRamp": [
+          "#380000",
+          "#5D0000",
+          "#820015",
+          "#A82133",
+          "#CF4852",
+          "#F66C72",
+          "#FF9599",
+          "#FFBDBF"
+        ]
+      },
+      "hazard-soft": {
+        "role": "secondary",
+        "displayName": "Hazard Soft",
+        "canonical": "#FEEBEA",
+        "tonalRamp": [
+          "#130807",
+          "#2D2020",
+          "#4A3C3B",
+          "#695958",
+          "#897978",
+          "#AB9A99",
+          "#D5C2C1",
+          "#FCE9E8"
+        ]
+      },
+      "on-hazard": {
+        "role": "secondary",
+        "displayName": "On Hazard",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C7C7C7",
+          "#EEEEEE"
+        ]
+      },
+      "night-surface": {
+        "role": "neutral",
+        "displayName": "Surface (dark)",
+        "canonical": "#05100F",
+        "tonalRamp": [
+          "#030E0D",
+          "#1A2726",
+          "#354341",
+          "#53615F",
+          "#72817F",
+          "#93A2A0",
+          "#BBCBC9",
+          "#E2F3F1"
+        ]
+      },
+      "night-raised": {
+        "role": "neutral",
+        "displayName": "Raised (dark)",
+        "canonical": "#0D1B1A",
+        "tonalRamp": [
+          "#030E0D",
+          "#192726",
+          "#344342",
+          "#516160",
+          "#718180",
+          "#91A3A1",
+          "#BACCCA",
+          "#E1F3F1"
+        ]
+      },
+      "night-sunken": {
+        "role": "neutral",
+        "displayName": "Sunken (dark)",
+        "canonical": "#020A09",
+        "tonalRamp": [
+          "#040D0C",
+          "#1B2725",
+          "#364341",
+          "#53615F",
+          "#72817F",
+          "#93A2A0",
+          "#BCCBC9",
+          "#E2F2F0"
         ]
       },
       "night-ink": {
         "role": "neutral",
-        "displayName": "Night Ink",
-        "canonical": "#F2EFE9",
+        "displayName": "Ink (dark)",
+        "canonical": "#E9F2F0",
         "tonalRamp": [
-          "#302A1C",
-          "#554932",
-          "#796948",
-          "#9E885D",
-          "#B5A381",
-          "#CABEA6",
-          "#E0D9CA",
-          "#F6F3EF"
+          "#070D0B",
+          "#1F2624",
+          "#3A4240",
+          "#585F5E",
+          "#777F7D",
+          "#98A09F",
+          "#C1C9C8",
+          "#E8F1EF"
         ]
       },
-      "night-brass": {
-        "role": "primary",
-        "displayName": "Night Brass",
-        "canonical": "#D4A055",
+      "night-muted": {
+        "role": "neutral",
+        "displayName": "Muted (dark)",
+        "canonical": "#8BA4A1",
         "tonalRamp": [
-          "#3D2A0F",
-          "#6C4B1B",
-          "#9A6B27",
-          "#C98B33",
-          "#D7A65F",
-          "#E2C08E",
-          "#EEDABC",
-          "#FAF4EB"
+          "#000F0D",
+          "#132826",
+          "#2E4542",
+          "#4C6360",
+          "#6B8380",
+          "#8BA4A1",
+          "#B4CECA",
+          "#DAF5F2"
+        ]
+      },
+      "night-line": {
+        "role": "neutral",
+        "displayName": "Line (dark)",
+        "canonical": "#1D2E2C",
+        "tonalRamp": [
+          "#010E0D",
+          "#172826",
+          "#324442",
+          "#4F6260",
+          "#6F827F",
+          "#8FA3A1",
+          "#B8CCCA",
+          "#DEF4F1"
+        ]
+      },
+      "night-edge": {
+        "role": "neutral",
+        "displayName": "Edge (dark)",
+        "canonical": "#586967",
+        "tonalRamp": [
+          "#020E0D",
+          "#182726",
+          "#334342",
+          "#516260",
+          "#70817F",
+          "#91A3A1",
+          "#B9CCCA",
+          "#E0F3F1"
+        ]
+      },
+      "night-signal": {
+        "role": "primary",
+        "displayName": "Signal (dark)",
+        "canonical": "#01F3B9",
+        "tonalRamp": [
+          "#001A00",
+          "#003910",
+          "#00582C",
+          "#007949",
+          "#009C68",
+          "#00BF89",
+          "#00EAB1",
+          "#50FFD7"
+        ]
+      },
+      "night-signal-soft": {
+        "role": "primary",
+        "displayName": "Signal Soft (dark)",
+        "canonical": "#002B1E",
+        "tonalRamp": [
+          "#001107",
+          "#012C1F",
+          "#21493A",
+          "#3F6758",
+          "#5F8877",
+          "#7FA998",
+          "#A7D3C0",
+          "#CEFAE7"
+        ]
+      },
+      "night-tick": {
+        "role": "neutral",
+        "displayName": "Tick (dark)",
+        "canonical": "#06181A",
+        "tonalRamp": [
+          "#000E10",
+          "#15282A",
+          "#304446",
+          "#4E6264",
+          "#6D8284",
+          "#8EA3A6",
+          "#B6CCCF",
+          "#DDF4F6"
+        ]
+      },
+      "night-drift": {
+        "role": "secondary",
+        "displayName": "Drift (dark)",
+        "canonical": "#F9B434",
+        "tonalRamp": [
+          "#290000",
+          "#490A00",
+          "#6A2D00",
+          "#8C4D00",
+          "#AF6E00",
+          "#D28F00",
+          "#FEB93B",
+          "#FFE069"
+        ]
+      },
+      "night-hazard": {
+        "role": "secondary",
+        "displayName": "Hazard (dark)",
+        "canonical": "#FB7076",
+        "tonalRamp": [
+          "#380000",
+          "#5D0000",
+          "#830015",
+          "#A82033",
+          "#CF4852",
+          "#F66B72",
+          "#FF9599",
+          "#FFBDBF"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "One per screen at most: today's greeting, the running timer."
+        "purpose": "At most once per screen, above 769px only: the greeting and the running timer."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page-level numbers and section headings; also the display roles below 769px."
+      },
+      "value": {
+        "displayName": "Value",
+        "purpose": "KPI readings and the current goal number. Tightest tracking in the system."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Every card title and course name. The most-used display size by a wide margin."
+        "purpose": "Card titles, course names, modal headings. The most-used size."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Row titles and prose. Capped at 56ch."
+        "purpose": "Row titles and prose. Prose capped at 56ch."
       },
       "label": {
         "displayName": "Label",
@@ -234,214 +467,270 @@
       },
       "eyebrow": {
         "displayName": "Eyebrow",
-        "purpose": "Uppercase field labels inside a form or project brief."
+        "purpose": "Field labels. The only tracked uppercase in the system."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Bottom tab bar labels and chart axis ticks. Nothing else."
       }
     },
     "shadows": [
       {
         "name": "seated",
-        "value": "0 1px 2px rgba(28,26,23,.05), 0 4px 16px rgba(28,26,23,.05)",
-        "purpose": "Things that rest on the page: cards, KPI tiles, the failure banner. Dark: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3)."
+        "value": "0 1px 2px rgba(6,24,26,.05), 0 2px 10px rgba(6,24,26,.05)",
+        "purpose": "Rests on the page. Two layers: a tight contact shadow and a wider ambient one; one blur alone reads as a glow."
+      },
+      {
+        "name": "seated-dark",
+        "value": "0 1px 2px rgba(0,0,0,.6), 0 2px 12px rgba(0,0,0,.45)",
+        "purpose": "Seated, dark theme."
       },
       {
         "name": "floating",
-        "value": "0 8px 24px rgba(28,26,23,.16)",
-        "purpose": "Things that hover over the page and will be dismissed: kebab menu, select listbox. Dark: 0 8px 24px rgba(0,0,0,.5)."
+        "value": "0 10px 32px rgba(6,24,26,.14)",
+        "purpose": "Hovers over the page and will be dismissed: menus, listboxes, the door card."
       },
       {
-        "name": "scrim",
-        "value": "rgba(28,26,23,.5)",
-        "purpose": "Modal backdrop. Dark: rgba(0,0,0,.6)."
+        "name": "floating-dark",
+        "value": "0 14px 40px rgba(0,0,0,.7)",
+        "purpose": "Floating, dark theme."
       },
       {
         "name": "focus-ring",
-        "value": "0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)",
+        "value": "0 0 0 3px rgba(9,157,120,.30)",
         "purpose": "Fields only, drawn as a ring so nothing reflows on focus."
+      },
+      {
+        "name": "focus-ring-dark",
+        "value": "0 0 0 3px rgba(1,243,185,.28)",
+        "purpose": "Focus ring, dark theme."
+      },
+      {
+        "name": "scrim",
+        "value": "rgba(6,24,26,.55)",
+        "purpose": "Modal backdrop."
       }
     ],
     "motion": [
       {
-        "name": "state-fast",
-        "value": "150ms ease",
-        "purpose": "Interaction states only: check fill, toggle dot."
+        "name": "state",
+        "value": "0.15s ease",
+        "purpose": "Hover and focus colour/border changes."
       },
       {
-        "name": "value-change",
-        "value": "400ms ease",
-        "purpose": "A progress fill responding to new data."
+        "name": "draw",
+        "value": "1.1s cubic-bezier(.4,0,.2,1)",
+        "purpose": "The route mark drawing itself in on the door. The one authored moment."
       },
       {
-        "name": "theme-swap",
+        "name": "spin",
+        "value": "0.7s linear infinite",
+        "purpose": "The loading ring inside a waiting button."
+      },
+      {
+        "name": "reduced",
         "value": "none",
-        "purpose": "The theme switch is instant, deliberately. Fading surfaces while text colour flips produced a ~250ms window near 1:1 contrast."
+        "purpose": "prefers-reduced-motion:reduce disables every transition and animation."
       }
     ],
     "breakpoints": [
       {
-        "name": "nav-desktop",
+        "name": "door-pane",
+        "value": "900px"
+      },
+      {
+        "name": "desktop",
         "value": "769px"
       },
       {
-        "name": "compact",
+        "name": "mobile",
         "value": "768px"
       },
       {
-        "name": "phone",
+        "name": "compact",
         "value": "560px"
+      },
+      {
+        "name": "rail",
+        "value": "420px"
       }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
+      "name": "Solid Button",
       "kind": "button",
       "refersTo": "button-solid",
-      "description": "The single strongest action in a view. Goes brass on hover.",
-      "html": "<button class=\"ds-btn-solid\">+ Add</button>",
-      "css": ".ds-btn-solid{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--body);font-size:14px;font-weight:700;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer}.ds-btn-solid:hover{background:var(--accent);border-color:var(--accent);color:#fff}.ds-btn-solid:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.ds-btn-solid:disabled{background:var(--field);color:var(--muted);border-color:var(--rule);cursor:not-allowed}"
+      "description": "The primary action. At most one in any view; hover goes to the signal colour.",
+      "html": "<button class=\"ds-btn-solid\">Create course</button>",
+      "css": ".ds-btn-solid{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Work Sans',system-ui,sans-serif;font-size:14px;font-weight:700;background:var(--ink, #06181A);color:var(--surface, #F5F8F7);border:1px solid var(--ink, #06181A);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer;transition:background .15s ease,border-color .15s ease}.ds-btn-solid:hover{background:var(--signal, #099D78);border-color:var(--signal, #099D78);color:var(--on-signal, #06181A)}.ds-btn-solid:focus-visible{outline:2px solid var(--focus, #067C5D);outline-offset:2px}.ds-btn-solid:disabled{background:var(--sunken, #EDF3F2);color:var(--muted, #5A6E6C);border-color:var(--line, #D6E2E0);cursor:not-allowed}"
     },
     {
       "name": "Default Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "Secondary action. Inverts to ink on hover.",
-      "html": "<button class=\"ds-btn\">Edit details</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--body);font-size:14px;font-weight:700;background:var(--panel);color:var(--ink);border:1px solid var(--ink);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer}.ds-btn:hover{background:var(--ink);color:var(--paper)}.ds-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}"
+      "description": "Every non-primary action. Inverts to an ink fill on hover.",
+      "html": "<button class=\"ds-btn\">Back</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Work Sans',system-ui,sans-serif;font-size:14px;font-weight:700;background:var(--raised, #FFFFFF);color:var(--ink, #06181A);border:1px solid var(--edge, #7D8F8D);border-radius:999px;padding:12px 16px;min-height:44px;cursor:pointer;transition:background .15s ease,color .15s ease,border-color .15s ease}.ds-btn:hover{background:var(--ink, #06181A);color:var(--surface, #F5F8F7);border-color:var(--ink, #06181A)}.ds-btn:focus-visible{outline:2px solid var(--focus, #067C5D);outline-offset:2px}"
     },
     {
       "name": "Text Field",
       "kind": "input",
       "refersTo": "input",
-      "description": "All five states: rest, hover, focus, error, disabled.",
+      "description": "Pressed into the page. Focus is drawn on the field itself so pointer and keyboard focus look the same.",
       "html": "<input class=\"ds-input\" placeholder=\"Add an activity for today\">",
-      "css": ".ds-input{font-family:var(--body);font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--rule);border-radius:12px;padding:12px;min-height:44px;min-width:200px}.ds-input::placeholder{color:var(--muted)}.ds-input:hover:not(:disabled):not(:focus){border-color:var(--muted)}.ds-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)}.ds-input.is-error{border-color:var(--negative)}.ds-input:disabled{color:var(--muted);background:var(--paper);cursor:not-allowed}"
+      "css": ".ds-input{font-family:'Work Sans',system-ui,sans-serif;font-size:16px;color:var(--ink, #06181A);background:var(--sunken, #EDF3F2);border:1px solid var(--edge, #7D8F8D);border-radius:14px;padding:12px;min-height:44px;min-width:220px;box-sizing:border-box}.ds-input::placeholder{color:var(--muted, #5A6E6C)}.ds-input:hover:not(:focus){border-color:var(--muted, #5A6E6C)}.ds-input:focus{outline:none;border-color:var(--focus, #067C5D);box-shadow:0 0 0 3px rgba(9,157,120,.30)}"
     },
     {
       "name": "Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "Every surface. Border first, shadow only to seat it.",
-      "html": "<div class=\"ds-card\"><div class=\"ds-card-head\"><h3>To do today</h3><span class=\"ds-count\">1/4</span></div><p class=\"ds-body\">Intervals — 6×800 m</p></div>",
-      "css": ".ds-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:24px;box-shadow:0 1px 2px rgba(28,26,23,.05),0 4px 16px rgba(28,26,23,.05);font-variant-numeric:tabular-nums}.ds-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.ds-card-head h3{font-family:var(--display);font-size:20px;font-weight:500;margin:0}.ds-count{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--muted)}.ds-body{font-family:var(--body);font-size:16px;line-height:1.65;margin:0;color:var(--ink)}"
+      "description": "A 1px rule defines the object; the shadow only seats it. Head pairs a 20px/600 title with a right-aligned count.",
+      "html": "<section class=\"ds-card\"><div class=\"ds-card-head\"><h3>To do today</h3><span class=\"ds-count\">1/3</span></div><p class=\"ds-body\">A waypoint is proof you are on the route rather than near it.</p></section>",
+      "css": ".ds-card{background:var(--raised, #FFFFFF);border:1px solid var(--line, #D6E2E0);border-radius:20px;padding:24px;box-shadow:0 1px 2px rgba(6,24,26,.05),0 2px 10px rgba(6,24,26,.05);font-family:'Work Sans',system-ui,sans-serif;color:var(--ink, #06181A)}.ds-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.ds-card-head h3{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}.ds-count{font-size:12px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--muted, #5A6E6C)}.ds-body{font-size:16px;font-weight:400;line-height:1.65;margin:0;max-width:56ch}"
     },
     {
       "name": "Course Tag",
       "kind": "chip",
       "refersTo": "tag",
-      "description": "Names the course an activity belongs to, in that course's own colour. Hidden below 560px.",
-      "html": "<span class=\"ds-tag\" style=\"color:#3F6B63;border-color:#3F6B63\">Halvmaraton</span>",
-      "css": ".ds-tag{display:inline-block;font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.02em;border:1px solid;border-radius:999px;padding:4px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+      "description": "Carries a course's own colour. Border keeps the pure hue; the label is mixed 85% toward the ink so it clears AA as 12px text.",
+      "html": "<span class=\"ds-tag\" style=\"--course:#7A5C8E\">Penges Psykologi</span>",
+      "css": ".ds-tag{display:inline-flex;align-items:center;font-family:'Work Sans',system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:.02em;background:transparent;color:color-mix(in oklab, var(--course,var(--edge, #7D8F8D)) 85%, var(--ink, #06181A));border:1px solid var(--course,var(--edge, #7D8F8D));border-radius:999px;padding:4px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+    },
+    {
+      "name": "Disclosure Row",
+      "kind": "custom",
+      "refersTo": "disclosure",
+      "description": "Signature. A control that should exist without occupying the screen until asked for. Tapping replaces it with the real controls in place. The system's answer instead of a floating action button or a modal.",
+      "html": "<button class=\"ds-disclosure\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M5 12h14M12 5v14\"/></svg>Add an activity</button>",
+      "css": ".ds-disclosure{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;background:none;border:1px dashed var(--edge, #7D8F8D);border-radius:14px;color:var(--muted, #5A6E6C);font-family:'Work Sans',system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:color .15s ease,border-color .15s ease}.ds-disclosure:hover{color:var(--signal-text, #067C5D);border-color:var(--signal-text, #067C5D)}.ds-disclosure:focus-visible{outline:2px solid var(--focus, #067C5D);outline-offset:2px}"
     },
     {
       "name": "Bottom Tab Bar",
       "kind": "nav",
-      "refersTo": null,
-      "description": "Primary navigation at or below 768px. Sits in the thumb zone with safe-area padding.",
-      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab is-on\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76\"/></svg><span>Today</span></button><button class=\"ds-tab\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"12 2 2 7 12 12 22 7 12 2\"/><polyline points=\"2 17 12 22 22 17\"/></svg><span>Courses</span></button></nav>",
-      "css": ".ds-tabbar{display:flex;background:var(--paper);border-top:1px solid var(--rule)}.ds-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;padding:8px 2px;background:none;border:0;color:var(--muted);font-family:var(--body);font-size:11px;font-weight:700;cursor:pointer}.ds-tab.is-on{color:var(--ink)}.ds-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}"
+      "description": "Primary navigation at 768px and below, under the thumb. 56px tall plus the safe-area inset; the active tab takes the signal colour and aria-current.",
+      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab ds-tab-on\" aria-current=\"page\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z\"/></svg>Today</button><button class=\"ds-tab\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m12 2 9 5-9 5-9-5 9-5Z\"/><path d=\"m3 12 9 5 9-5\"/></svg>Courses</button></nav>",
+      "css": ".ds-tabbar{display:flex;background:var(--raised, #FFFFFF);border-top:1px solid var(--line, #D6E2E0)}.ds-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;background:none;border:none;color:var(--muted, #5A6E6C);font-family:'Work Sans',system-ui,sans-serif;font-size:11px;font-weight:600;padding:8px 2px;cursor:pointer}.ds-tab-on{color:var(--signal-text, #067C5D)}.ds-tab:focus-visible{outline:2px solid var(--focus, #067C5D);outline-offset:-2px}"
     },
     {
-      "name": "Course Route",
+      "name": "Route Mark",
       "kind": "custom",
-      "refersTo": null,
-      "description": "The signature component: a course as nodes on a line, filled for reached waypoints and outlined for pending ones.",
-      "html": "<div class=\"ds-route\"><span class=\"ds-node is-done\"></span><span class=\"ds-leg is-done\"></span><span class=\"ds-node is-done\"></span><span class=\"ds-leg\"></span><span class=\"ds-node\"></span><span class=\"ds-leg\"></span><span class=\"ds-node\"></span></div>",
-      "css": ".ds-route{display:flex;align-items:center;gap:0;padding:8px 0}.ds-node{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--rule);background:var(--panel);flex:none}.ds-node.is-done{background:var(--accent);border-color:var(--accent)}.ds-leg{flex:1;height:1.5px;background:var(--rule)}.ds-leg.is-done{background:var(--accent)}"
+      "description": "Signature. A course drawn as nodes on a line: a filled node per reached waypoint, an edge-coloured ring per pending one, and a dashed straight line for the ideal no real route follows. Reach for this before a progress bar.",
+      "html": "<svg class=\"ds-route\" viewBox=\"0 0 300 200\" aria-hidden=\"true\"><line x1=\"16\" y1=\"176\" x2=\"284\" y2=\"24\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4 5\" opacity=\".55\"/><polyline points=\"214,94 284,24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" opacity=\".8\"/><polyline class=\"ds-route-walked\" points=\"16,176 88,150 146,158 214,94\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"16\" cy=\"176\" r=\"5\"/><circle cx=\"88\" cy=\"150\" r=\"5\"/><circle cx=\"146\" cy=\"158\" r=\"5\"/><circle cx=\"214\" cy=\"94\" r=\"7\" fill=\"none\" stroke-width=\"3\"/><circle cx=\"284\" cy=\"24\" r=\"5\" fill=\"none\" stroke-width=\"2\"/></svg>",
+      "css": ".ds-route{width:100%;height:auto;color:var(--edge, #7D8F8D)}.ds-route circle{fill:var(--signal, #099D78);stroke:var(--signal, #099D78)}.ds-route circle[fill='none']{fill:var(--raised, #FFFFFF)}.ds-route-walked{stroke:var(--signal, #099D78);stroke-dasharray:400;stroke-dashoffset:400;animation:ds-draw 1.1s cubic-bezier(.4,0,.2,1) forwards}@keyframes ds-draw{to{stroke-dashoffset:0}}@media (prefers-reduced-motion:reduce){.ds-route-walked{animation:none;stroke-dashoffset:0}}"
     }
   ],
   "narrative": {
-    "northStar": "The Ship's Log",
-    "overview": "Waypoint is a book you keep, not a dashboard you check. Its own vocabulary gives the system away — projects are courses, checkpoints are waypoints, you plot the week ahead and the calendar is the log of where you actually went. The visual world takes that literally: warm paper, ink, a ruled line, and one brass instrument that marks where you are now.\n\nThe density is deliberately low for a productivity tool. This is a single-person app opened many times a day, usually one-handed on a phone at arm's length, often for five seconds. That scene, not a feature list, sets the rules.\n\nTwo anti-references are confirmed and binding, because the app shipped both and they were rejected: the single-hue tint that left the app with no true neutral, and the saturated default typeface used so widely it had stopped meaning anything. In both cases the fault was not ugliness, it was indistinguishability.",
+    "overview": "Waypoint is a single-person goal planner, and its own vocabulary gives the model away: projects are *courses*, checkpoints are *waypoints*, you *plot* the week ahead and the calendar is the *log* of where you actually went. Use that vocabulary in UI copy; it is the most distinctive thing the product has.\n\n**This document deliberately has no governing metaphor.** The previous version had one — paper, brass and ink — and that is the part that rotted. Hex values drift loudly: a colour is either the one in the stylesheet or it is not. A metaphor drifts quietly, staying readable and persuasive while describing an application that no longer exists, which is how this file spent months instructing people to build the wrong thing. What survived nine months of change were the rules about *behaviour* — the token discipline, the touch-target floor, the anti-references. Those are below. If you are tempted to add a north star, don't; add a rule instead.\n\nThe density is deliberately low for a productivity tool. This is one person's app, opened many times a day, usually one-handed on a phone at arm's length, often for five seconds. That scene sets the rules, not a feature list: a 16px body floor, 44px targets, primary navigation under the thumb, and no screen that needs two hands to finish a thought.\n\n**Two anti-references are confirmed and binding, because the app shipped both and they were rejected.**",
     "keyCharacteristics": [
-      "Warm near-neutral stage (hue ~85°, chroma under 0.016) with exactly one chromatic accent",
+      "A deep teal-tinted neutral stage with exactly one chromatic accent",
       "Content carries colour; chrome never does",
       "Surfaces are objects: a 1px rule first, shadow only to seat them",
-      "An old-style serif for naming things, a neutral grotesque for reading them",
+      "One typeface across the whole app; contrast comes from weight and size, never a second family",
       "Tabular numerals everywhere, because every number sits in a column read downward",
       "Instant theme switching; motion only ever answers an action"
     ],
     "rules": [
       {
-        "name": "The One Brass Rule",
-        "body": "The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If brass is helping something look nice, remove it.",
+        "name": "The One Voice Rule",
+        "body": "The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If the signal is helping something look nice, remove it.",
         "section": "colors"
       },
       {
         "name": "The Course Colour Rule",
-        "body": "The twelve-colour palette belongs to content and only content. Chrome stays neutral so those twelve can actually be told apart.",
+        "body": "The twelve-colour palette belongs to content and only content: which course a task belongs to, which line is which on a chart. Chrome stays neutral so those twelve can be told apart. The chrome was purple once and it swallowed the purple course whole.",
         "section": "colors"
       },
       {
         "name": "The No-Grey Rule",
-        "body": "There are no pure greys. Every neutral carries a trace of the paper's warmth (hue ~85°, chroma ≤0.016).",
+        "body": "There are no pure greys. Every neutral carries a trace of the stage's teal. A cool or achromatic grey will read as a foreign element pasted onto the page.",
         "section": "colors"
       },
       {
         "name": "The Semantic Colour Rule",
-        "body": "Green and red mean outcome, never emphasis.",
+        "body": "Drift and hazard mean outcome, never emphasis. A number is not amber because it is important; it is amber because it is behind.",
+        "section": "colors"
+      },
+      {
+        "name": "The Content-Colour-As-Text Rule",
+        "body": "The twelve course colours were drawn for dots, rings and chart strokes, where 3:1 is the bar. Three of them fail AA as 12px text in light mode. Where a course colour must become text, mix it toward `--ink` — `color-mix(in oklab, var(--course) 85%, var(--ink))`, which darkens in light and lightens in dark from one declaration. 85% is measured: it clears 4.5:1 with margin (5.30 light, 7.67 dark) without flattening the hue that tells twelve courses apart.",
         "section": "colors"
       },
       {
         "name": "The Tabular Rule",
-        "body": "tabular-nums is set on the root and never turned off. Every number sits in a column read downward.",
+        "body": "`font-variant-numeric: tabular-nums` is set on the root and never turned off. Every number here sits in a column read downward; proportional digits make those columns twitch as values change. A replacement face must be checked for real `tnum` support before it is adopted — two otherwise good candidates were rejected on this alone.",
         "section": "typography"
       },
       {
         "name": "The 11px Floor Rule",
-        "body": "Nothing renders below 11px, and 11px is reserved for the tab bar and chart ticks.",
+        "body": "Nothing renders below 11px, and 11px is reserved for the tab bar and chart ticks. The app once drew 9px and 10px text in `--muted`; at phone reading distance that is decoration, not information.",
         "section": "typography"
       },
       {
         "name": "The One Hero Rule",
-        "body": "--fs-7 appears at most once per screen. If two things are hero-sized, neither is.",
+        "body": "`--fs-7` appears at most once per screen, and only where the width exists to hold it on one line. If two things are hero-sized, neither is.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight Contrast Rule",
+        "body": "Hierarchy comes from the gap between 400 and 800, not from size alone. The system once drew 22 of ~30 weighted declarations at 700 and never used 800, which is why it read as flat regardless of the scale.",
+        "section": "typography"
+      },
+      {
+        "name": "The Re-Measure Rule",
+        "body": "Any value tuned to a specific face — a field's `min-width` sized to its longest placeholder, a tracking value, a line-height — carries a comment saying so and is re-measured when the face changes. Changing the typeface silently clipped a placeholder by 18px the one time this was skipped.",
         "section": "typography"
       },
       {
         "name": "The Token Rule",
-        "body": "Every spacing, size and radius is a token. Three documented literal exceptions exist in the whole stylesheet; a new literal is a bug.",
+        "body": "Every spacing, size and radius value is a token. The literal exceptions in the stylesheet are individually documented in place; a new undocumented literal is a bug, not a choice.",
         "section": "layout"
       },
       {
         "name": "The Thumb Rule",
-        "body": "Every interactive element is at least 44×44px, expanding hit area with a positioned ::before rather than growing visually.",
+        "body": "Every interactive element is at least 44×44px. The two permitted exceptions — calendar day cells and the colour-swatch grid — expand their hit area with an absolutely positioned `::before` rather than growing visually.",
         "section": "layout"
       },
       {
         "name": "The Auto-Fit Rule",
-        "body": "Multi-column layouts collapse by available width, not by breakpoint.",
+        "body": "Multi-column layouts collapse by available width, not by breakpoint. Add a breakpoint only when something other than column count must change.",
         "section": "layout"
       },
       {
         "name": "The Edge Before Shadow Rule",
-        "body": "If a surface needs to read as an object, give it a border. Shadow is never the primary means of separation.",
+        "body": "If a surface needs to read as an object, give it a border. Shadow is never the primary means of separation — it fails in dark mode, at low brightness, and under reduced-contrast settings.",
         "section": "elevation"
       },
       {
         "name": "The Two Elevations Rule",
-        "body": "There are exactly two: seated and floating. Seated is for anything that rests on the page; floating is for anything that will be dismissed. There is no third, and a new box-shadow literal anywhere in the stylesheet is drift — that is precisely how five hardcoded shadows tinted with a retired purple survived a full palette replacement.",
+        "body": "There are exactly two: seated and floating. There is no third, and a new `box-shadow` literal anywhere in the stylesheet is drift.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do draw every spacing, size and radius from a token.",
-      "Do give any new surface a 1px --rule border before you consider a shadow.",
-      "Do keep the accent under 10% of a screen, and use --positive/--negative for outcome rather than emphasis.",
-      "Do let the twelve course colours be the only strong colour on a screen.",
-      "Do hold a 44×44px minimum hit area, expanding with a positioned ::before.",
-      "Do write empty states and errors in the product's own voice.",
-      "Do give every field all five states: rest, hover, focus, error, disabled.",
-      "Do cap prose at 56ch and keep body text at 16px."
+      "**Do** draw every spacing, size and radius from a token: `--sp-1`…`--sp-9`, `--fs-0`…`--fs-8`, the five radii.",
+      "**Do** give any new surface a 1px `--line` border before you consider a shadow.",
+      "**Do** keep the accent under 10% of a screen, and use drift/hazard for outcome rather than emphasis.",
+      "**Do** let the twelve course colours be the only strong colour on a screen.",
+      "**Do** hold a 44×44px minimum hit area, expanding with a positioned `::before` rather than growing the visual element.",
+      "**Do** measure contrast before shipping a colour as text, especially a content colour.",
+      "**Do** write empty states and errors in the product's own voice — name the actual next activity, name the missing variable, say \"A quiet week is still a week.\"",
+      "**Do** give every field all five states: rest, hover, focus, error, disabled.",
+      "**Do** cap prose at 56ch and keep body text at 16px."
     ],
     "donts": [
-      "Don't introduce a cool or achromatic grey.",
-      "Don't animate the theme switch.",
-      "Don't animate width, height, padding or margin on anything larger than a progress fill.",
-      "Don't use opacity to express a disabled state.",
-      "Don't render text below 11px, or use 11px outside the tab bar and chart ticks.",
-      "Don't put a second family, a gradient, or a glow into the system.",
-      "Don't use --r-pill on a static container.",
-      "Don't add a breakpoint when auto-fit + minmax would collapse the layout by width.",
-      "Don't let a destructive action share a colour with a positive one."
+      "**Don't** add a governing metaphor to this document. Add a rule instead.",
+      "**Don't** introduce a second typeface. Contrast comes from the 400–800 weight gap.",
+      "**Don't** adopt a typeface without verifying real `tnum` support.",
+      "**Don't** introduce a cool or achromatic grey.",
+      "**Don't** animate the theme switch. Fading surfaces while text colour flips instantly produced a ~250ms window where text sat at roughly 1:1 against its own card.",
+      "**Don't** animate `width`, `height`, `padding` or `margin` on anything larger than a progress fill.",
+      "**Don't** use opacity to express a disabled state.",
+      "**Don't** render text below 11px, and don't use 11px outside the tab bar and chart ticks.",
+      "**Don't** put `--r-full` on a static container.",
+      "**Don't** add a breakpoint when `auto-fit` + `minmax` would collapse the layout by width instead.",
+      "**Don't** reach for a floating action button or a modal for an ordinary create action; the disclosure row is the system's answer.",
+      "**Don't** let a destructive action share a colour with a positive one. That shipped once: a single purple served as focus ring, error border, destructive fill, \"good delta\" and \"ahead of pace\" simultaneously."
     ]
   }
 }
