@@ -32,6 +32,7 @@ import { CalendarView } from "./CalendarView";
 import { StatsView } from "./StatsView";
 import { ProjectModal } from "./ProjectModal";
 import { ImportModal } from "./ImportModal";
+import { Onboarding } from "./Onboarding";
 
 type View = "today" | "projects" | "calendar" | "review" | "stats";
 
@@ -78,7 +79,15 @@ const stravaFailure =
       ? "Could not connect Strava. Try again from the Strava card in Statistics."
       : null;
 
-export default function Waypoint({ userId, onSignOut }: { userId: string; onSignOut: () => void }) {
+export default function Waypoint({
+  userId,
+  initialName,
+  onSignOut,
+}: {
+  userId: string;
+  initialName: string;
+  onSignOut: () => void;
+}) {
   const [data, setData] = useState<AppData>(EMPTY);
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState<string | null>(stravaFailure);
@@ -90,6 +99,12 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
   const [importOpen, setImportOpen] = useState(false);
   const [remindersOn, setRemindersOn] = useState(false);
   const [reminderBusy, setReminderBusy] = useState(false);
+  const [name, setName] = useState(initialName);
+  /* Setup is offered once per visit, not once per account. There is no flag
+     for it in the database on purpose: having at least one course is the
+     real condition, and it answers itself. This only covers the person who
+     declined it and should not be asked again before they reload. */
+  const [setupSkipped, setSetupSkipped] = useState(false);
 
   /* recomputed at midnight, not once per mount — this window stays open */
   const today = useToday();
@@ -230,7 +245,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
       meta.setAttribute("data-wp-theme", "");
       document.head.appendChild(meta);
     }
-    meta.content = mode === "dark" ? "#131210" : "#F6F4F0";
+    meta.content = mode === "dark" ? "#05100F" : "#F5F8F7";
   }, [mode]);
 
   /* ---------- mutations ----------
@@ -475,6 +490,25 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
     .filter((a: Activity) => a.date === today)
     .sort((a, b) => Number(a.done) - Number(b.done));
 
+  /* An account with nothing in it gets setup rather than five empty states.
+     Archived courses still count, so somebody who has cleared the board does
+     not get asked to start over — they have been here, and the empty states
+     are the right prompt for them. */
+  if (ready && !data.projects.length && !setupSkipped) {
+    return (
+      <Onboarding
+        userId={userId}
+        mode={mode}
+        initialName={name}
+        onDone={(project, chosen) => {
+          setName(chosen);
+          setSetupSkipped(true);
+          if (project) apply({ ...dataRef.current, projects: [...dataRef.current.projects, project] });
+        }}
+      />
+    );
+  }
+
   /* A failure before the first load means there is nothing to show at all, so
      it gets the whole screen rather than a banner over an empty app. */
   if (!ready && failure) {
@@ -587,6 +621,7 @@ export default function Waypoint({ userId, onSignOut }: { userId: string; onSign
         {view === "today" && (
           <TodayView
             items={todayItems}
+            name={name}
             projects={activeProjects}
             projectsById={projectsById}
             activities={data.activities}

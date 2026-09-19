@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { MailCheck } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { getSupabase, supabaseConfigured } from "./supabase";
+import { Door, DoorPanel, ROUTE_RUNNING, Spinner, useDoorMode } from "./Door";
 
 type Phase = "checking" | "out" | "sent" | "in";
 type Method = "password" | "link";
@@ -26,6 +28,10 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
       : "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, then reload."
   );
   const [busy, setBusy] = useState(false);
+  /* No account yet, so no stored preference to honour — the door follows the
+     operating system until there is one. Once there is a session the app owns
+     the theme, so the door stops writing it; see useDoorMode. */
+  const mode = useDoorMode(undefined, phase !== "in");
 
   useEffect(() => {
     if (!supabaseConfigured) return;
@@ -82,9 +88,20 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
     else setPhase("sent");
   };
 
+  /* One real <form> around the fields, rather than buttons wired to onClick.
+     That is what makes the browser offer to save the password, what makes
+     Enter submit from either field without a keydown handler of its own, and
+     what lets iOS show "Go" on the keyboard instead of a newline. */
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (busy) return;
+    if (method === "password") void signIn();
+    else void sendLink();
+  };
+
   if (phase === "checking") {
     return (
-      <div className="wp-root wp-boot" data-mode="light">
+      <div className="wp-root wp-boot" data-mode={mode}>
         <span className="wp-mono wp-muted">Checking your session…</span>
       </div>
     );
@@ -92,108 +109,126 @@ export function AuthGate({ children }: { children: (session: Session) => React.R
 
   if (phase === "in" && session) return <>{children(session)}</>;
 
-  return (
-    <div className="wp-root wp-signin" data-mode="light">
-      <div className="wp-card wp-signin-card">
-        <div className="wp-brand wp-signin-brand">
-          <span className="wp-logo" aria-hidden="true" />
-          <h1>Waypoint</h1>
+  /* The panel never carries a number about this person — there is no session
+     yet, so any figure on it would be invented. It carries the idea instead. */
+  const panel = (
+    <DoorPanel
+      eyebrow={phase === "sent" ? "Check your email" : "The log"}
+      nodes={ROUTE_RUNNING}
+      reached={phase === "sent" ? 4 : 3}
+      quote={
+        phase === "sent"
+          ? "Good for one use, for the next hour."
+          : "A goal is a course. Waypoints are how you know you’re on it."
+      }
+      stat={
+        phase === "sent"
+          ? "Open it on the device you want signed in."
+          : "Plot the route, then log where you actually went."
+      }
+    />
+  );
+
+  if (phase === "sent") {
+    return (
+      <Door mode={mode} panel={panel}>
+        <div className="wp-door-seal">
+          <MailCheck size={22} aria-hidden="true" />
         </div>
+        <h1 className="wp-door-title">Check your email</h1>
+        <p className="wp-door-sub">
+          Sent to {email.trim()}. It’s good for one use and lasts an hour, so open it on the
+          device you want signed in.
+        </p>
+        <div className="wp-door-actions">
+          <button className="wp-btn" onClick={() => setPhase("out")}>
+            Back to sign in
+          </button>
+        </div>
+      </Door>
+    );
+  }
 
-        {phase === "sent" ? (
-          <>
-            <p className="wp-note">Check your email. The link signs you straight in.</p>
-            <p className="wp-empty">
-              Sent to {email.trim()}. It is good for one use and lasts an hour — open it on the
-              device you want to be signed in on.
-            </p>
-            <button className="wp-btn" onClick={() => setPhase("out")}>
-              Back
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="wp-note">
-              Your courses are waiting. Sign in and they follow you to any device.
-            </p>
+  const linkOnly = method === "link";
+  const ready = linkOnly ? Boolean(email.trim()) : Boolean(email.trim() && password);
 
-            <label className="wp-field">
-              <span className="wp-eyebrow wp-mono">Email</span>
-              <input
-                className={`wp-input${error ? " is-error" : ""}`}
-                aria-invalid={error ? true : undefined}
-                type="email"
-                autoComplete="email"
-                autoFocus
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-
-            {method === "password" && (
-              <label className="wp-field">
-                <span className="wp-eyebrow wp-mono">Password</span>
-                <input
-                  className={`wp-input${error ? " is-error" : ""}`}
-                  aria-invalid={error ? true : undefined}
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !busy && void signIn()}
-                />
-              </label>
-            )}
-
-            {error && (
-              <p className="wp-signin-error" role="alert">
-                {error}
-              </p>
-            )}
-
-            {method === "password" ? (
-              <div className="wp-signin-actions">
-                <button
-                  className="wp-btn wp-btn-solid"
-                  onClick={() => void signIn()}
-                  disabled={busy || !email.trim() || !password}
-                >
-                  {busy ? "Signing in…" : "Sign in"}
-                </button>
-                <button
-                  className="wp-back"
-                  onClick={() => {
-                    setMethod("link");
-                    setError(null);
-                  }}
-                >
-                  Email me a link instead
-                </button>
-              </div>
-            ) : (
-              <div className="wp-signin-actions">
-                <button
-                  className="wp-btn wp-btn-solid"
-                  onClick={() => void sendLink()}
-                  disabled={busy || !email.trim()}
-                >
-                  {busy ? "Sending…" : "Send me a link"}
-                </button>
-                <button
-                  className="wp-back"
-                  onClick={() => {
-                    setMethod("password");
-                    setError(null);
-                  }}
-                >
-                  Use a password
-                </button>
-              </div>
-            )}
-          </>
-        )}
+  return (
+    <Door mode={mode} panel={panel}>
+      <div className="wp-door-brand">
+        <span className="wp-logo" aria-hidden="true" />
+        <h1>Waypoint</h1>
       </div>
-    </div>
+
+      <h2 className="wp-door-title">Pick up where the route left off.</h2>
+      <p className="wp-door-sub">
+        {linkOnly
+          ? "We’ll email you a link that signs you in. No password to type."
+          : "Your courses are waiting. Sign in and they follow you to any device."}
+      </p>
+
+      <form onSubmit={submit} noValidate>
+        <label className="wp-field">
+          <span className="wp-eyebrow">Email</span>
+          <input
+            className={`wp-input${error ? " is-error" : ""}`}
+            aria-invalid={error ? true : undefined}
+            type="email"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+
+        {!linkOnly && (
+          <label className="wp-field">
+            <span className="wp-eyebrow">Password</span>
+            <input
+              className={`wp-input${error ? " is-error" : ""}`}
+              aria-invalid={error ? true : undefined}
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+        )}
+
+        {error && (
+          <p className="wp-door-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="wp-door-actions">
+          <button className="wp-btn wp-btn-solid wp-btn-grow" type="submit" disabled={busy || !ready}>
+            {busy && <Spinner />}
+            {busy
+              ? linkOnly
+                ? "Sending…"
+                : "Signing in…"
+              : linkOnly
+                ? "Send me a link"
+                : "Sign in"}
+          </button>
+        </div>
+      </form>
+
+      <p className="wp-door-note">
+        <button
+          className="wp-btn wp-btn-ghost"
+          style={{ padding: 0, minHeight: 0 }}
+          onClick={() => {
+            setMethod(linkOnly ? "password" : "link");
+            setError(null);
+          }}
+        >
+          {linkOnly ? "Use a password instead" : "Email me a link instead"}
+        </button>
+      </p>
+    </Door>
   );
 }

@@ -130,6 +130,12 @@ export const fmtLong = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 export const fmtShort = (k: string) =>
   fromKey(k).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+/* The day number alone, for the left end of a date range whose right end
+   already carries the month: "21–25 Sep" rather than "21 Sep – 25 Sep". */
+export const fmtDay = (k: string) => String(fromKey(k).getDate()).padStart(2, "0");
+/* "Mon" — the weekday alone, for a row that has already said the date. */
+export const fmtWeekday = (k: string) =>
+  fromKey(k).toLocaleDateString("en-GB", { weekday: "short" });
 /* Real UUIDs, because every primary key in Postgres is one and an optimistic
    insert has to know the id before the row reaches the server. The fallback
    covers browsers without randomUUID on an insecure origin. */

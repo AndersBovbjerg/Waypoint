@@ -1,16 +1,22 @@
-import { useState } from "react";
-import { Plus, ArrowUpRight, X, CalendarCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, ArrowUpRight, X, CalendarCheck, Undo2 } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, NewActivity, TimerSettings } from "./types";
 import type { TimerApi } from "./useTimer";
-import { fmtLong, fmtShort, greeting, courseNote, shiftKey } from "./helpers";
+import { fmtDay, fmtLong, fmtShort, fmtWeekday, greeting, courseNote, shiftKey } from "./helpers";
 import { currentValue, goalProgress } from "./goal";
 import { ActivityRow, MiniRoute } from "./shared";
 import { ProjectIcon } from "./identity";
 import { TimerCard } from "./TimerCard";
 import { Select } from "./Select";
+import { localStore } from "./store";
+
+/* Long enough to notice the row change and reach for it, short enough that
+   the list is not left lying about what it contains. */
+const UNDO_MS = 5000;
 
 export function TodayView({
   items,
+  name,
   projects,
   projectsById,
   activities,
@@ -28,6 +34,9 @@ export function TodayView({
   onOpenProject,
 }: {
   items: Activity[];
+  /* empty until setup has been through, and the greeting simply drops the
+     comma rather than guessing at one */
+  name: string;
   projects: ColoredProject[];
   projectsById: Record<string, ColoredProject>;
   activities: Activity[];
@@ -45,15 +54,76 @@ export function TodayView({
   onOpenProject: (id: string) => void;
 }) {
   const [title, setTitle] = useState("");
-  /* derived rather than synced in an effect, so the first project is the
-     default from the very first render and stays valid if the list changes */
-  const [chosen, setPid] = useState("");
+  /* derived rather than synced in an effect, so the stored course is the
+     default from the very first render and stays valid if the list changes.
+     Seeding from localStorage is safe here because this view never renders
+     on the server — Waypoint holds the boot screen until its load effect
+     has run, so there is no markup to mismatch. */
+  const [chosen, setPid] = useState<string>(() => localStore.loadLastCourse() ?? "");
   const pid = projects.some((p) => p.id === chosen) ? chosen : projects[0]?.id || "";
-  const done = items.filter((i) => i.done).length;
+
+  /* ---------- the add row, collapsed until asked for ----------
+     Both the one-line button and the full row are always rendered; which of
+     them is visible at a given width is a media query's job, not React's.
+     Deciding it in JS would mean reading the viewport during render, which
+     is the reliable way to get a hydration mismatch. Here the phone shows
+     the button until `adding`, the desktop never shows it at all, and the
+     row is hidden only where the button replaced it. */
+  const [adding, setAdding] = useState(false);
+  const addField = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (adding) addField.current?.focus();
+  }, [adding]);
+
+  /* ---------- delete, with five seconds to change your mind ----------
+     The row is taken off the list immediately and the database is only told
+     once the window closes, so undo costs nothing and needs no second write.
+     Leaving the screen commits whatever is still waiting: a deletion you
+     walked away from is a deletion you meant. */
+  const [pending, setPending] = useState<string[]>([]);
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const removeRef = useRef(onRemove);
+  useEffect(() => {
+    removeRef.current = onRemove;
+  });
+  useEffect(
+    () => () => {
+      timers.current.forEach((t, id) => {
+        clearTimeout(t);
+        removeRef.current(id);
+      });
+      timers.current.clear();
+    },
+    []
+  );
+
+  const requestRemove = (id: string) => {
+    setPending((p) => [...p, id]);
+    timers.current.set(
+      id,
+      setTimeout(() => {
+        timers.current.delete(id);
+        setPending((p) => p.filter((x) => x !== id));
+        removeRef.current(id);
+      }, UNDO_MS)
+    );
+  };
+
+  const undoRemove = (id: string) => {
+    const t = timers.current.get(id);
+    if (t) clearTimeout(t);
+    timers.current.delete(id);
+    setPending((p) => p.filter((x) => x !== id));
+  };
+
+  /* A row on its way out should not still be counted in "2/5". */
+  const live = items.filter((i) => !pending.includes(i.id));
+  const done = live.filter((i) => i.done).length;
 
   const submit = () => {
     if (!title.trim() || !pid) return;
     onAdd({ projectId: pid, title: title.trim(), date: today });
+    localStore.saveLastCourse(pid);
     setTitle("");
   };
 
@@ -62,10 +132,29 @@ export function TodayView({
     .filter((a) => week.includes(a.date))
     .sort((a, b) => (a.date < b.date ? -1 : 1));
 
+  /* A recurring rule arrives here as one row per day, so "Læs 25 min" on
+     five weekdays filled the whole card with five identical lines — five
+     facts the reader already had. Consecutive days carrying the same title
+     on the same course collapse into one row, which has room to say the one
+     thing the five did not: that it runs Mon–Fri. Only *consecutive* days
+     merge, so a genuine gap still reads as a gap. */
+  const upcomingGroups = upcoming.reduce<
+    { id: string; title: string; projectId: string; from: string; to: string; count: number }[]
+  >((acc, a) => {
+    const last = acc[acc.length - 1];
+    if (last && last.title === a.title && last.projectId === a.projectId && shiftKey(last.to, 1) === a.date) {
+      last.to = a.date;
+      last.count += 1;
+      return acc;
+    }
+    acc.push({ id: a.id, title: a.title, projectId: a.projectId, from: a.date, to: a.date, count: 1 });
+    return acc;
+  }, []);
+
   return (
     <div className="wp-stack">
       <section className="wp-hero">
-        <h2 className="wp-greet">{greeting()}, Anders</h2>
+        <h2 className="wp-greet">{name ? `${greeting()}, ${name}` : greeting()}</h2>
         <p className="wp-note wp-note-sm">
           {fmtLong(today)} · {courseNote(items)}
         </p>
@@ -95,28 +184,54 @@ export function TodayView({
         <div className="wp-card-head">
           <h3>To do today</h3>
           <span className="wp-mono wp-muted">
-            {done}/{items.length}
+            {done}/{live.length}
           </span>
         </div>
 
         {items.length === 0 ? (
-          <p className="wp-empty">Nothing here yet. Add the first thing below.</p>
+          /* Deliberately nothing. The hero two cards up already says
+             "Nothing plotted for today. Add one thing, or take the day off."
+             — kinder and more specific than this line ever was. Once the add
+             row collapsed, the sentence was also pointing at a control that
+             is no longer below it, and a third voice repeating the other two
+             was the noise this card was accused of. */
+          null
         ) : (
           <ul className="wp-list">
-            {items.map((a) => (
-              <ActivityRow
-                key={a.id}
-                a={a}
-                project={projectsById[a.projectId]}
-                onToggle={onToggle}
-                onRemove={onRemove}
-              />
-            ))}
+            {items.map((a) =>
+              pending.includes(a.id) ? (
+                /* role="status" because the row changing under your thumb is
+                   the only notice this action gives; without it a screen
+                   reader hears the item vanish and never hears that there is
+                   five seconds to take it back. Polite, so it waits its turn. */
+                <li className="wp-row wp-row-undo" key={a.id} role="status">
+                  <span className="wp-row-title wp-muted">Deleted &ldquo;{a.title}&rdquo;</span>
+                  <button className="wp-undo" onClick={() => undoRemove(a.id)}>
+                    <Undo2 size={14} /> Undo
+                  </button>
+                </li>
+              ) : (
+                <ActivityRow
+                  key={a.id}
+                  a={a}
+                  project={projectsById[a.projectId]}
+                  onToggle={onToggle}
+                  onRemove={requestRemove}
+                />
+              )
+            )}
           </ul>
         )}
 
-        <div className="wp-addrow">
+        {!adding && (
+          <button className="wp-addbtn" onClick={() => setAdding(true)} disabled={!projects.length}>
+            <Plus size={16} /> Add an activity
+          </button>
+        )}
+
+        <div className={`wp-addrow${adding ? "" : " is-collapsed"}`}>
           <input
+            ref={addField}
             className="wp-input"
             placeholder="Add an activity for today"
             value={title}
@@ -194,14 +309,21 @@ export function TodayView({
             <p className="wp-empty">Nothing plotted for the coming week.</p>
           ) : (
             <ul className="wp-minilist">
-              {upcoming.slice(0, 8).map((a) => (
-                <li key={a.id} className="wp-upcoming">
-                  <span className="wp-mono wp-muted wp-upcoming-date">{fmtShort(a.date)}</span>
+              {upcomingGroups.slice(0, 8).map((g) => (
+                <li key={g.id} className="wp-upcoming">
+                  <span className="wp-mono wp-muted wp-upcoming-date">
+                    {g.count === 1 ? fmtShort(g.from) : `${fmtDay(g.from)}–${fmtShort(g.to)}`}
+                  </span>
                   <span
                     className="wp-dot"
-                    style={{ background: projectsById[a.projectId]?.color || "var(--rule)" }}
+                    style={{ background: projectsById[g.projectId]?.color || "var(--line)" }}
                   />
-                  <span className="wp-upcoming-title">{a.title}</span>
+                  <span className="wp-upcoming-title">{g.title}</span>
+                  {g.count > 1 && (
+                    <span className="wp-mono wp-muted wp-upcoming-span">
+                      {fmtWeekday(g.from)}&ndash;{fmtWeekday(g.to)}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

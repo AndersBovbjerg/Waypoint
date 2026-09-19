@@ -13,6 +13,10 @@ export default function App() {
       {(session) => (
         <Waypoint
           userId={session.user.id}
+          /* Kept on the auth user rather than in a profiles table of its own:
+             it is one string, it is only ever read whole, and a new table
+             would need a migration, a policy and a join for a greeting. */
+          initialName={(session.user.user_metadata as { name?: string } | null)?.name ?? ""}
           onSignOut={() => void getSupabase().auth.signOut()}
         />
       )}

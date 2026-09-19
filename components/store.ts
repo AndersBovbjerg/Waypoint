@@ -10,6 +10,7 @@ import type { TimerPreset, TimerRuntime, TimerSettings } from "./types";
    ------------------------------------------------------------------ */
 
 const TIMER_KEY = "waypoint:timer";
+const COURSE_KEY = "waypoint:last-course";
 
 function readJSON<T>(key: string): T | null {
   try {
@@ -38,6 +39,19 @@ export const localStore = {
   },
   saveTimer(runtime: TimerRuntime | null): void {
     writeJSON(TIMER_KEY, runtime);
+  },
+  /* Which course the add row should open on. It lives here rather than in
+     prefs for one reason: prefs is a table, and a new column there is a
+     migration the user has to run by hand before the app works again. This
+     is a convenience with a sane fallback — the worst case on a new device
+     is the behaviour we already had, the first course in the list — so it
+     does not earn that cost. If it ever needs to follow you between devices,
+     that is the moment to move it. */
+  loadLastCourse(): string | null {
+    return readJSON<string>(COURSE_KEY);
+  },
+  saveLastCourse(projectId: string): void {
+    writeJSON(COURSE_KEY, projectId);
   },
 };
 

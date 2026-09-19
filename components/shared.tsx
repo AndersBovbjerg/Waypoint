@@ -31,10 +31,14 @@ export function MiniRoute({ waypoints, color }: { waypoints: WaypointItem[]; col
     <div className="wp-miniroute">
       {waypoints.map((w, i) => (
         <React.Fragment key={w.id}>
-          {i > 0 && <span className="wp-leg" style={{ background: w.done ? color : "var(--rule)" }} />}
+          {/* --edge, not the retired --rule: measured at 3.0–3.5:1 against
+              both card surfaces, where --line sits at 1.2:1 and the legs you
+              have not walked simply are not there. Same token the door's
+              route mark uses for the same reason. */}
+          {i > 0 && <span className="wp-leg" style={{ background: w.done ? color : "var(--edge)" }} />}
           <span
             className="wp-legnode"
-            style={{ background: w.done ? color : "var(--panel)", borderColor: w.done ? color : "var(--rule)" }}
+            style={{ background: w.done ? color : "var(--raised)", borderColor: w.done ? color : "var(--edge)" }}
           />
         </React.Fragment>
       ))}
@@ -53,10 +57,18 @@ export function ActivityRow({
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
-  const color = project?.color || "var(--rule)";
+  /* An activity whose course was deleted still has to draw a ring and a tag;
+     --edge is the neutral that reads on both card surfaces. */
+  const color = project?.color || "var(--edge)";
   const metrics = a.source === "strava" ? formatStravaMetrics(a) : null;
   return (
-    <li className={`wp-row${a.done ? " is-done" : ""}`}>
+    <li
+      className={`wp-row${a.done ? " is-done" : ""}`}
+      /* Handed to CSS rather than applied here, so the tag and the sub-line
+         can mix it toward --ink for legibility while the border keeps it
+         pure. See the course-colour-as-text note in globals.css. */
+      style={{ "--course": color } as React.CSSProperties}
+    >
       <button
         className="wp-check"
         style={{ borderColor: color, background: a.done ? color : "transparent", color: "var(--tick)" }}
@@ -69,8 +81,15 @@ export function ActivityRow({
       <span className="wp-row-title">
         {a.title}
         {metrics && <span className="wp-row-sub wp-muted"> · {metrics}</span>}
+        {/* Same name as the pill beside it, and only one of the two is ever
+            displayed — the pill above 560px, this below. It sits inside the
+            title so it shares the title's ellipsis and gets truncated first. */}
+        <span className="wp-row-course">
+          {" · "}
+          {project?.name || "No course"}
+        </span>
       </span>
-      <span className="wp-tag" style={{ color, borderColor: color }}>
+      <span className="wp-tag">
         {project?.name || "No project"}
       </span>
       <button className="wp-icon" onClick={() => onRemove(a.id)} aria-label={`Delete ${a.title}`}>
