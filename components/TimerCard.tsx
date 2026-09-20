@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Play, Pause, SkipForward, Square, Timer as TimerIcon, X } from "lucide-react";
+import { ChevronDown, Play, Pause, SkipForward, Square, Timer as TimerIcon, X } from "lucide-react";
 import type { Activity, ColoredProject, TimerSettings, UnfiledSession } from "./types";
 import type { TimerApi } from "./useTimer";
 import { PRESETS, resolvePreset } from "./store";
@@ -66,10 +66,30 @@ export function TimerCard({
 
   return (
     <section className={`wp-card wp-timer${running ? " is-running" : ""}`}>
-      <div className="wp-card-head">
-        <h3>Focus</h3>
-        <span className="wp-mono wp-muted">{label.toUpperCase()}</span>
-      </div>
+      {/* At rest the whole title row is the switch: tap it to open the panel,
+          tap it again to close it. A running timer has nothing to fold away,
+          so there the row is a plain heading. */}
+      {idle ? (
+        <div className="wp-card-head wp-timer-head">
+          <h3>
+            <button
+              type="button"
+              className="wp-timer-toggle"
+              aria-expanded={open}
+              onClick={() => setOpen((o) => !o)}
+            >
+              <span>Focus</span>
+              <span className="wp-mono wp-muted">{label.toUpperCase()}</span>
+              <ChevronDown size={16} className={`wp-timer-chev${open ? " is-open" : ""}`} aria-hidden="true" />
+            </button>
+          </h3>
+        </div>
+      ) : (
+        <div className="wp-card-head">
+          <h3>Focus</h3>
+          <span className="wp-mono wp-muted">{label.toUpperCase()}</span>
+        </div>
+      )}
 
       {shell && (
       <div className="wp-timer-clock">
@@ -205,10 +225,6 @@ export function TimerCard({
           {!projects.length && (
             <p className="wp-empty">Create a project first — focus time is logged against one.</p>
           )}
-
-          <button className="wp-back wp-focus-collapse" onClick={() => setOpen(false)}>
-            Done
-          </button>
 
           <div className="wp-timer-opts">
             <Toggle

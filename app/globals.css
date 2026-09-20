@@ -518,9 +518,17 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
   padding:0 var(--sp-5); border-style:dashed; }
 .wp-focusbar-label { display:inline-flex; align-items:center; gap:var(--sp-3); }
 .wp-focusbar-play { flex:none; width:56px; padding:0; }
-/* The way back out of the expanded panel, sitting under the controls rather
-   than beside the title: closing is the last thing you do, not the first. */
-.wp-focus-collapse { margin-top:var(--sp-4); }
+/* The title row is the switch for the whole panel, open or closed — there is
+   no separate Done. The button fills the row so the tap target is the row,
+   not just the word; the label and the chevron sit at its right end. */
+.wp-timer-head h3 { flex:1; min-width:0; margin:0; }
+.wp-timer-toggle { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:44px;
+  background:none; border:none; padding:0; font:inherit; letter-spacing:inherit; color:inherit;
+  text-align:left; }
+.wp-timer-toggle .wp-mono { margin-left:auto; }
+.wp-timer-toggle:hover { color:var(--signal-text); }
+.wp-timer-chev { flex:none; color:var(--signal); transition:transform .15s ease; }
+.wp-timer-chev.is-open { transform:rotate(180deg); }
 
 /* ---------- a session with nowhere to go yet ----------
    Sits at the top of the Focus card because it is the one thing there that
