@@ -45,8 +45,12 @@ export const metadata: Metadata = {
      checks; `other` is the escape hatch for a tag the typed API doesn't emit. */
   other: { "apple-mobile-web-app-capable": "yes" },
   /* iOS home screen icons come from this link tag, never from the web app
-     manifest — Android/Chrome read the manifest's icons array, iOS doesn't. */
-  icons: { apple: "/icon-192.png" },
+     manifest — Android/Chrome read the manifest's icons array, iOS doesn't.
+     180x180 is the size iOS actually asks for, and the file is square and
+     fully opaque on purpose: iOS applies its own rounded mask, so an icon
+     that arrives pre-rounded or with transparent corners gets those corners
+     filled with black on the home screen. */
+  icons: { apple: "/apple-touch-icon.png" },
 };
 
 /* No themeColor here on purpose. The app's mode is a toggle, not the operating

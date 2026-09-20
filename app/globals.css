@@ -257,8 +257,22 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
   display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4); }
 .wp-brand { display:flex; align-items:center; gap:var(--sp-3); }
 .wp-brand h1 { font-family:var(--display); font-size:var(--fs-4); font-weight:800; letter-spacing:-.02em; margin:0; }
-.wp-logo { width:16px; height:16px; border-radius:50%; border:2px solid var(--signal); position:relative; flex:none; }
-.wp-logo::after { content:''; position:absolute; inset:3px; border-radius:50%; background:var(--signal); }
+/* The mark: one filled node — where you are — and one open node, the next
+   waypoint, with one node-width of space between them. The gap is the whole
+   idea, so it is a real measure rather than a gutter.
+
+   The four literals here are the only ones in this file that do not come off
+   the spacing scale, and deliberately: the mark has its own unit, u = 6px at
+   header size, and every number below is a multiple of it (dot 1u, gap 1u,
+   ring 2u, whole mark 4u). Drawing it from --sp-* would tie the logo's
+   proportions to the layout rhythm, which is not the same system. The ring's
+   3px stroke is a quarter of its diameter rather than the master's 23%,
+   because at 12px a scaled-down stroke closes the void up. */
+.wp-logo { width:24px; height:12px; position:relative; flex:none; }
+.wp-logo::before { content:''; position:absolute; left:0; top:3px; width:6px; height:6px;
+  border-radius:50%; background:var(--signal); }
+.wp-logo::after { content:''; position:absolute; right:0; top:0; width:12px; height:12px;
+  border-radius:50%; border:3px solid var(--signal); }
 .wp-headright { display:flex; align-items:center; gap:var(--sp-3); }
 .wp-modebtn { display:flex; align-items:center; justify-content:center; width:44px; height:44px;
   border-radius:var(--r-full); border:1px solid var(--line); background:var(--raised); color:var(--muted); }
