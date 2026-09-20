@@ -10,8 +10,8 @@ colors:
   line: "#DDE4EA"
   rim: "#B7C3CD"
   edge: "#71808C"
-  signal: "#1E9DF1"
-  signal-text: "#0A72BD"
+  signal: "#0A84FF"
+  signal-text: "#0A66D6"
   signal-soft: "#E3ECF6"
   on-signal: "#0F1419"
   tick: "#FFFFFF"
@@ -180,7 +180,7 @@ The density is deliberately low for a productivity tool. This is one person's ap
 A cool slate stage, one chromatic accent, and two semantic colours that exist only to say whether something went the right way. Light and dark are separate palettes, not one palette dimmed: light is a pale grey page with white cards and a white header, dark is near-black with slightly lifted cards, and both carry the same blue glow in the top-right and bottom-left corners.
 
 ### Primary
-- **Signal** (`#1E9DF1` light / `#1C9CF0` dark): the one chromatic voice. It marks where you are and what you are touching — the focused field, the active tab, the add-activity row, a reached waypoint, the running timer — and, as the one sanctioned large area, it is the glow in two corners of the canvas (see The Backdrop Rule). Otherwise it never fills a large area. `--signal-text` (`#0A72BD`) is the same voice at text weight in light mode, where the fill value holds only 2.9:1 on white; in dark the two are the same value because the blue clears 6:1 against the cards. A signal fill carries `--on-signal`, dark ink, in both themes: white on this blue is 2.9:1.
+- **Signal** (`#0A84FF` light / `#1C9CF0` dark): the one chromatic voice. It marks where you are and what you are touching — the focused field, the active tab, the add-activity row, a reached waypoint, the running timer — and, as the one sanctioned large area, it is the glow in two corners of the canvas (see The Backdrop Rule). Otherwise it never fills a large area. `--signal-text` (`#0A66D6`) is the same voice at text weight in light mode, where the fill value holds only 3.65:1 on white; in dark the two are the same value because the blue clears 6:1 against the cards. A signal fill carries `--on-signal`, dark ink, in both themes: white on this blue is 3.7:1 in light and 2.9:1 in dark.
 
 ### Secondary
 - **Drift** (`#8C6103` / `#F9B434`): behind pace. Amber rather than red on purpose — being behind is a call for attention, not a failure. Always paired with a word, never colour alone.
@@ -208,7 +208,7 @@ A cool slate stage, one chromatic accent, and two semantic colours that exist on
 
 **The Cool Slate Rule.** Every neutral leans the same way, a cool blue-grey, so the blue accent belongs to the page rather than sitting on it. A warm or green-tinted grey will read as a foreign element pasted onto the stage.
 
-**The Backdrop Rule.** Behind the cards there are exactly two layers, both static and both fixed to the viewport: the accent-blue glow in the top-right and bottom-left corners (`--glow`, full strength in the corner and gone by 70% across), and depth contours drawn as a mask over a token colour (`public/chart-contours.svg`). They show only in the gutters and between cards, they never move, and nothing else goes back there. The glow lives on a `::before` pseudo-element rather than `background-attachment: fixed`, which iOS ignores.
+**The Backdrop Rule.** Behind the cards there are exactly two layers, both static and both fixed to the viewport: the accent-blue glow in the top-right and bottom-left corners (`--glow`, full strength in the corner and gone by 70% across; in light it is a deeper, more saturated blue than the dark theme's, because the same value washes out on a pale page), and depth contours drawn as a mask over a token colour (`public/chart-contours.svg`). They show only in the gutters and between cards, they never move, and nothing else goes back there. The glow lives on a `::before` pseudo-element rather than `background-attachment: fixed`, which iOS ignores.
 
 **The Semantic Colour Rule.** Drift and hazard mean outcome, never emphasis. A number is not amber because it is important; it is amber because it is behind.
 

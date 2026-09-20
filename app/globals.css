@@ -87,7 +87,7 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
   /* Signalet er den ene farvede stemme. To værdier, fordi én ikke kan begge dele:
      --signal holder 3:1 som grafik og fyld, --signal-text holder 4,5:1 som tekst.
      Et signalfyld bærer altid --on-signal, altså mørkt blæk, i begge tilstande. */
-  --signal:#1E9DF1; --signal-text:#0A72BD; --signal-soft:#E3ECF6; --on-signal:#0F1419;
+  --signal:#0A84FF; --signal-text:#0A66D6; --signal-soft:#E3ECF6; --on-signal:#0F1419;
   --focus:#1DA1F2; --focus-ring:0 0 0 3px rgba(29,161,242,.30);
   /* The check drawn ON a filled course swatch. It cannot be one value: the
      twelve course colours are mid-tone in light and pale in dark, so white
@@ -117,10 +117,14 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
      contour lines are the accent blue at low alpha. The glow is the accent
      blue coming in from two corners; at full strength in the corner, so the
      blue is the same one the dark theme shows there. */
-  --contour:color-mix(in oklab, #1C9CF0 42%, transparent);
+  /* Light needs a deeper, more saturated blue than dark to look as vivid: on
+     black the accent glows, on a pale page the same value washes out. So the
+     light corners are drawn in oklch at lower lightness and high chroma, and
+     the lines in the same blue, rather than in the dark theme's value. */
+  --contour:color-mix(in oklab, oklch(0.5 0.22 258) 55%, transparent);
   --glow:
-    radial-gradient(ellipse 70% 60% at 100% 0%, rgba(30,157,241,.9) 0%, rgba(30,157,241,.42) 26%, rgba(30,157,241,0) 72%),
-    radial-gradient(ellipse 60% 55% at 0% 100%, rgba(30,157,241,.8) 0%, rgba(30,157,241,.36) 26%, rgba(30,157,241,0) 72%);
+    radial-gradient(ellipse 72% 62% at 100% 0%, oklch(0.56 0.24 258) 0%, oklch(0.64 0.21 252 / .62) 24%, oklch(0.72 0.15 245 / 0) 74%),
+    radial-gradient(ellipse 62% 57% at 0% 100%, oklch(0.56 0.24 258) 0%, oklch(0.64 0.21 252 / .55) 24%, oklch(0.72 0.15 245 / 0) 74%);
 
   /* ---------- scale ----------
      Every font-size, gap and radius in this file draws from one of these.
