@@ -256,7 +256,7 @@ export default function Waypoint({
       meta.setAttribute("data-wp-theme", "");
       document.head.appendChild(meta);
     }
-    meta.content = mode === "dark" ? "#05100F" : "#F5F8F7";
+    meta.content = mode === "dark" ? "#000000" : "#FFFFFF";
   }, [mode]);
 
   /* ---------- mutations ----------

@@ -2,35 +2,37 @@
 name: Waypoint
 description: A personal goal planner where projects are courses, waypoints are the checkpoints, and the calendar is the log.
 colors:
-  surface: "#F5F8F7"
+  surface: "#E6EAEE"
   raised: "#FFFFFF"
-  sunken: "#EDF3F2"
-  ink: "#06181A"
-  muted: "#5A6E6C"
-  line: "#D6E2E0"
-  edge: "#7D8F8D"
-  signal: "#099D78"
-  signal-text: "#067C5D"
-  signal-soft: "#D4FAEA"
-  on-signal: "#06181A"
+  sunken: "#EEF2F5"
+  ink: "#0F1419"
+  muted: "#465563"
+  line: "#DDE4EA"
+  rim: "#B7C3CD"
+  edge: "#71808C"
+  signal: "#1E9DF1"
+  signal-text: "#0A72BD"
+  signal-soft: "#E3ECF6"
+  on-signal: "#0F1419"
   tick: "#FFFFFF"
   drift: "#8C6103"
   drift-soft: "#FFEED4"
-  hazard: "#C03A46"
-  hazard-soft: "#FEEBEA"
+  hazard: "#C8182A"
+  hazard-soft: "#FEE9EA"
   on-hazard: "#FFFFFF"
-  night-surface: "#05100F"
-  night-raised: "#0D1B1A"
-  night-sunken: "#020A09"
-  night-ink: "#E9F2F0"
-  night-muted: "#8BA4A1"
-  night-line: "#1D2E2C"
-  night-edge: "#586967"
-  night-signal: "#01F3B9"
-  night-signal-soft: "#002B1E"
-  night-tick: "#06181A"
+  night-surface: "#000000"
+  night-raised: "#17181C"
+  night-sunken: "#0B0C0E"
+  night-ink: "#E7E9EA"
+  night-muted: "#8B98A5"
+  night-line: "#2F3336"
+  night-rim: "#3A4046"
+  night-edge: "#5F6D7A"
+  night-signal: "#1C9CF0"
+  night-signal-soft: "#061622"
+  night-tick: "#000000"
   night-drift: "#F9B434"
-  night-hazard: "#FB7076"
+  night-hazard: "#FF5C67"
 typography:
   display:
     fontFamily: "Work Sans, system-ui, sans-serif"
@@ -166,7 +168,7 @@ The density is deliberately low for a productivity tool. This is one person's ap
 2. **The saturated default face.** Fraunces, Karla, Inter and Roboto were each considered and rejected — not for being ugly, but for being so widely used they had stopped meaning anything. In both cases the fault was indistinguishability. Waypoint would rather be quiet than generic.
 
 **Key Characteristics:**
-- A deep teal-tinted neutral stage with exactly one chromatic accent
+- A cool slate neutral stage with exactly one chromatic accent, a blue that also glows in from two corners of the canvas
 - Content carries colour; chrome never does
 - Surfaces are objects: a 1px rule first, shadow only to seat them
 - One typeface across the whole app; contrast comes from weight and size, never a second family
@@ -175,35 +177,38 @@ The density is deliberately low for a productivity tool. This is one person's ap
 
 ## Colors
 
-A near-neutral stage carrying a trace of teal, one chromatic accent, and two semantic colours that exist only to say whether something went the right way. Light and dark are separate palettes, not one palette dimmed.
+A cool slate stage, one chromatic accent, and two semantic colours that exist only to say whether something went the right way. Light and dark are separate palettes, not one palette dimmed: light is a pale grey page with white cards and a white header, dark is near-black with slightly lifted cards, and both carry the same blue glow in the top-right and bottom-left corners.
 
 ### Primary
-- **Signal** (`#099D78` light / `#01F3B9` dark): the one chromatic voice. It marks where you are and what you are touching — the focused field, the current step, the active tab, a reached waypoint, the running timer. It is never a brand splash and never fills a large area. `--signal-text` (`#067C5D`) is the same voice at text weight in light mode, where the fill value only holds 3:1; in dark the two are the same value because the mint clears 12:1 against the deep field.
+- **Signal** (`#1E9DF1` light / `#1C9CF0` dark): the one chromatic voice. It marks where you are and what you are touching — the focused field, the active tab, the add-activity row, a reached waypoint, the running timer — and, as the one sanctioned large area, it is the glow in two corners of the canvas (see The Backdrop Rule). Otherwise it never fills a large area. `--signal-text` (`#0A72BD`) is the same voice at text weight in light mode, where the fill value holds only 2.9:1 on white; in dark the two are the same value because the blue clears 6:1 against the cards. A signal fill carries `--on-signal`, dark ink, in both themes: white on this blue is 2.9:1.
 
 ### Secondary
 - **Drift** (`#8C6103` / `#F9B434`): behind pace. Amber rather than red on purpose — being behind is a call for attention, not a failure. Always paired with a word, never colour alone.
-- **Hazard** (`#C03A46` / `#FB7076`): destruction and failure only — the danger button, a failed write, an invalid field. Never decorative, never a highlight.
+- **Hazard** (`#C8182A` / `#FF5C67`): destruction and failure only — the danger button, a failed write, an invalid field. Never decorative, never a highlight.
 
 ### Tertiary
-- **The twelve course colours** (`components/helpers.ts`, one light set and one dark): purple, teal, ochre, blue, rose, green, cyan, olive, terracotta, indigo, brown, gold. Muted, evenly spread, assigned per course. These are **content**, not system colour.
+- **The twelve course colours** (`components/helpers.ts`, one light set and one dark): purple, teal, ochre, blue, rose, green, cyan, olive, terracotta, indigo, brown, gold. Evenly spread, assigned per course. Dark is a set of pastels; light keeps each dark hue and pushes the saturation up at a lightness that still holds 3:1 on a white card, so a course is as vivid by day as at night. These are **content**, not system colour.
 
 ### Neutral
-- **Surface** (`#F5F8F7` / `#05100F`): the canvas behind everything.
-- **Raised** (`#FFFFFF` / `#0D1B1A`): every card and lifted surface.
-- **Sunken** (`#EDF3F2` / `#020A09`): inputs, calendar cells, day pills — anything pressed into the page.
-- **Ink** (`#06181A` / `#E9F2F0`): body text, and the fill of solid buttons and checked controls.
-- **Muted** (`#5A6E6C` / `#8BA4A1`): metadata, placeholders, secondary labels. Measured 5.06:1 on surface and 5.41:1 on a card in light; 7.29:1 and 6.66:1 in dark. Quiet without being weak.
-- **Line** (`#D6E2E0` / `#1D2E2C`): dividers and card borders. A hairline, roughly 1.2:1 — it separates, it does not delineate.
-- **Edge** (`#7D8F8D` / `#586967`): every boundary that has to be *seen* rather than merely felt — field borders, unreached route nodes, the legs of a route not yet walked. Measures 3.0–3.5:1 against both card surfaces.
-- **Tick** (`#FFFFFF` / `#06181A`): the check drawn on a filled course-colour swatch, and the one neutral that must flip. Measured against all twelve course colours in both themes: white holds 4.16:1 at worst in light but collapses to 1.81:1 in dark; dark ink is the reverse.
+- **Surface** (`#E6EAEE` / `#000000`): the canvas behind everything. In light it is a step deeper than the cards (1.2:1 to a white card; it was 1.07:1 and the boxes floated into the page); in dark the *card* is lifted instead, to 1.2:1.
+- **Raised** (`#FFFFFF` / `#17181C`): every card and lifted surface, and in light the header too.
+- **Sunken** (`#EEF2F5` / `#0B0C0E`): inputs, calendar cells, day pills — anything pressed into the page.
+- **Ink** (`#0F1419` / `#E7E9EA`): body text, and the fill of solid buttons and checked controls.
+- **Muted** (`#465563` / `#8B98A5`): metadata, placeholders, secondary labels. Measured 6.3:1 on the canvas and 7.7:1 on a card in light; 7.1:1 on the canvas and 6.0:1 on a card in dark. Quiet without being weak.
+- **Line** (`#DDE4EA` / `#2F3336`): dividers inside a surface. A hairline, roughly 1.2–1.3:1 — it separates, it does not delineate.
+- **Rim** (`#B7C3CD` / `#3A4046`): the outline of a card. One step firmer than `--line`, because a card's own edge has to hold it apart from the page while the rules inside it should stay quiet.
+- **Edge** (`#71808C` / `#5F6D7A`): every boundary that has to be *seen* rather than merely felt — field borders, unreached route nodes, the legs of a route not yet walked. Measures 3.3–4.1:1 against the card and sunken surfaces.
+- **Tick** (`#FFFFFF` / `#000000`): the check drawn on a filled course-colour swatch, and the one neutral that must flip. Light course colours hold at least 3.1:1 against white; the dark pastels take black.
 
 ### Named Rules
 
-**The One Voice Rule.** The accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If the signal is helping something look nice, remove it.
+**The One Voice Rule.** Apart from the canvas glow, the accent occupies under 10% of any screen. It is where you are now and what you are touching — nothing else. If the signal is helping something look nice, remove it.
 
 **The Course Colour Rule.** The twelve-colour palette belongs to content and only content: which course a task belongs to, which line is which on a chart. Chrome stays neutral so those twelve can be told apart. The chrome was purple once and it swallowed the purple course whole.
 
-**The No-Grey Rule.** There are no pure greys. Every neutral carries a trace of the stage's teal. A cool or achromatic grey will read as a foreign element pasted onto the page.
+**The Cool Slate Rule.** Every neutral leans the same way, a cool blue-grey, so the blue accent belongs to the page rather than sitting on it. A warm or green-tinted grey will read as a foreign element pasted onto the stage.
+
+**The Backdrop Rule.** Behind the cards there are exactly two layers, both static and both fixed to the viewport: the accent-blue glow in the top-right and bottom-left corners (`--glow`, full strength in the corner and gone by 70% across), and depth contours drawn as a mask over a token colour (`public/chart-contours.svg`). They show only in the gutters and between cards, they never move, and nothing else goes back there. The glow lives on a `::before` pseudo-element rather than `background-attachment: fixed`, which iOS ignores.
 
 **The Semantic Colour Rule.** Drift and hazard mean outcome, never emphasis. A number is not amber because it is important; it is amber because it is behind.
 
@@ -266,13 +271,13 @@ Multi-column areas use `auto-fit` + `minmax` rather than fixed column counts, so
 
 ## Elevation & Depth
 
-Hybrid, and deliberately border-led. A surface is defined first by a 1px `--line` border and only then seated by a shadow. The system once relied on shadow alone with a card-to-canvas contrast of 1.08:1, which meant cards were not objects — they were slightly different rectangles of the same colour. The border does the structural work; the shadow only says how far off the page a thing sits.
+Hybrid, and deliberately border-led. A surface is defined first by a 1px `--rim` border and only then seated by a shadow. The system once relied on shadow alone with a card-to-canvas contrast of 1.08:1, which meant cards were not objects — they were slightly different rectangles of the same colour. The border does the structural work; the shadow only says how far off the page a thing sits.
 
 ### Shadow Vocabulary
-- **Seated** (`0 1px 2px rgba(6,24,26,.05), 0 2px 10px rgba(6,24,26,.05)`; dark `0 1px 2px rgba(0,0,0,.6), 0 2px 12px rgba(0,0,0,.45)`): things that rest *on* the page. Two layers — a tight contact shadow that seats the card and a wider ambient one. A single blur reads as a glow rather than an object.
-- **Floating** (`0 10px 32px rgba(6,24,26,.14)`; dark `0 14px 40px rgba(0,0,0,.7)`): things that hover *over* the page and will be dismissed — the overflow menu, the select listbox, the door's card.
-- **Scrim** (`rgba(6,24,26,.55)`; dark `rgba(0,0,0,.7)`): the modal backdrop.
-- **Focus ring** (`0 0 0 3px rgba(9,157,120,.30)`; dark `rgba(1,243,185,.28)`): fields only, drawn as a ring rather than a second border so nothing reflows on focus.
+- **Seated** (`0 1px 2px rgba(15,20,25,.07), 0 4px 14px rgba(15,40,70,.10)`; dark `0 1px 2px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.55)`): things that rest *on* the page. Two layers — a tight contact shadow that seats the card and a wider ambient one. A single blur reads as a glow rather than an object.
+- **Floating** (`0 10px 32px rgba(15,20,25,.14)`; dark `0 14px 40px rgba(0,0,0,.7)`): things that hover *over* the page and will be dismissed — the overflow menu, the select listbox, the door's card.
+- **Scrim** (`rgba(15,20,25,.55)`; dark `rgba(0,0,0,.7)`): the modal backdrop.
+- **Focus ring** (`0 0 0 3px rgba(29,161,242,.30)`; dark `rgba(29,161,242,.35)`): fields only, drawn as a ring rather than a second border so nothing reflows on focus.
 
 ### Named Rules
 
@@ -315,12 +320,12 @@ Character across the board: **quiet and precise.** Surfaces are flat at rest. Co
 - At 560px and below the pill is replaced by a sub-line trailing the row title (`title · course`), so the course keeps its name while truncation eats it before the title.
 
 ### Navigation
-- **Desktop (769px+):** a text tab row in the header; active takes `--ink`, inactive `--muted`.
-- **Mobile (≤768px):** a fixed bottom bar, five tabs, 19px icon over an 11px label, 56px tall plus `env(safe-area-inset-bottom)`. Active is `--signal-text` and carries `aria-current="page"`.
-- **Header:** sticky, `--surface`, 1px `--line` bottom border, holding the wordmark and up to three 44px icon buttons. `position: sticky` here is load-bearing and fragile: any `overflow` value other than `visible` on `body` makes body a scroll container that never scrolls, and the header silently stops sticking.
+- **Desktop (769px+):** a text tab row in the header; active takes `--signal-text` with a `--signal` underline, inactive `--muted`.
+- **Mobile (≤768px):** a fixed bottom bar, five tabs, 19px icon over an 11px label, 56px tall plus `env(safe-area-inset-bottom)`. Active is `--signal-text` with the icon drawn in the brighter `--signal` at a heavier stroke, and carries `aria-current="page"`.
+- **Header:** sticky, `--head` (white in light, the canvas in dark), 1px `--head-line` bottom border (`--rim` in light, `--line` in dark), holding the wordmark and up to three 44px icon buttons. `position: sticky` here is load-bearing and fragile: any `overflow` value other than `visible` on `body` makes body a scroll container that never scrolls, and the header silently stops sticking.
 
 ### The disclosure row (signature)
-A full-width 44px row with a 1px **dashed** `--edge` border and a muted 14px/700 label, used wherever a control should be present but not occupy the screen until asked for — the Today screen's add-activity row, the course modal's detail sections. Tapping it replaces the row with the real controls in place and focuses the first field. It is the system's answer to "this needs to exist but not shout": no floating buttons, no modals for tasks that need neither interruption nor protected focus.
+A full-width 44px row with a 1px **dashed** `--signal` border, a faint signal tint, a `--signal-text` 14px/700 label and a heavier signal-blue plus, used wherever a control should be present but not occupy the screen until asked for — the Today screen's add-activity row, the course modal's detail sections. Tapping it replaces the row with the real controls in place and focuses the first field. It is the system's answer to "this needs to exist but not interrupt" — it reads as the next thing to do without taking a whole modal to say so: no floating buttons, no modals for tasks that need neither interruption nor protected focus.
 
 ### The route (signature)
 `MiniRoute` and the door's route mark draw a course as nodes on a line — a filled node per reached waypoint, an `--edge` ring per pending one, connected by legs in the same two colours, with a dashed straight line between start and finish standing for the ideal no real route follows. It is the one component that expresses the product's metaphor as geometry rather than vocabulary. **When adding a progress display, reach for the route before reaching for a bar.**
@@ -330,7 +335,7 @@ A full-width 44px row with a 1px **dashed** `--edge` border and a muted 14px/700
 ### Do:
 - **Do** draw every spacing, size and radius from a token: `--sp-1`…`--sp-9`, `--fs-0`…`--fs-8`, the five radii.
 - **Do** give any new surface a 1px `--line` border before you consider a shadow.
-- **Do** keep the accent under 10% of a screen, and use drift/hazard for outcome rather than emphasis.
+- **Do** keep the accent under 10% of a screen (the canvas glow aside), and use drift/hazard for outcome rather than emphasis.
 - **Do** let the twelve course colours be the only strong colour on a screen.
 - **Do** hold a 44×44px minimum hit area, expanding with a positioned `::before` rather than growing the visual element.
 - **Do** measure contrast before shipping a colour as text, especially a content colour.

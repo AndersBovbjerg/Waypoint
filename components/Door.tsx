@@ -167,7 +167,7 @@ export function useDoorMode(preferred?: Mode, active = true): Mode {
       meta.setAttribute("data-wp-theme", "");
       document.head.appendChild(meta);
     }
-    meta.content = mode === "dark" ? "#05100F" : "#F5F8F7";
+    meta.content = mode === "dark" ? "#000000" : "#FFFFFF";
   }, [mode, active]);
 
   return mode;

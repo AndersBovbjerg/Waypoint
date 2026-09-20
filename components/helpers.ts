@@ -1,13 +1,16 @@
 import type { Mode } from "./types";
 
 /* Twelve project slots. Same slot, two tunings — dark needs more light in
-   the colour or the muted tones disappear against the background. A project
+   the colour or the muted tones disappear against the background. The light
+   set keeps each dark hue and pushes the saturation up, at a lightness that
+   still holds 3:1 against a white card, so a course is as vivid by day as it
+   is at night. A project
    stores the slot, never a hex value, so it keeps its identity across modes
    instead of looking right in one and wrong in the other. */
 export const PALETTES: Record<Mode, string[]> = {
   light: [
-    "#7A5C8E", "#3F6B63", "#A6713D", "#5A6E97", "#9A5566", "#4F7A4A",
-    "#3E6E7E", "#7C7A3F", "#A2564A", "#5E5A96", "#7A6455", "#8A7A32",
+    "#8B5CD6", "#10A58A", "#D9780A", "#2F7FE6", "#EC5173", "#1EA813",
+    "#169DC3", "#9A9411", "#EC6751", "#5B51EC", "#BB8558", "#A88F13",
   ],
   dark: [
     "#B79BD6", "#6FBFAE", "#D8A264", "#93AEE0", "#DC8C9E", "#8FC98A",
