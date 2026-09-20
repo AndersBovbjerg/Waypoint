@@ -56,7 +56,7 @@ export function TodayView({
   timerSettings: TimerSettings;
   onTimerSettings: (s: TimerSettings) => void;
   unfiled: UnfiledSession[];
-  onFileSession: (u: UnfiledSession, projectId: string) => void;
+  onFileSession: (u: UnfiledSession, projectId: string, activityId: string | null) => void;
   onDropSession: (id: string) => void;
   reviewDue: { cleared: number; planned: number; waypoints: number } | null;
   onOpenReview: () => void;

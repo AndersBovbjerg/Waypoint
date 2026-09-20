@@ -538,15 +538,16 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
    Sits at the top of the Focus card because it is the one thing there that
    is waiting on the user, and because it has to survive a reload -- the
    block is on the device, not in the database, until this is answered. The
-   choices are the courses themselves rather than a select: one tap is the
-   whole interaction, and a dropdown to answer a single question is a
-   control standing in front of an answer. */
+   choices are today's activities and the courses themselves rather than a
+   select: one tap is the whole interaction, and a dropdown to answer a
+   single question is a control standing in front of an answer. */
 .wp-filing { border:1px solid var(--signal); border-radius:var(--r-md);
   background:var(--signal-soft); padding:var(--sp-5); margin-bottom:var(--sp-5); }
 .wp-filing-head { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
 .wp-filing-q { font-size:var(--fs-2); margin:0; }
 .wp-filing-q strong { font-weight:800; }
-.wp-filing-choices { display:flex; flex-wrap:wrap; gap:var(--sp-3); margin-top:var(--sp-4); }
+.wp-filing-label { margin:var(--sp-4) 0 0; font-size:var(--fs-1); font-weight:700; color:var(--muted); }
+.wp-filing-choices { display:flex; flex-wrap:wrap; gap:var(--sp-3); margin-top:var(--sp-3); }
 .wp-filing-choice { display:inline-flex; align-items:center; gap:var(--sp-3); min-height:44px;
   padding:var(--sp-3) var(--sp-5); border:1px solid var(--edge); border-radius:var(--r-full);
   background:var(--raised); color:var(--ink); font-family:var(--body); font-size:var(--fs-2);

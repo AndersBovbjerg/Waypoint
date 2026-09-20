@@ -4,7 +4,6 @@ import type { Activity, ColoredProject, TimerSettings, UnfiledSession } from "./
 import type { TimerApi } from "./useTimer";
 import { PRESETS, resolvePreset } from "./store";
 import { fmtClock } from "./helpers";
-import { Select } from "./Select";
 
 export function TimerCard({
   timer,
@@ -25,7 +24,7 @@ export function TimerCard({
   todayItems: Activity[];
   /* finished blocks still waiting to be told what they counted toward */
   unfiled: UnfiledSession[];
-  onFile: (u: UnfiledSession, projectId: string) => void;
+  onFile: (u: UnfiledSession, projectId: string, activityId: string | null) => void;
   onDrop: (id: string) => void;
 }) {
   const { runtime, remaining, progress, running, label } = timer;
@@ -38,20 +37,10 @@ export function TimerCard({
      Running is never collapsed: a countdown is the whole screen. */
   const [open, setOpen] = useState(false);
 
-  /* both derived, so a project or activity that disappears falls back
-     cleanly instead of being corrected by an effect a render later.
-     The empty string is meaningful here: it means "decide afterwards",
-     which is the default, because the intent to focus arrives before the
-     decision about what it counts toward. */
-  const [chosenP, setPid] = useState("");
-  const pid = projects.some((p) => p.id === chosenP) ? chosenP : "";
-
-  /* only today's open items, and only for the project in question */
-  const options = todayItems.filter((a) => !a.done && a.projectId === pid);
-  const [chosenA, setAid] = useState("");
-  const aid = options.some((a) => a.id === chosenA) ? chosenA : "";
-
-  const activeProject = runtime.projectId ? projectsById[runtime.projectId] : projectsById[pid];
+  /* Nothing is chosen before a block starts. Which course or activity the
+     time counts toward is answered afterwards, in the filing prompt, once
+     there is a finished block to place. */
+  const activeProject = runtime.projectId ? projectsById[runtime.projectId] : undefined;
   const accent = activeProject?.color || "var(--signal)";
   const shown = idle ? preset.focus * 60_000 : remaining;
 
@@ -122,7 +111,14 @@ export function TimerCard({
       {shell && preset.cycles > 0 && <Cycles done={runtime.cycle} of={preset.cycles} color={accent} />}
 
       {idle && unfiled.length > 0 && (
-        <FilingPrompt unfiled={unfiled} projects={projects} onFile={onFile} onDrop={onDrop} />
+        <FilingPrompt
+          unfiled={unfiled}
+          projects={projects}
+          projectsById={projectsById}
+          todayItems={todayItems}
+          onFile={onFile}
+          onDrop={onDrop}
+        />
       )}
 
       {idle && !open && (
@@ -196,27 +192,10 @@ export function TimerCard({
           )}
 
           <div className="wp-addrow">
-            <Select
-              className="wp-select"
-              value={pid}
-              options={projects.map((p) => ({ value: p.id, label: p.name }))}
-              onChange={setPid}
-              ariaLabel="Course to focus on"
-              placeholder="Decide afterwards"
-            />
-            <Select
-              className="wp-select"
-              value={aid}
-              options={options.map((a) => ({ value: a.id, label: a.title }))}
-              onChange={setAid}
-              ariaLabel="Activity to focus on"
-              disabled={!options.length}
-              placeholder={options.length ? "Whole project" : "No open items today"}
-            />
             <button
               className="wp-btn wp-btn-solid"
               disabled={!projects.length}
-              onClick={() => timer.start(pid || null, aid || null)}
+              onClick={() => timer.start(null, null)}
             >
               <Play size={15} /> Start
             </button>
@@ -340,16 +319,24 @@ export function TimerBadge({ timer, onClick }: { timer: TimerApi; onClick: () =>
 function FilingPrompt({
   unfiled,
   projects,
+  projectsById,
+  todayItems,
   onFile,
   onDrop,
 }: {
   unfiled: UnfiledSession[];
   projects: ColoredProject[];
-  onFile: (u: UnfiledSession, projectId: string) => void;
+  projectsById: Record<string, ColoredProject>;
+  todayItems: Activity[];
+  onFile: (u: UnfiledSession, projectId: string, activityId: string | null) => void;
   onDrop: (id: string) => void;
 }) {
   const u = unfiled[0];
   const more = unfiled.length - 1;
+  /* Today's activities, done or not: they are logged after the fact, so the
+     one the block belongs to is very often already ticked. An activity whose
+     course is gone has nowhere to file to and is left out. */
+  const activities = todayItems.filter((a) => projectsById[a.projectId]);
   return (
     <div className="wp-filing" role="group" aria-label="File a finished focus session">
       <div className="wp-filing-head">
@@ -361,9 +348,27 @@ function FilingPrompt({
           <X size={15} />
         </button>
       </div>
+      {activities.length > 0 && (
+        <>
+          <p className="wp-filing-label">An activity today</p>
+          <div className="wp-filing-choices">
+            {activities.map((a) => (
+              <button
+                key={a.id}
+                className="wp-filing-choice"
+                onClick={() => onFile(u, a.projectId, a.id)}
+              >
+                <span className="wp-swatch" style={{ background: projectsById[a.projectId].color }} />
+                {a.title}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      <p className="wp-filing-label">{activities.length > 0 ? "Or toward a course" : "Toward a course"}</p>
       <div className="wp-filing-choices">
         {projects.map((p) => (
-          <button key={p.id} className="wp-filing-choice" onClick={() => onFile(u, p.id)}>
+          <button key={p.id} className="wp-filing-choice" onClick={() => onFile(u, p.id, null)}>
             <span className="wp-swatch" style={{ background: p.color }} />
             {p.name}
           </button>

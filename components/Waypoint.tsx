@@ -431,9 +431,9 @@ export default function Waypoint({
   /* The answer. Only now does the block become a Session and reach the
      database, through exactly the same path a bound session takes. */
   const fileSession = useCallback(
-    (u: UnfiledSession, projectId: string) => {
+    (u: UnfiledSession, projectId: string, activityId: string | null) => {
       applyUnfiled(unfiled.filter((x) => x.id !== u.id));
-      addSession({ ...u, projectId, activityId: null });
+      addSession({ ...u, projectId, activityId });
     },
     [applyUnfiled, unfiled, addSession]
   );

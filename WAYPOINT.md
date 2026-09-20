@@ -114,12 +114,13 @@ project with a goal — how far the goal has moved since it was set, start to no
 
 **Import** — paste a list, one activity per line, optional leading `YYYY-MM-DD`.
 
-**Focus** — a focus/break timer on the Today view, bound to a project and
-optionally to one of today's open activities. Presets of 25/5, 50/10, 90/20 and a
+**Focus** — a focus/break timer on the Today view. Nothing is chosen before a block
+starts: there is no course or activity picker. Presets of 25/5, 50/10, 90/20 and a
 custom pair; a long break after a set number of blocks; auto-start of either phase
-as a preference. Each completed block is written to `sessions`, so Statistics can
-answer where the hours went, not just which boxes were ticked. Stopping early still
-logs the minutes that were actually worked.
+as a preference. When a block ends it waits inside the Focus card, and one tap files it
+to one of today's activities or to a course. Only then is it written to `sessions`, so
+Statistics can answer where the hours went, not just which boxes were ticked. Stopping
+early still logs the minutes that were actually worked.
 
 **Review** — a Monday-to-Sunday look back at the week: what was cleared and what was
 left open, which waypoints were reached, and focus time logged. Available from its
