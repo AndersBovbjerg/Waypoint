@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
-import { clearStreak, fmtDuration } from "./helpers";
+import { clearStreak, commitmentRate, fmtDuration } from "./helpers";
 import { Kpi, Pace } from "./shared";
 import { ProjectIcon } from "./identity";
 import { buildEffortSeries } from "./effort";
@@ -101,7 +101,11 @@ export function StatsView({
   const focusTotal = sessions.reduce((n, s) => n + s.minutes, 0);
   const past = activities.filter((a) => a.date <= today);
   const done = past.filter((a) => a.done).length;
-  const rate = past.length ? Math.round((done / past.length) * 100) : 0;
+  /* Replaces the old completion rate, which mixed two populations that
+     cannot be compared: a manual activity is logged already done, so it
+     always scored, and the figure rose as the log grew regardless of
+     whether anything committed to was actually kept. */
+  const kept = commitmentRate(activities, today);
 
   /* One combined number for how much has gone into everything so far — a
      cleared activity, a reached waypoint and a block of focus time each
@@ -130,9 +134,15 @@ export function StatsView({
           already right there to count on the Courses tab, so the tile was
           answering a question nobody needed answered twice. */}
       <div className="wp-kpis">
-        <Kpi label="Completion rate" value={`${rate}%`} sub={`${done} of ${past.length} cleared`} />
+        <Kpi
+          label="Commitments kept"
+          value={kept.rate === null ? "—" : `${kept.rate}%`}
+          sub={kept.total ? `${kept.kept} of ${kept.total} recurring` : "nothing recurring yet"}
+        />
         <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
-        <Kpi label="Cleared activities" value={String(done)} sub="all time" />
+        {/* A count, not a rate. Everything logged after the fact belongs
+            here, where volume is the honest reading of it. */}
+        <Kpi label="Activities logged" value={String(done)} sub={`of ${past.length} on the board`} />
         <Kpi
           label="Focused today"
           value={fmtDuration(focusToday)}

@@ -41,6 +41,33 @@ export const shiftKey = (k: string, n: number) => {
    today doesn't zero out a real streak before the day is over. Shared by
    Statistics and the home-screen widget — one definition, so the two can
    never quietly disagree with each other. */
+/* ------------------------------------------------------------------
+   Adherence, as distinct from volume.
+
+   A manual activity is created already done: it is a record of something
+   that happened, not a promise that was kept. Counting those in a rate drags
+   it toward 100% as the log grows, so logging five runs after the fact
+   improves the figure by more than actually doing the reading you committed
+   to. The only activities that can be adhered to are the ones that existed
+   before they were completed, and in this app that means the ones a
+   recurring rule put on the board.
+
+   Returns a null rate rather than 0% when nothing was committed: no
+   commitments kept out of none is not a failure, and 0% reads as one.
+   ------------------------------------------------------------------ */
+export function commitmentRate(
+  activities: { date: string; done: boolean; source?: string }[],
+  upTo: string
+): { kept: number; total: number; rate: number | null } {
+  const due = activities.filter((a) => a.source === "recurring" && a.date <= upTo);
+  const kept = due.filter((a) => a.done).length;
+  return {
+    kept,
+    total: due.length,
+    rate: due.length ? Math.round((kept / due.length) * 100) : null,
+  };
+}
+
 export function clearStreak(activities: { date: string; done: boolean }[], today: string): number {
   const todayItems = activities.filter((a) => a.date === today);
   const todayDone = todayItems.length > 0 && todayItems.every((a) => a.done);

@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
 import { fmtDuration, fmtShort, shiftKey } from "./helpers";
 import { buildReview, fmtWeekRange, reviewNote, startOfWeek } from "./week";
-import { Kpi } from "./shared";
+import { Kpi, Pace } from "./shared";
+import { ProjectIcon } from "./identity";
+import { describeEstimate, routeEstimate } from "./route";
 import { Overlay } from "./Overlay";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -59,6 +61,23 @@ export function ReviewView({
   const thisWeek = startOfWeek(today);
   const peak = Math.max(1, ...review.days.map((d) => d.planned));
 
+  /* buildReview has always produced this and the screen has never shown it,
+     which is most of why the review reads as a report rather than a
+     decision: the half that answers "am I on track" was computed and thrown
+     away. Ordered by how far behind its own pace a course is, so the one
+     that needs next week is first and named. */
+  const standings = useMemo(
+    () =>
+      review.projects
+        .map((pw) => ({
+          pw,
+          estimate: routeEstimate(pw.project, activities, goalEntries),
+          gap: pw.timeGone !== null && pw.routeDone !== null ? pw.timeGone - pw.routeDone : -Infinity,
+        }))
+        .sort((a, b) => b.gap - a.gap),
+    [review.projects, activities, goalEntries]
+  );
+
   return (
     <div className="wp-stack">
       <section className="wp-hero">
@@ -87,9 +106,18 @@ export function ReviewView({
 
       <div className="wp-kpis">
         <Kpi
-          label="Cleared"
-          value={`${review.cleared}/${review.planned}`}
-          sub={review.planned ? `${Math.round((review.cleared / review.planned) * 100)}% of the week` : "nothing plotted"}
+          label="Commitments kept"
+          value={
+            review.commitments.total
+              ? `${review.commitments.kept}/${review.commitments.total}`
+              : "—"
+          }
+          sub={review.commitments.total ? "recurring, due by now" : "nothing recurring this week"}
+        />
+        <Kpi
+          label="Activities logged"
+          value={String(review.cleared)}
+          sub={`of ${review.planned} on the board`}
         />
         <Kpi
           label="Waypoints reached"
@@ -122,6 +150,51 @@ export function ReviewView({
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="wp-card">
+        <div className="wp-card-head">
+          <h3>Where you stand</h3>
+          <span className="wp-mono wp-muted">{standings.length}</span>
+        </div>
+        {standings.length === 0 ? (
+          <p className="wp-empty">No active courses to stand anywhere.</p>
+        ) : (
+          <ul className="wp-reviewlist">
+            {standings.map(({ pw, estimate }) => (
+              <li key={pw.project.id} className={`wp-reviewrow${pw.moved ? "" : " is-still"}`}>
+                <div className="wp-reviewrow-head">
+                  <ProjectIcon icon={pw.project.icon} color={pw.project.color} size={15} />
+                  <span className="wp-reviewrow-name">{pw.project.name}</span>
+                  <Pace timeGone={pw.timeGone} routeDone={pw.routeDone} />
+                </div>
+
+                {/* The distance, in the unit actually recorded. Absent rather
+                    than guessed when the course has too little history to
+                    average -- a made-up number here would be worse than
+                    silence, because it is the one line meant to be acted on. */}
+                {estimate ? (
+                  <p className="wp-reviewrow-distance">{describeEstimate(estimate)}</p>
+                ) : (
+                  <p className="wp-reviewrow-still wp-muted">
+                    Not enough of this route walked yet to say how far the next one is.
+                  </p>
+                )}
+
+                <p className="wp-mono wp-muted wp-reviewrow-meta">
+                  {pw.cleared}/{pw.planned} CLEARED
+                  {pw.minutes > 0 && <> · {fmtDuration(pw.minutes).toUpperCase()} FOCUSED</>}
+                  {pw.waypointsReached.length > 0 && (
+                    <> · {pw.waypointsReached.length} WAYPOINT{pw.waypointsReached.length > 1 ? "S" : ""} REACHED</>
+                  )}
+                  {pw.goalMove?.delta && (
+                    <> · {pw.goalMove.delta}</>
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <div className="wp-grid-2">

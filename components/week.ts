@@ -1,6 +1,6 @@
 import type { Activity, ColoredProject, GoalEntry, Session, WaypointItem } from "./types";
 import { currentValue, deltaIsGood, formatDelta, formatGoalValue, valueOn } from "./goal";
-import { fromKey, keyOf, shiftKey } from "./helpers";
+import { commitmentRate, fmtDuration, fromKey, keyOf, shiftKey } from "./helpers";
 
 /* Weeks run Monday to Sunday, matching the calendar grid. All of this works on
    YYYY-MM-DD keys, which compare correctly as plain strings, so nothing here
@@ -61,6 +61,10 @@ export interface Review {
   minutes: number;
   clearDays: number;
   waypointsReached: number;
+  /* Adherence to what was on the board in advance, kept apart from the
+     total because manual activities are logged already done and would drag
+     any rate toward 100%. See commitmentRate in helpers.ts. */
+  commitments: { kept: number; total: number; rate: number | null };
   clearedActivities: Activity[];
   openActivities: Activity[];
   projects: ProjectWeek[];
@@ -131,6 +135,10 @@ export function buildReview({
     return { key, planned: items.length, cleared: items.filter((a) => a.done).length };
   });
 
+  /* Capped at today so a review opened mid-week does not count Friday as
+     already missed. */
+  const commitments = commitmentRate(weekActivities, sunday < today ? sunday : today);
+
   const clearedActivities = weekActivities
     .filter((a) => a.done)
     .sort((a, b) => (a.date < b.date ? -1 : 1));
@@ -200,6 +208,7 @@ export function buildReview({
     minutes: weekSessions.reduce((n, s) => n + s.minutes, 0),
     clearDays: days.filter((d) => d.planned > 0 && d.cleared === d.planned).length,
     waypointsReached: byProject.reduce((n, p) => n + p.waypointsReached.length, 0),
+    commitments,
     clearedActivities,
     openActivities,
     projects: byProject,
@@ -211,17 +220,32 @@ export function reviewNote(r: Review) {
   if (r.planned === 0 && r.minutes === 0) {
     return "Nothing was plotted this week. A quiet week is still a week — plot the next one.";
   }
+  /* Commitments lead, because they are the only part of the week that was
+     promised in advance and can therefore be kept or missed. Everything else
+     was logged after the fact and is reported as a count, not as a score --
+     "8 of 10 cleared" flattered a week where the 8 were things already done
+     and the misses were the only things anyone had committed to. */
   const parts: string[] = [];
-  if (r.planned > 0) parts.push(`${r.cleared} of ${r.planned} cleared`);
+  if (r.commitments.total > 0) {
+    parts.push(`${r.commitments.kept} of ${r.commitments.total} commitments kept`);
+  }
+  const loggedOnly = Math.max(0, r.cleared - r.commitments.kept);
+  if (loggedOnly > 0) {
+    parts.push(`${loggedOnly} more logged`);
+  }
   if (r.waypointsReached > 0) {
     parts.push(`${r.waypointsReached} waypoint${r.waypointsReached === 1 ? "" : "s"} reached`);
   }
-  const head = parts.join(", ");
+  /* Focus time alone is still a week that happened. */
+  const head = parts.length ? parts.join(", ") : `${fmtDuration(r.minutes)} focused`;
 
   const best = r.projects.find((p) => p.moved);
   if (!best) return `${head}. Nothing moved on any project this week.`;
+  if (r.commitments.total > 0 && r.commitments.kept === r.commitments.total) {
+    return `${head}. Every commitment kept.`;
+  }
   if (r.cleared === r.planned && r.planned > 0) {
-    return `${head}. A clean week — every activity on the board is done.`;
+    return `${head}. Nothing left open.`;
   }
   return `${head}. Most movement on ${best.project.name}.`;
 }

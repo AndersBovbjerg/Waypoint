@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp, Repeat, Pause, Play } from "lucide-react";
+import { Plus, Check, Trash2, ChevronLeft, Flag, TrendingUp, Repeat, Pause, Play, Route } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry, NewActivity, NewRecurringActivity, RecurringActivity } from "./types";
 import { GoalChart } from "./GoalChart";
 import { ProjectIcon } from "./identity";
 import { currentValue, formatDelta, deltaIsGood, formatGoalValue, parseGoalValue } from "./goal";
 import { fmtShort, formatWeekdays, pad, shiftKey } from "./helpers";
+import { plotRoute, type WaypointDraft } from "./route";
+
+const PLOT_COUNTS = [3, 4, 5, 6, 8];
 
 const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 const DAY_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -49,6 +52,28 @@ export function ProjectDetail({
   onRemoveGoalEntry: (id: string) => void;
 }) {
   const [wTitle, setWTitle] = useState("");
+
+  /* ---------- plotting a route ----------
+     Regenerated on the count change rather than synced from an effect: the
+     drafts are editable, so an effect would quietly overwrite a title the
+     user had just typed. */
+  const canPlot = Boolean(project.target) && project.target > today;
+  const [plotting, setPlotting] = useState(false);
+  const [plotCount, setPlotCount] = useState(5);
+  const [drafts, setDrafts] = useState<WaypointDraft[]>([]);
+
+  const buildDrafts = (n: number) =>
+    plotRoute({ count: n, from: today, target: project.target, goal: project.goal });
+
+  const openPlotter = () => {
+    setPlotCount(5);
+    setDrafts(buildDrafts(5));
+    setPlotting(true);
+  };
+  const changeCount = (n: number) => {
+    setPlotCount(n);
+    setDrafts(buildDrafts(n));
+  };
   const [wDue, setWDue] = useState(shiftKey(today, 14));
   const [aTitle, setATitle] = useState("");
   const [aDate, setADate] = useState(today);
@@ -212,6 +237,75 @@ export function ProjectDetail({
               </li>
             ))}
           </ol>
+        )}
+
+        {/* Plotting the route, rather than inventing one waypoint at a time.
+            The dates come from the target date the course already carries, so
+            the hardest part of a vague checkpoint -- what day is it? -- is
+            answered by arithmetic instead of a guess. Offered only when there
+            is a target to space against. */}
+        {canPlot && !plotting && (
+          <button className="wp-addbtn" onClick={openPlotter}>
+            <Route size={16} /> Plot a route to {fmtShort(project.target)}
+          </button>
+        )}
+
+        {canPlot && plotting && (
+          <div className="wp-plot">
+            <span className="wp-eyebrow">How many checkpoints?</span>
+            <div className="wp-seg wp-plot-counts">
+              {PLOT_COUNTS.map((n) => (
+                <button
+                  key={n}
+                  className={`wp-segbtn${plotCount === n ? " is-on" : ""}`}
+                  onClick={() => changeCount(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
+            <ol className="wp-plot-list">
+              {drafts.map((d, i) => (
+                <li key={i} className="wp-plot-row">
+                  <span className="wp-wp-index wp-mono">{pad(i + 1)}</span>
+                  <input
+                    className="wp-input"
+                    value={d.title}
+                    placeholder="What proves you got here?"
+                    onChange={(e) =>
+                      setDrafts(drafts.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))
+                    }
+                  />
+                  <span className="wp-mono wp-muted">{fmtShort(d.due).toUpperCase()}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="wp-door-actions">
+              <button className="wp-btn" onClick={() => setPlotting(false)}>
+                Cancel
+              </button>
+              <button
+                className="wp-btn wp-btn-solid wp-btn-grow"
+                disabled={!drafts.some((d) => d.title.trim())}
+                onClick={() => {
+                  /* position is read from the live data ref inside the
+                     handler, not from React state, so adding several in a
+                     row numbers them 0,1,2 rather than colliding on 0. */
+                  drafts
+                    .filter((d) => d.title.trim())
+                    .forEach((d) => onAddWaypoint(project.id, d.title.trim(), d.due));
+                  setPlotting(false);
+                }}
+              >
+                <Flag size={14} /> Add {drafts.filter((d) => d.title.trim()).length} waypoints
+              </button>
+            </div>
+            <p className="wp-empty wp-plot-note">
+              Dates are spread evenly to your target. Rename anything that does not fit; a blank one is skipped.
+            </p>
+          </div>
         )}
 
         <div className="wp-addrow">
