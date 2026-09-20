@@ -12,11 +12,12 @@ import type {
   ProjectStatus,
   GoalEntry,
   Session,
+  UnfiledSession,
   TimerSettings,
   WaypointItem,
 } from "./types";
 import { PALETTES, pendingRecurringDates, shiftKey, todayKey, uid } from "./helpers";
-import { DEFAULT_TIMER } from "./store";
+import { DEFAULT_TIMER, localStore } from "./store";
 import * as db from "./db";
 import { useToday, useMinuteTick } from "./useToday";
 import { useTimer } from "./useTimer";
@@ -105,6 +106,16 @@ export default function Waypoint({
      real condition, and it answers itself. This only covers the person who
      declined it and should not be asked again before they reload. */
   const [setupSkipped, setSetupSkipped] = useState(false);
+  /* Focus blocks waiting to be told which course they counted toward. Seeded
+     from the device, because the whole point is that the question survives
+     closing the app: nothing is written to the database until it is answered.
+     Read lazily — this component does not render on the server. */
+  const [unfiled, setUnfiled] = useState<UnfiledSession[]>(() => localStore.loadUnfiled());
+
+  const applyUnfiled = useCallback((next: UnfiledSession[]) => {
+    setUnfiled(next);
+    localStore.saveUnfiled(next);
+  }, []);
 
   /* recomputed at midnight, not once per mount — this window stays open */
   const today = useToday();
@@ -409,6 +420,31 @@ export default function Waypoint({
     [mutate, userId]
   );
 
+  /* A block finished without a course. It goes to the device, not the
+     database: sessions.project_id is NOT NULL, so there is no row to write
+     until the question is answered. */
+  const holdSession = useCallback(
+    (u: UnfiledSession) => applyUnfiled([...localStore.loadUnfiled(), u]),
+    [applyUnfiled]
+  );
+
+  /* The answer. Only now does the block become a Session and reach the
+     database, through exactly the same path a bound session takes. */
+  const fileSession = useCallback(
+    (u: UnfiledSession, projectId: string) => {
+      applyUnfiled(unfiled.filter((x) => x.id !== u.id));
+      addSession({ ...u, projectId, activityId: null });
+    },
+    [applyUnfiled, unfiled, addSession]
+  );
+
+  /* Time you decide not to count. Dropped from the device and never written,
+     which is the honest outcome for a block you cannot place. */
+  const dropSession = useCallback(
+    (id: string) => applyUnfiled(unfiled.filter((x) => x.id !== id)),
+    [applyUnfiled, unfiled]
+  );
+
   const addGoalEntry = (projectId: string, value: number) => {
     const entry: GoalEntry = { id: uid(), projectId, date: today, value };
     mutate(
@@ -429,7 +465,12 @@ export default function Waypoint({
       () => db.savePrefs(userId, { timer })
     );
 
-  const timer = useTimer({ settings: data.timer, onSession: addSession, enabled: ready });
+  const timer = useTimer({
+    settings: data.timer,
+    onSession: addSession,
+    onUnfiled: holdSession,
+    enabled: ready,
+  });
 
   /* ---------- derived ---------- */
   const projects = useMemo<ColoredProject[]>(
@@ -622,6 +663,9 @@ export default function Waypoint({
           <TodayView
             items={todayItems}
             name={name}
+            unfiled={unfiled}
+            onFileSession={fileSession}
+            onDropSession={dropSession}
             projects={activeProjects}
             projectsById={projectsById}
             activities={data.activities}

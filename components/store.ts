@@ -1,4 +1,4 @@
-import type { TimerPreset, TimerRuntime, TimerSettings } from "./types";
+import type { TimerPreset, TimerRuntime, TimerSettings, UnfiledSession } from "./types";
 
 /* ------------------------------------------------------------------
    Timer defaults, and the one thing that still belongs on the device.
@@ -11,6 +11,7 @@ import type { TimerPreset, TimerRuntime, TimerSettings } from "./types";
 
 const TIMER_KEY = "waypoint:timer";
 const COURSE_KEY = "waypoint:last-course";
+const UNFILED_KEY = "waypoint:unfiled-sessions";
 
 function readJSON<T>(key: string): T | null {
   try {
@@ -47,6 +48,18 @@ export const localStore = {
      is the behaviour we already had, the first course in the list — so it
      does not earn that cost. If it ever needs to follow you between devices,
      that is the moment to move it. */
+  /* Focus blocks finished but not yet attributed to a course. They wait here
+     rather than in the database because a session row cannot exist without a
+     project, and because the whole point is that the question is answered
+     when the user is ready — including after closing the app and coming
+     back. A list rather than a single value: two sessions can finish before
+     either is filed. */
+  loadUnfiled(): UnfiledSession[] {
+    return readJSON<UnfiledSession[]>(UNFILED_KEY) ?? [];
+  },
+  saveUnfiled(list: UnfiledSession[]): void {
+    writeJSON(UNFILED_KEY, list.length ? list : null);
+  },
   loadLastCourse(): string | null {
     return readJSON<string>(COURSE_KEY);
   },

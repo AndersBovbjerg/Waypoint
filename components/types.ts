@@ -120,6 +120,19 @@ export interface Session {
   completed: boolean;
 }
 
+/* A finished focus block that has not yet been told which course it counts
+   toward. Deliberately not a Session: sessions.project_id is NOT NULL, so
+   this shape cannot reach the database until it has been filed. It lives on
+   the device until then — see localStore.loadUnfiled. */
+export interface UnfiledSession {
+  id: string;
+  date: string;
+  startedAt: string;
+  endedAt: string;
+  minutes: number;
+  completed: boolean;
+}
+
 export interface TimerPreset {
   id: string;
   label: string;

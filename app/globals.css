@@ -445,6 +445,45 @@ body { background:inherit; overscroll-behavior-x:none; max-width:100vw; margin:0
 .wp-addbtn:disabled { color:var(--muted); border-color:var(--line); cursor:not-allowed; }
 .wp-addrow.is-collapsed { display:none; }
 
+/* ---------- the focus bar ----------
+   The Focus card's resting state. It carries the two things a collapsed
+   timer owes you -- what it is, and how long it will run -- plus the one
+   action that needs no decisions. Starting from here binds no course: the
+   intent to focus arrives before the decision about what it counts toward,
+   so that question is asked when the block is done instead.
+
+   Built from .wp-addbtn so the disclosure treatment stays one thing across
+   the app; only the justification and the trailing play button differ. */
+.wp-focusbar { display:flex; align-items:center; gap:var(--sp-3); margin-top:var(--sp-5); }
+.wp-focusbar-open { flex:1; min-width:0; margin-top:0; justify-content:space-between;
+  padding:0 var(--sp-5); border-style:dashed; }
+.wp-focusbar-label { display:inline-flex; align-items:center; gap:var(--sp-3); }
+.wp-focusbar-play { flex:none; width:56px; padding:0; }
+/* The way back out of the expanded panel, sitting under the controls rather
+   than beside the title: closing is the last thing you do, not the first. */
+.wp-focus-collapse { margin-top:var(--sp-4); }
+
+/* ---------- a session with nowhere to go yet ----------
+   Sits at the top of the Focus card because it is the one thing there that
+   is waiting on the user, and because it has to survive a reload -- the
+   block is on the device, not in the database, until this is answered. The
+   choices are the courses themselves rather than a select: one tap is the
+   whole interaction, and a dropdown to answer a single question is a
+   control standing in front of an answer. */
+.wp-filing { border:1px solid var(--signal); border-radius:var(--r-md);
+  background:var(--signal-soft); padding:var(--sp-5); margin-bottom:var(--sp-5); }
+.wp-filing-head { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
+.wp-filing-q { font-size:var(--fs-2); margin:0; }
+.wp-filing-q strong { font-weight:800; }
+.wp-filing-choices { display:flex; flex-wrap:wrap; gap:var(--sp-3); margin-top:var(--sp-4); }
+.wp-filing-choice { display:inline-flex; align-items:center; gap:var(--sp-3); min-height:44px;
+  padding:var(--sp-3) var(--sp-5); border:1px solid var(--edge); border-radius:var(--r-full);
+  background:var(--raised); color:var(--ink); font-family:var(--body); font-size:var(--fs-2);
+  font-weight:700; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:border-color .15s ease; }
+.wp-filing-choice:hover { border-color:var(--ink); }
+.wp-filing-more { margin:var(--sp-4) 0 0; }
+
 /* ---------- a deletion you can still take back ----------
    The row leaves the list at once and the write waits five seconds, so undo
    is a cancelled timer rather than a second round trip. Kept the height of
@@ -782,6 +821,21 @@ body { background:inherit; overscroll-behavior-x:none; max-width:100vw; margin:0
   white-space:nowrap; font-size:var(--fs-3); }
 .wp-reviewrow-meta { margin:var(--sp-3) 0 0; font-size:var(--fs-1); }
 .wp-reviewrow-still { margin:var(--sp-3) 0 0; font-size:var(--fs-1); }
+/* The one line in the review meant to be acted on, so it is set as body text
+   rather than dropping to the 12px meta role the counts use. */
+.wp-reviewrow-distance { margin:var(--sp-3) 0 0; font-size:var(--fs-3); }
+
+/* ---------- plotting a route ----------
+   Sits inside the waypoints card rather than in a modal: it is an expansion
+   of the list it is about to fill, and a modal for a task that needs neither
+   interruption nor protected focus is the thing this system refuses. */
+.wp-plot { border:1px solid var(--line); border-radius:var(--r-md); background:var(--sunken);
+  padding:var(--sp-5); margin-top:var(--sp-5); }
+.wp-plot-counts { width:fit-content; margin-bottom:var(--sp-5); }
+.wp-plot-list { list-style:none; margin:0 0 var(--sp-5); padding:0; }
+.wp-plot-row { display:flex; align-items:center; gap:var(--sp-4); padding:var(--sp-3) 0; }
+.wp-plot-row .wp-input { flex:1; min-width:0; }
+.wp-plot-note { margin:var(--sp-4) 0 0; }
 .wp-pace { display:inline-flex; align-items:center; gap:var(--sp-2); border:1px solid var(--line);
   border-radius:var(--r-full); padding:var(--sp-2) var(--sp-3); color:var(--muted); flex:none; font-size:var(--fs-1); }
 .wp-pace.is-ahead { color:var(--signal-text); border-color:var(--signal-text); }

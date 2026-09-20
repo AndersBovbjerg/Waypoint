@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus, ArrowUpRight, X, CalendarCheck, Undo2 } from "lucide-react";
-import type { Activity, ColoredProject, GoalEntry, NewActivity, TimerSettings } from "./types";
+import type {
+  Activity,
+  ColoredProject,
+  GoalEntry,
+  NewActivity,
+  TimerSettings,
+  UnfiledSession,
+} from "./types";
 import type { TimerApi } from "./useTimer";
 import { fmtDay, fmtLong, fmtShort, fmtWeekday, greeting, courseNote, shiftKey } from "./helpers";
 import { currentValue, goalProgress } from "./goal";
@@ -25,6 +32,9 @@ export function TodayView({
   timer,
   timerSettings,
   onTimerSettings,
+  unfiled,
+  onFileSession,
+  onDropSession,
   reviewDue,
   onOpenReview,
   onDismissReview,
@@ -45,6 +55,9 @@ export function TodayView({
   timer: TimerApi;
   timerSettings: TimerSettings;
   onTimerSettings: (s: TimerSettings) => void;
+  unfiled: UnfiledSession[];
+  onFileSession: (u: UnfiledSession, projectId: string) => void;
+  onDropSession: (id: string) => void;
   reviewDue: { cleared: number; planned: number; waypoints: number } | null;
   onOpenReview: () => void;
   onDismissReview: () => void;
@@ -338,6 +351,9 @@ export function TodayView({
         projects={projects}
         projectsById={projectsById}
         todayItems={items}
+        unfiled={unfiled}
+        onFile={onFileSession}
+        onDrop={onDropSession}
       />
     </div>
   );

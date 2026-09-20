@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Session, TimerRuntime, TimerSettings } from "./types";
+import type { Session, UnfiledSession, TimerRuntime, TimerSettings } from "./types";
 import { IDLE_RUNTIME, localStore, resolvePreset } from "./store";
 import { fmtClock, keyOf, uid } from "./helpers";
 import { ensurePermission, notify } from "./notify";
@@ -47,7 +47,10 @@ export interface TimerApi {
   progress: number;
   running: boolean;
   label: string;
-  start: (projectId: string, activityId: string | null) => void;
+  /* null course is the ordinary case now: you start focusing, and say what
+     it counted toward once it is done. Binding a course up front still works
+     and still files itself automatically. */
+  start: (projectId: string | null, activityId: string | null) => void;
   pause: () => void;
   resume: () => void;
   skip: () => void;
@@ -57,10 +60,13 @@ export interface TimerApi {
 export function useTimer({
   settings,
   onSession,
+  onUnfiled,
   enabled,
 }: {
   settings: TimerSettings;
   onSession: (s: Session) => void;
+  /* Where a finished block goes when no course was chosen up front. */
+  onUnfiled: (u: UnfiledSession) => void;
   /* held false until saved data has loaded, so we don't write over it */
   enabled: boolean;
 }): TimerApi {
@@ -75,11 +81,13 @@ export function useTimer({
      making it re-run and re-fire a transition. Written after commit, not
      during render, so a discarded render can never leave a stale value. */
   const onSessionRef = useRef(onSession);
+  const onUnfiledRef = useRef(onUnfiled);
   const settingsRef = useRef(settings);
   const presetRef = useRef(preset);
   const runtimeRef = useRef(runtime);
   useEffect(() => {
     onSessionRef.current = onSession;
+    onUnfiledRef.current = onUnfiled;
     settingsRef.current = settings;
     presetRef.current = preset;
     runtimeRef.current = runtime;
@@ -133,17 +141,20 @@ export function useTimer({
     const s = settingsRef.current;
 
     if (runtime.phase === "focus") {
-      if (runtime.projectId && runtime.startedAt) {
-        onSessionRef.current({
+      if (runtime.startedAt) {
+        const block = {
           id: uid(),
-          projectId: runtime.projectId,
-          activityId: runtime.activityId,
           date: keyOf(new Date(runtime.startedAt)),
           startedAt: new Date(runtime.startedAt).toISOString(),
           endedAt: new Date(endsAt).toISOString(),
           minutes: Math.round(runtime.totalMs / 60_000),
           completed: true,
-        });
+        };
+        if (runtime.projectId) {
+          onSessionRef.current({ ...block, projectId: runtime.projectId, activityId: runtime.activityId });
+        } else {
+          onUnfiledRef.current(block);
+        }
       }
       const cycle = runtime.cycle + 1;
       const isLong = p.cycles > 0 && cycle % p.cycles === 0;
@@ -198,7 +209,7 @@ export function useTimer({
 
   /* ---------- controls ---------- */
   const start = useCallback(
-    (projectId: string, activityId: string | null) => {
+    (projectId: string | null, activityId: string | null) => {
       void ensurePermission();
       if (settingsRef.current.sound) chime(true);
       const ms = presetRef.current.focus * 60_000;
@@ -253,20 +264,23 @@ export function useTimer({
      updater must be pure, and a setState nested in one is discarded. */
   const stop = useCallback(() => {
     const r = runtimeRef.current;
-    if (r.phase === "focus" && r.projectId && r.startedAt) {
+    if (r.phase === "focus" && r.startedAt) {
       const left = r.paused != null ? r.paused : r.endsAt != null ? r.endsAt - Date.now() : 0;
       const minutes = Math.round((r.totalMs - Math.max(0, left)) / 60_000);
       if (minutes >= 1) {
-        onSessionRef.current({
+        const block = {
           id: uid(),
-          projectId: r.projectId,
-          activityId: r.activityId,
           date: keyOf(new Date(r.startedAt)),
           startedAt: new Date(r.startedAt).toISOString(),
           endedAt: new Date().toISOString(),
           minutes,
           completed: false,
-        });
+        };
+        if (r.projectId) {
+          onSessionRef.current({ ...block, projectId: r.projectId, activityId: r.activityId });
+        } else {
+          onUnfiledRef.current(block);
+        }
       }
     }
     settledAt.current = null;
