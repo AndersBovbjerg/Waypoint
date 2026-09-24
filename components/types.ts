@@ -197,6 +197,8 @@ export interface AppData {
   reviewSeen: string | null;
   /* activity id → why it did not happen, for the ones that have been asked */
   missReasons: Record<string, MissReason>;
+  /* the secret in the Apple Calendar subscription URL; null until set up */
+  feedToken: string | null;
 }
 
 /* A project with its colour slot resolved to a hex value. */

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { CalendarPlus, Check, ChevronLeft, ChevronRight, Copy, Download } from "lucide-react";
 import type { ColoredProject, ThemePref, TimerSettings } from "./types";
 import { STRAVA_ENABLED, StravaCard } from "./StravaCard";
 
@@ -25,6 +25,8 @@ export function SettingsView({
   userId,
   projects,
   onImport,
+  feedToken,
+  onFeedToken,
   onSignOut,
   onBack,
 }: {
@@ -38,6 +40,8 @@ export function SettingsView({
   userId: string;
   projects: ColoredProject[];
   onImport: () => void;
+  feedToken: string | null;
+  onFeedToken: (token: string) => void;
   onSignOut: () => void;
   onBack: () => void;
 }) {
@@ -161,6 +165,13 @@ export function SettingsView({
       </section>
 
       <section className="wp-set">
+        <h3 className="wp-eyebrow wp-set-label">Calendar</h3>
+        <div className="wp-set-group">
+          <CalendarFeed token={feedToken} onToken={onFeedToken} />
+        </div>
+      </section>
+
+      <section className="wp-set">
         <h3 className="wp-eyebrow wp-set-label">Data</h3>
         <div className="wp-set-group">
           <button className="wp-set-row" onClick={onImport}>
@@ -214,5 +225,88 @@ function Switch({
       </span>
       <span className={`wp-switch${on ? " is-on" : ""}`} aria-hidden="true" />
     </button>
+  );
+}
+
+/* 32 url-safe characters from 24 random bytes. Long enough that the link
+   cannot be guessed, which is the only thing standing between it and
+   anyone else's calendar — see app/api/calendar. */
+function newToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/* Apple Calendar, one way: Waypoint publishes, Calendar subscribes. Ticking
+   something off happens here and reaches Calendar the next time it fetches;
+   a subscribed calendar is read-only on the phone, so nothing can come back
+   the other way. */
+function CalendarFeed({ token, onToken }: { token: string | null; onToken: (t: string) => void }) {
+  const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const path = token ? `${window.location.host}/api/calendar/${token}.ics` : "";
+
+  return (
+    <div className="wp-set-row is-stacked">
+      <span className="wp-set-text">
+        <span className="wp-set-title">Apple Calendar</span>
+        <span className="wp-set-sub">
+          Subscribe once. Activities and waypoint deadlines show up as all-day events, with an alert at
+          08:00 for anything still open. Ticks made here reach Calendar the next time it checks.
+        </span>
+      </span>
+
+      {!token ? (
+        <div className="wp-set-actions">
+          <button className="wp-btn wp-btn-solid" onClick={() => onToken(newToken())}>
+            <CalendarPlus size={15} /> Set up
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="wp-set-actions">
+            <a className="wp-btn wp-btn-solid" href={`webcal://${path}`}>
+              <CalendarPlus size={15} /> Subscribe
+            </a>
+            <button
+              className="wp-btn"
+              onClick={() => {
+                void navigator.clipboard.writeText(`${window.location.protocol}//${path}`).then(() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                });
+              }}
+            >
+              {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
+          <p className="wp-set-sub">
+            The link is private: anyone who has it can see your activity titles.
+          </p>
+          {confirming ? (
+            <div className="wp-set-confirm" role="alert">
+              <span className="wp-set-sub">The old link stops working, and Calendar needs the new one.</span>
+              <div className="wp-set-actions">
+                <button
+                  className="wp-btn"
+                  onClick={() => {
+                    onToken(newToken());
+                    setConfirming(false);
+                  }}
+                >
+                  Make a new link
+                </button>
+                <button className="wp-btn wp-btn-ghost" onClick={() => setConfirming(false)}>
+                  Keep this one
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="wp-set-link" onClick={() => setConfirming(true)}>
+              Make a new link
+            </button>
+          )}
+        </>
+      )}
+    </div>
   );
 }

@@ -74,6 +74,7 @@ const EMPTY: AppData = {
   timer: DEFAULT_TIMER,
   reviewSeen: null,
   missReasons: {},
+  feedToken: null,
 };
 
 /* How the Strava consent screen ended. The callback route can only redirect to
@@ -493,6 +494,14 @@ export default function Waypoint({
     setNudgeAck(ack);
   };
 
+  /* A new token replaces the old one outright, so the previous link stops
+     working the moment this saves — that is the point of making a new one. */
+  const setFeedToken = (feedToken: string) =>
+    mutate(
+      (d) => ({ ...d, feedToken }),
+      () => db.savePrefs(userId, { feedToken })
+    );
+
   const goTo = (k: View) => {
     setView(k);
     setOpenProject(null);
@@ -869,6 +878,8 @@ export default function Waypoint({
             userId={userId}
             projects={activeProjects}
             onImport={() => setImportOpen(true)}
+            feedToken={data.feedToken}
+            onFeedToken={setFeedToken}
             onSignOut={onSignOut}
             onBack={() => setView(backTo)}
           />

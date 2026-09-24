@@ -111,6 +111,7 @@ interface PrefsRow {
   mode: string | null;
   review_seen: string | null;
   timer: Partial<TimerSettings> | null;
+  feed_token?: string | null;
 }
 
 /* ---------- row → app ---------- */
@@ -258,7 +259,7 @@ export async function loadAll(userId: string): Promise<AppData> {
       db.from("recurring_activities").select("*").order("created_at", { ascending: true }),
       db.from("sessions").select("*").order("started_at", { ascending: true }),
       db.from("goal_entries").select("*").order("date", { ascending: true }),
-      db.from("prefs").select("mode, review_seen, timer").eq("user_id", userId).maybeSingle(),
+      db.from("prefs").select("mode, review_seen, timer, feed_token").eq("user_id", userId).maybeSingle(),
       db.from("miss_reasons").select("activity_id, reason"),
     ]);
 
@@ -298,6 +299,7 @@ export async function loadAll(userId: string): Promise<AppData> {
     goalEntries: ((goalEntries.data ?? []) as GoalEntryRow[]).map(toGoalEntry),
     timer: { ...DEFAULT_TIMER, ...(p?.timer ?? {}) },
     reviewSeen: p?.review_seen ?? null,
+    feedToken: p?.feed_token ?? null,
     missReasons: Object.fromEntries(
       ((reasons.data ?? []) as { activity_id: string; reason: MissReason }[]).map((r) => [
         r.activity_id,
@@ -521,13 +523,14 @@ export async function addSession(s: Session, userId: string) {
 
 export async function savePrefs(
   userId: string,
-  prefs: { mode?: ThemePref; reviewSeen?: string | null; timer?: TimerSettings }
+  prefs: { mode?: ThemePref; reviewSeen?: string | null; timer?: TimerSettings; feedToken?: string }
 ) {
   const db = getSupabase();
   const row: Record<string, unknown> = { user_id: userId };
   if (prefs.mode !== undefined) row.mode = prefs.mode;
   if (prefs.reviewSeen !== undefined) row.review_seen = prefs.reviewSeen;
   if (prefs.timer !== undefined) row.timer = prefs.timer;
+  if (prefs.feedToken !== undefined) row.feed_token = prefs.feedToken;
   check((await db.from("prefs").upsert(row)).error, "save your preferences");
 }
 
