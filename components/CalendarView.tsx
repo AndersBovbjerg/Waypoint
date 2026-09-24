@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Activity, ColoredProject, NewActivity } from "./types";
 import { fmtLong, fmtShort, fromKey, keyOf } from "./helpers";
 import { ActivityRow } from "./shared";
@@ -13,7 +13,6 @@ export function CalendarView({
   onToggle,
   onRemove,
   onAdd,
-  onImport,
 }: {
   activities: Activity[];
   projects: ColoredProject[];
@@ -22,7 +21,6 @@ export function CalendarView({
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   onAdd: (a: NewActivity) => void;
-  onImport: () => void;
 }) {
   const [cursor, setCursor] = useState(() => {
     const d = fromKey(today);
@@ -77,9 +75,6 @@ export function CalendarView({
               <ChevronRight size={16} />
             </button>
           </div>
-          <button className="wp-btn" onClick={onImport}>
-            <Download size={14} /> Import activities
-          </button>
         </div>
 
         <div className="wp-cal-head wp-mono">

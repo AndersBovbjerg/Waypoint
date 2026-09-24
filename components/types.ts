@@ -1,4 +1,8 @@
 export type Mode = "light" | "dark";
+/* What the user picked in Settings. "system" is resolved to a Mode on the
+   device, from prefers-color-scheme, so the stored value never goes stale
+   when the phone flips to dark in the evening. */
+export type ThemePref = Mode | "system";
 export type ProjectStatus = "active" | "archived";
 
 export interface WaypointItem {
@@ -175,7 +179,7 @@ export interface TimerRuntime {
 }
 
 export interface AppData {
-  mode: Mode;
+  mode: ThemePref;
   projects: Project[];
   activities: Activity[];
   recurringActivities: RecurringActivity[];

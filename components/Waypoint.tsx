@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sun, Moon, LogOut, X, Compass, Layers, Calendar, CalendarCheck, BarChart3, Bell, BellOff } from "lucide-react";
+import { X, Compass, Layers, Calendar, CalendarCheck, BarChart3, Settings } from "lucide-react";
 import type {
   AppData,
   Activity,
@@ -11,7 +11,9 @@ import type {
   Project,
   ProjectStatus,
   GoalEntry,
+  Mode,
   Session,
+  ThemePref,
   UnfiledSession,
   TimerSettings,
   WaypointItem,
@@ -31,11 +33,15 @@ import { ProjectsView } from "./ProjectsView";
 import { ProjectDetail } from "./ProjectDetail";
 import { CalendarView } from "./CalendarView";
 import { StatsView } from "./StatsView";
+import { SettingsView } from "./SettingsView";
+import { useSystemDark } from "./useSystemDark";
 import { ProjectModal } from "./ProjectModal";
 import { ImportModal } from "./ImportModal";
 import { Onboarding } from "./Onboarding";
 
-type View = "today" | "projects" | "calendar" | "review" | "stats";
+/* "settings" is a page, not a tab: it is reached from the gear in the
+   header and is not in TABS, so neither tab row shows it as a destination. */
+type View = "today" | "projects" | "calendar" | "review" | "stats" | "settings";
 
 /* One list drives both the top tab row (desktop) and the bottom tab bar
    (mobile/tablet) — same views, same order, just a different shell around
@@ -77,7 +83,7 @@ const stravaFailure =
   stravaResult === "denied"
     ? "Strava was not connected — the request was declined."
     : stravaResult === "error"
-      ? "Could not connect Strava. Try again from the Strava card in Statistics."
+      ? "Could not connect Strava. Try again from the Strava card in Settings."
       : null;
 
 export default function Waypoint({
@@ -92,9 +98,11 @@ export default function Waypoint({
   const [data, setData] = useState<AppData>(EMPTY);
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState<string | null>(stravaFailure);
-  /* landing on Statistics after connecting is the point: the course that
-     synced runs get filed under is still to be chosen */
-  const [view, setView] = useState<View>(stravaResult === "connected" ? "stats" : "today");
+  /* landing on Settings after connecting is the point: the course that
+     synced runs get filed under is still to be chosen, on the Strava card */
+  const [view, setView] = useState<View>(stravaResult === "connected" ? "settings" : "today");
+  /* where the Back button on Settings returns to */
+  const [backTo, setBackTo] = useState<View>("today");
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -232,7 +240,8 @@ export default function Waypoint({
     [apply]
   );
 
-  const mode = data.mode === "dark" ? "dark" : "light";
+  const systemDark = useSystemDark();
+  const mode: Mode = data.mode === "system" ? (systemDark ? "dark" : "light") : data.mode;
   const palette = PALETTES[mode];
 
   /* Carry the mode up to <html>, so the browser's own canvas matches and no
@@ -459,6 +468,24 @@ export default function Waypoint({
       () => db.deleteGoalEntry(id)
     );
 
+  const setTheme = (theme: ThemePref) =>
+    mutate(
+      (d) => ({ ...d, mode: theme }),
+      () => db.savePrefs(userId, { mode: theme })
+    );
+
+  /* Not through mutate(): the name is component state, not AppData, because
+     it lives on the auth user rather than in any table loadAll reads. Same
+     promise, though — shown now, taken back and said out loud if it fails. */
+  const saveName = (next: string) => {
+    const before = name;
+    setName(next);
+    db.saveName(next).catch((e: unknown) => {
+      setName(before);
+      setFailure(e instanceof Error ? e.message : "Your name did not save.");
+    });
+  };
+
   const setTimerSettings = (timer: TimerSettings) =>
     mutate(
       (d) => ({ ...d, timer }),
@@ -610,39 +637,21 @@ export default function Waypoint({
               setOpenProject(null);
             }}
           />
-          {pushSupported && (
-            <button
-              className="wp-modebtn"
-              onClick={toggleReminders}
-              disabled={reminderBusy}
-              aria-pressed={remindersOn}
-              aria-label={remindersOn ? "Turn off daily reminders" : "Turn on daily reminders"}
-              title={
-                remindersOn
-                  ? "Daily reminder at 17:00 — on"
-                  : "Get a notification at 17:00 for anything not yet crossed off today"
-              }
-            >
-              {remindersOn ? <Bell size={16} /> : <BellOff size={16} />}
-            </button>
-          )}
           <button
-            className="wp-modebtn"
+            className={`wp-modebtn${view === "settings" ? " is-on" : ""}`}
             onClick={() => {
-              const next = mode === "dark" ? "light" : "dark";
-              mutate(
-                (d) => ({ ...d, mode: next }),
-                () => db.savePrefs(userId, { mode: next })
-              );
+              if (view === "settings") {
+                setView(backTo);
+              } else {
+                setBackTo(view);
+                setView("settings");
+              }
             }}
-            aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            data-role="mode"
-            title={mode === "dark" ? "Light mode" : "Dark mode"}
+            aria-label={view === "settings" ? "Close settings" : "Settings"}
+            aria-pressed={view === "settings"}
+            title="Settings"
           >
-            {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button className="wp-modebtn" onClick={onSignOut} aria-label="Sign out" title="Sign out">
-            <LogOut size={15} />
+            <Settings size={17} />
           </button>
         </div>
       </header>
@@ -750,7 +759,6 @@ export default function Waypoint({
             onToggle={toggleActivity}
             onRemove={removeActivity}
             onAdd={addActivity}
-            onImport={() => setImportOpen(true)}
           />
         )}
 
@@ -772,7 +780,27 @@ export default function Waypoint({
             sessions={data.sessions}
             goalEntries={data.goalEntries}
             today={today}
+          />
+        )}
+        {view === "settings" && (
+          <SettingsView
+            theme={data.mode}
+            onTheme={setTheme}
+            name={name}
+            onName={saveName}
+            reminders={{
+              supported: pushSupported,
+              on: remindersOn,
+              busy: reminderBusy,
+              toggle: () => void toggleReminders(),
+            }}
+            timer={data.timer}
+            onTimer={setTimerSettings}
             userId={userId}
+            projects={activeProjects}
+            onImport={() => setImportOpen(true)}
+            onSignOut={onSignOut}
+            onBack={() => setView(backTo)}
           />
         )}
       </main>

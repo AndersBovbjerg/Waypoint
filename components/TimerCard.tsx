@@ -204,24 +204,8 @@ export function TimerCard({
           {!projects.length && (
             <p className="wp-empty">Create a project first — focus time is logged against one.</p>
           )}
-
-          <div className="wp-timer-opts">
-            <Toggle
-              on={settings.autoStartBreak}
-              onChange={(v) => onSettings({ ...settings, autoStartBreak: v })}
-              label="Auto-start breaks"
-            />
-            <Toggle
-              on={settings.autoStartFocus}
-              onChange={(v) => onSettings({ ...settings, autoStartFocus: v })}
-              label="Auto-start focus"
-            />
-            <Toggle
-              on={settings.sound}
-              onChange={(v) => onSettings({ ...settings, sound: v })}
-              label="Sound"
-            />
-          </div>
+          {/* Auto-start and sound moved to Settings: they are standing
+              preferences, set once, not part of starting a block. */}
         </>
       ) : idle ? null : (
         <div className="wp-timer-actions">
@@ -271,27 +255,6 @@ function clamp(raw: string, lo: number, hi: number) {
   const n = Number(raw);
   if (!Number.isFinite(n)) return lo;
   return Math.min(hi, Math.max(lo, Math.round(n)));
-}
-
-function Toggle({
-  on,
-  onChange,
-  label,
-}: {
-  on: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <button
-      className={`wp-toggle${on ? " is-on" : ""}`}
-      onClick={() => onChange(!on)}
-      aria-pressed={on}
-    >
-      <span className="wp-toggle-dot" />
-      <span className="wp-mono">{label.toUpperCase()}</span>
-    </button>
-  );
 }
 
 /* Compact readout for the header, so the countdown is visible from any view. */

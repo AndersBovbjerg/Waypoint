@@ -4,7 +4,7 @@ import type {
   Goal,
   GoalEntry,
   GoalUnit,
-  Mode,
+  ThemePref,
   Project,
   ProjectStatus,
   RecurringActivity,
@@ -279,7 +279,7 @@ export async function loadAll(userId: string): Promise<AppData> {
   const p = (prefs.data ?? null) as PrefsRow | null;
 
   return {
-    mode: (p?.mode === "dark" ? "dark" : "light") as Mode,
+    mode: (p?.mode === "dark" || p?.mode === "system" ? p.mode : "light") as ThemePref,
     projects: ((projects.data ?? []) as ProjectRow[]).map((r) =>
       toProject(r, byProject.get(r.id) ?? [])
     ),
@@ -497,7 +497,7 @@ export async function addSession(s: Session, userId: string) {
 
 export async function savePrefs(
   userId: string,
-  prefs: { mode?: Mode; reviewSeen?: string | null; timer?: TimerSettings }
+  prefs: { mode?: ThemePref; reviewSeen?: string | null; timer?: TimerSettings }
 ) {
   const db = getSupabase();
   const row: Record<string, unknown> = { user_id: userId };
@@ -505,6 +505,12 @@ export async function savePrefs(
   if (prefs.reviewSeen !== undefined) row.review_seen = prefs.reviewSeen;
   if (prefs.timer !== undefined) row.timer = prefs.timer;
   check((await db.from("prefs").upsert(row)).error, "save your preferences");
+}
+
+/* The name lives on the auth user, not in prefs — see App.tsx. */
+export async function saveName(name: string) {
+  const { error } = await getSupabase().auth.updateUser({ data: { name } });
+  check(error, "save your name");
 }
 
 /* ---------- goal readings ---------- */
