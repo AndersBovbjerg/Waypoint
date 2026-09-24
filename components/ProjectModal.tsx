@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Minus } from "lucide-react";
 import type { Goal, GoalUnit, Project } from "./types";
 import { UNITS, formatGoalValue, parseGoalValue } from "./goal";
 import { ICONS } from "./identity";
@@ -16,11 +16,15 @@ const VISIBLE_COLORS = 6;
 export function ProjectModal({
   draft,
   palette,
+  impliedTarget,
   onClose,
   onSave,
 }: {
   draft: Project;
   palette: string[];
+  /* the day count of this course's recurring rule, which stands in as its
+     weekly target until one is set here */
+  impliedTarget: number | null;
   onClose: () => void;
   onSave: (p: Project) => void;
 }) {
@@ -86,6 +90,12 @@ export function ProjectModal({
               <span className="wp-eyebrow">Target date — optional</span>
               <input className="wp-input wp-mono" type="date" value={p.target} onChange={(e) => set("target", e.target.value)} />
             </label>
+
+            <WeeklyTarget
+              value={p.weeklyTarget}
+              implied={impliedTarget}
+              onChange={(v) => set("weeklyTarget", v)}
+            />
 
             <div className="wp-field">
               <span className="wp-eyebrow">Colour</span>
@@ -243,5 +253,55 @@ export function ProjectModal({
         </>
       )}
     </Overlay>
+  );
+}
+
+/* How many activities a week the course aims for. A count, never which
+   days: the days are decided week to week by things outside this app, the
+   count is what can be held to. Stepping below one clears it — and a course
+   with a recurring rule then falls back to that rule's day count. */
+const MAX_TARGET = 21;
+function WeeklyTarget({
+  value,
+  implied,
+  onChange,
+}: {
+  value: number | null;
+  implied: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  const base = value ?? implied ?? 0;
+  const shown = value ? `${value} a week` : implied ? `${implied} a week` : "No target";
+  return (
+    <div className="wp-field">
+      <span className="wp-eyebrow" id="wp-target-label">
+        Weekly target — optional
+      </span>
+      <div className="wp-stepper" role="group" aria-labelledby="wp-target-label">
+        <button
+          type="button"
+          className="wp-stepbtn"
+          onClick={() => onChange(base - 1 >= 1 ? base - 1 : null)}
+          disabled={value === null && !implied}
+          aria-label="One fewer a week"
+        >
+          <Minus size={16} />
+        </button>
+        <span className={`wp-stepval${value ? "" : " is-unset"}`} aria-live="polite">
+          {shown}
+          {!value && implied && <span className="wp-stepval-note">from its recurring days</span>}
+        </span>
+        <button
+          type="button"
+          className="wp-stepbtn"
+          onClick={() => onChange(Math.min(MAX_TARGET, base + 1))}
+          disabled={base >= MAX_TARGET}
+          aria-label="One more a week"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+      <p className="wp-fieldhint">How many activities a week this course aims for. Review counts them.</p>
+    </div>
   );
 }

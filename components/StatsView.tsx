@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import type { Activity, ColoredProject, GoalEntry, Session } from "./types";
-import { clearStreak, commitmentRate, fmtDuration } from "./helpers";
-import { Kpi, Pace } from "./shared";
-import { ProjectIcon } from "./identity";
+import type { Activity, ColoredProject, GoalEntry, RecurringActivity, Session } from "./types";
+import { commitmentRate, fmtDuration } from "./helpers";
+import { Kpi } from "./shared";
+import { LaneRow } from "./Lane";
+import { targetsHit } from "./targets";
 import { buildEffortSeries } from "./effort";
 import { EffortChart } from "./EffortChart";
 import { buildProjectStandings } from "./week";
@@ -13,12 +13,14 @@ export function StatsView({
   projects,
   sessions,
   goalEntries,
+  recurring,
   today,
 }: {
   activities: Activity[];
   projects: ColoredProject[];
   sessions: Session[];
   goalEntries: GoalEntry[];
+  recurring: RecurringActivity[];
   today: string;
 }) {
   const focusToday = sessions.filter((s) => s.date === today).reduce((n, s) => n + s.minutes, 0);
@@ -40,7 +42,11 @@ export function StatsView({
      which this file has never memoized either. */
   const effort = buildEffortSeries({ activities, projects, sessions, today });
 
-  const streak = useMemo(() => clearStreak(activities, today), [activities, today]);
+  /* Replaces the clear streak here, which ended on any day with nothing
+     logged and so mostly measured whether the app was opened. A target is
+     a number of activities a week, so this counts weeks, not days. The
+     home-screen widget still shows clearStreak; it is its own question. */
+  const targets = targetsHit(projects, recurring, activities, today, 4);
 
   /* Same shape of information the weekly review gives per project — pace,
      a goal's movement, waypoints reached — just never window-bound to one
@@ -53,7 +59,7 @@ export function StatsView({
 
   return (
     <div className="wp-stack">
-      {/* Completion and streak lead — the two numbers that answer "am I
+      {/* Commitments and targets lead — the two numbers that answer "am I
           keeping up" at a glance. Active courses was cut: the count is
           already right there to count on the Courses tab, so the tile was
           answering a question nobody needed answered twice. */}
@@ -63,7 +69,11 @@ export function StatsView({
           value={kept.rate === null ? "—" : `${kept.rate}%`}
           sub={kept.total ? `${kept.kept} of ${kept.total} recurring` : "nothing recurring yet"}
         />
-        <Kpi label="Clear streak" value={String(streak)} sub="days with everything cleared" />
+        <Kpi
+          label="Targets hit"
+          value={targets.total ? `${targets.hit}/${targets.total}` : "—"}
+          sub={targets.total ? "course-weeks, last 4 weeks" : "no weekly targets yet"}
+        />
         {/* A count, not a rate. Everything logged after the fact belongs
             here, where volume is the honest reading of it. */}
         <Kpi label="Activities logged" value={String(done)} sub={`of ${past.length} on the board`} />
@@ -89,9 +99,15 @@ export function StatsView({
         {standings.length === 0 ? (
           <p className="wp-empty">No projects to measure yet.</p>
         ) : (
-          <ul className="wp-reviewlist">
+          <ul className="wp-lanelist">
             {standings.map((p) => (
-              <ProjectStandingRow key={p.project.id} p={p} />
+              <ProjectStandingRow
+                key={p.project.id}
+                p={p}
+                activities={activities}
+                goalEntries={goalEntries}
+                today={today}
+              />
             ))}
           </ul>
         )}
@@ -101,16 +117,29 @@ export function StatsView({
   );
 }
 
-function ProjectStandingRow({ p }: { p: ProjectStanding }) {
+/* The same lane the review draws, with the all-time counts under it. */
+function ProjectStandingRow({
+  p,
+  activities,
+  goalEntries,
+  today,
+}: {
+  p: ProjectStanding;
+  activities: Activity[];
+  goalEntries: GoalEntry[];
+  today: string;
+}) {
   const { project } = p;
   return (
-    <li className="wp-reviewrow">
-      <div className="wp-reviewrow-head">
-        <ProjectIcon icon={project.icon} color={project.color} size={15} />
-        <span className="wp-reviewrow-name">{project.name}</span>
-        <Pace timeGone={p.timeGone} routeDone={p.routeDone} />
-      </div>
-
+    <LaneRow
+      project={project}
+      timeGone={p.timeGone}
+      routeDone={p.routeDone}
+      daysToTarget={p.daysToTarget}
+      activities={activities}
+      goalEntries={goalEntries}
+      today={today}
+    >
       <p className="wp-mono wp-muted wp-reviewrow-meta">
         {p.clearedActivities}/{p.totalActivities} ACTIVITIES
         {p.minutes > 0 && <> · {fmtDuration(p.minutes).toUpperCase()} FOCUSED</>}
@@ -135,6 +164,6 @@ function ProjectStandingRow({ p }: { p: ProjectStanding }) {
           )}
         </p>
       )}
-    </li>
+    </LaneRow>
   );
 }

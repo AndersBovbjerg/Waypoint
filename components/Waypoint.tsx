@@ -11,6 +11,7 @@ import type {
   Project,
   ProjectStatus,
   GoalEntry,
+  MissReason,
   Mode,
   Session,
   ThemePref,
@@ -35,6 +36,10 @@ import { CalendarView } from "./CalendarView";
 import { StatsView } from "./StatsView";
 import { SettingsView } from "./SettingsView";
 import { useSystemDark } from "./useSystemDark";
+import { AddActivitySheet } from "./AddActivitySheet";
+import { NudgeAck, NudgeCard } from "./NudgeCard";
+import { pickNudge } from "./nudge";
+import { targetWeeks, weeklyTarget } from "./targets";
 import { ProjectModal } from "./ProjectModal";
 import { ImportModal } from "./ImportModal";
 import { Onboarding } from "./Onboarding";
@@ -67,6 +72,7 @@ const EMPTY: AppData = {
   goalEntries: [],
   timer: DEFAULT_TIMER,
   reviewSeen: null,
+  missReasons: {},
 };
 
 /* How the Strava consent screen ended. The callback route can only redirect to
@@ -119,6 +125,12 @@ export default function Waypoint({
      closing the app: nothing is written to the database until it is answered.
      Read lazily — this component does not render on the server. */
   const [unfiled, setUnfiled] = useState<UnfiledSession[]>(() => localStore.loadUnfiled());
+  /* Today's nudge: the day it was last put away (read from the device, so
+     one answer holds across reloads), the line left in its place once it
+     has been answered, and the course a "Log one now" is logging to. */
+  const [nudgeClosed, setNudgeClosed] = useState<string | null>(() => localStore.loadNudgeClosed());
+  const [nudgeAck, setNudgeAck] = useState<string | null>(null);
+  const [logFor, setLogFor] = useState<string | null>(null);
 
   const applyUnfiled = useCallback((next: UnfiledSession[]) => {
     setUnfiled(next);
@@ -347,8 +359,8 @@ export default function Waypoint({
       () => db.deleteWaypoint(wid)
     );
 
-  const addActivity = (a: NewActivity) => {
-    const row: Activity = { id: uid(), done: false, doneAt: null, ...a };
+  const addActivity = ({ done = false, ...a }: NewActivity) => {
+    const row: Activity = { id: uid(), done, doneAt: done ? new Date().toISOString() : null, ...a };
     mutate(
       (d) => ({ ...d, activities: [...d.activities, row] }),
       () => db.addActivity(row, userId)
@@ -468,6 +480,18 @@ export default function Waypoint({
       () => db.deleteGoalEntry(id)
     );
 
+  const setMissReason = (activityId: string, reason: MissReason) =>
+    mutate(
+      (d) => ({ ...d, missReasons: { ...d.missReasons, [activityId]: reason } }),
+      () => db.saveMissReason(activityId, reason)
+    );
+
+  const closeNudge = (ack: string | null = null) => {
+    localStore.saveNudgeClosed(today);
+    setNudgeClosed(today);
+    setNudgeAck(ack);
+  };
+
   const setTheme = (theme: ThemePref) =>
     mutate(
       (d) => ({ ...d, mode: theme }),
@@ -509,6 +533,25 @@ export default function Waypoint({
     [projects]
   );
   const activeProjects = projects.filter((p) => p.status === "active");
+
+  const nudge =
+    ready && nudgeClosed !== today
+      ? pickNudge({
+          projects,
+          activities: data.activities,
+          recurring: data.recurringActivities,
+          reasons: data.missReasons,
+          today,
+        })
+      : null;
+  /* this week's targets, for the course list on Today */
+  const weekTargets = targetWeeks({
+    projects: activeProjects,
+    recurring: data.recurringActivities,
+    activities: data.activities,
+    monday: startOfWeek(today),
+    today,
+  });
 
   /* The Sunday review, once a week. Before nine it waits quietly as a card on
      Today; from nine it opens itself. Both states are derived from the same
@@ -697,6 +740,31 @@ export default function Waypoint({
               setOpenProject(id);
               setView("projects");
             }}
+            targets={weekTargets}
+            nudge={
+              nudgeAck ? (
+                <NudgeAck text={nudgeAck} onClose={() => setNudgeAck(null)} />
+              ) : nudge ? (
+                <NudgeCard
+                  nudge={nudge}
+                  onReason={(id, reason) => {
+                    setMissReason(id, reason);
+                    closeNudge("Noted. It will show up in your review's patterns.");
+                  }}
+                  onDidIt={(id) => {
+                    toggleActivity(id);
+                    closeNudge(
+                      nudge.kind === "missed" ? "Ticked off for yesterday." : "Ticked off. One closer to the target."
+                    );
+                  }}
+                  onLog={(pid) => {
+                    setLogFor(pid);
+                    closeNudge();
+                  }}
+                  onClose={() => closeNudge()}
+                />
+              ) : null
+            }
           />
         )}
 
@@ -720,6 +788,7 @@ export default function Waypoint({
                 waypoints: [],
                 goal: null,
                 icon: null,
+                weeklyTarget: null,
               })
             }
             onStatus={setStatus}
@@ -769,7 +838,11 @@ export default function Waypoint({
             activities={data.activities}
             sessions={data.sessions}
             goalEntries={data.goalEntries}
+            recurring={data.recurringActivities}
+            reasons={data.missReasons}
             today={today}
+            onReason={setMissReason}
+            onToggle={toggleActivity}
           />
         )}
 
@@ -779,6 +852,7 @@ export default function Waypoint({
             projects={projects}
             sessions={data.sessions}
             goalEntries={data.goalEntries}
+            recurring={data.recurringActivities}
             today={today}
           />
         )}
@@ -826,6 +900,9 @@ export default function Waypoint({
         <ProjectModal
           draft={editing}
           palette={palette}
+          impliedTarget={
+            weeklyTarget({ id: editing.id, weeklyTarget: null }, data.recurringActivities)?.value ?? null
+          }
           onClose={() => setEditing(null)}
           onSave={(p) => {
             const { color: _color, ...clean } = p;
@@ -843,8 +920,26 @@ export default function Waypoint({
           activities={data.activities}
           sessions={data.sessions}
           goalEntries={data.goalEntries}
+          recurring={data.recurringActivities}
+          reasons={data.missReasons}
           today={today}
+          onReason={setMissReason}
+          onToggle={toggleActivity}
           onClose={markReviewSeen}
+        />
+      )}
+
+      {logFor && activeProjects.length > 0 && (
+        <AddActivitySheet
+          date={today}
+          projects={activeProjects}
+          initialProject={activeProjects.some((p) => p.id === logFor) ? logFor : activeProjects[0].id}
+          initialDone
+          onClose={() => setLogFor(null)}
+          onAdd={(a) => {
+            addActivity(a);
+            setLogFor(null);
+          }}
         />
       )}
 

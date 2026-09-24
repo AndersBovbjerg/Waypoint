@@ -16,6 +16,7 @@ import { ProjectIcon } from "./identity";
 import { TimerCard } from "./TimerCard";
 import { Select } from "./Select";
 import { localStore } from "./store";
+import type { TargetWeek } from "./targets";
 
 /* Long enough to notice the row change and reach for it, short enough that
    the list is not left lying about what it contains. */
@@ -42,6 +43,8 @@ export function TodayView({
   onRemove,
   onAdd,
   onOpenProject,
+  targets,
+  nudge,
 }: {
   items: Activity[];
   /* empty until setup has been through, and the greeting simply drops the
@@ -65,6 +68,10 @@ export function TodayView({
   onRemove: (id: string) => void;
   onAdd: (a: NewActivity) => void;
   onOpenProject: (id: string) => void;
+  /* this week's count against each course's weekly target */
+  targets: TargetWeek[];
+  /* the one card that pulls you by the arm, when there is one today */
+  nudge: React.ReactNode;
 }) {
   const [title, setTitle] = useState("");
   /* derived rather than synced in an effect, so the stored course is the
@@ -172,6 +179,8 @@ export function TodayView({
           {fmtLong(today)} · {courseNote(items)}
         </p>
       </section>
+
+      {nudge}
 
       {reviewDue && (
         <section className="wp-card wp-reviewprompt">
@@ -286,14 +295,27 @@ export function TodayView({
                   ? goalProgress(p.goal, currentValue(p.goal, goalEntries.filter((e) => e.projectId === p.id)))
                   : null;
                 const wDone = p.waypoints.filter((w) => w.done).length;
+                /* A course with a weekly target answers "am I keeping up"
+                   with this week's count rather than its whole-route one —
+                   the bar below still draws the route. */
+                const week = targets.find((t) => t.project.id === p.id);
                 return (
                   <li key={p.id}>
                     <button className="wp-minirow" onClick={() => onOpenProject(p.id)}>
                       <ProjectIcon icon={p.icon} color={p.color} size={15} />
                       <span className="wp-minirow-name">{p.name}</span>
-                      <span className="wp-mono wp-muted">
-                        {p.goal ? `${Math.round((goalPct ?? 0) * 100)}%` : `${wDone}/${p.waypoints.length}`}
-                      </span>
+                      {week ? (
+                        <span
+                          className={`wp-mono ${week.behind ? "wp-drifttext" : "wp-muted"}`}
+                          title={`${week.done} of ${week.target} this week`}
+                        >
+                          {week.done}/{week.target} THIS WEEK
+                        </span>
+                      ) : (
+                        <span className="wp-mono wp-muted">
+                          {p.goal ? `${Math.round((goalPct ?? 0) * 100)}%` : `${wDone}/${p.waypoints.length}`}
+                        </span>
+                      )}
                       <ArrowUpRight size={14} className="wp-muted" />
                     </button>
                     {p.goal ? (

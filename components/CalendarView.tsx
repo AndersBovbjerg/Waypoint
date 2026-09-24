@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from "react";
-import { Plus, ChevronLeft, ChevronRight, Flag, X } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Flag } from "lucide-react";
 import type { Activity, ColoredProject, NewActivity, WaypointItem } from "./types";
 import { fmtLong, fmtShort, fromKey, keyOf } from "./helpers";
 import { ActivityRow } from "./shared";
-import { Overlay } from "./Overlay";
+import { AddActivitySheet } from "./AddActivitySheet";
 
 /* A waypoint pinned to the day it is due, with the course it belongs to. */
 interface DueWaypoint {
@@ -242,10 +242,12 @@ export function CalendarView({
       </section>
 
       {adding && active.length > 0 && (
-        <AddActivity
+        <AddActivitySheet
           date={selected}
           projects={active}
           initialProject={pid}
+          /* a day already behind you is being logged, not planned */
+          initialDone={selected < today}
           onClose={() => setAdding(false)}
           onAdd={(a) => {
             onAdd(a);
@@ -255,84 +257,5 @@ export function CalendarView({
         />
       )}
     </div>
-  );
-}
-
-/* The popup a second tap opens: what, and which course. The course is a row
-   of chips rather than a dropdown — with a handful of active courses, one
-   tap on the one you mean beats opening a list to find it. */
-function AddActivity({
-  date,
-  projects,
-  initialProject,
-  onClose,
-  onAdd,
-}: {
-  date: string;
-  projects: ColoredProject[];
-  initialProject: string;
-  onClose: () => void;
-  onAdd: (a: NewActivity) => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [pid, setPid] = useState(initialProject);
-  const ready = title.trim().length > 0 && Boolean(pid);
-
-  return (
-    <Overlay dirty={title.trim().length > 0} onClose={onClose}>
-      {(requestClose) => (
-        <form
-          className="wp-addsheet"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (ready) onAdd({ projectId: pid, title: title.trim(), date });
-          }}
-        >
-          <div className="wp-card-head">
-            <h3>{fmtLong(date)}</h3>
-            <button type="button" className="wp-icon" onClick={requestClose} aria-label="Close">
-              <X size={16} />
-            </button>
-          </div>
-
-          <label className="wp-field">
-            <span className="wp-eyebrow">Activity</span>
-            <input
-              className="wp-input wp-addsheet-input"
-              autoFocus
-              placeholder="Read 25 min"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </label>
-
-          <fieldset className="wp-field wp-coursechips">
-            <legend className="wp-eyebrow">Course</legend>
-            <div className="wp-coursechips-row" role="radiogroup" aria-label="Course">
-              {projects.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={pid === p.id}
-                  className={`wp-coursechip${pid === p.id ? " is-on" : ""}`}
-                  style={{ "--course": p.color } as React.CSSProperties}
-                  onClick={() => setPid(p.id)}
-                >
-                  <span className="wp-swatch" style={{ background: p.color }} />
-                  <span className="wp-coursechip-name">{p.name}</span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className="wp-modal-actions">
-            <button type="submit" className="wp-btn wp-btn-solid" disabled={!ready}>
-              <Plus size={15} /> Add activity
-            </button>
-          </div>
-        </form>
-      )}
-    </Overlay>
   );
 }

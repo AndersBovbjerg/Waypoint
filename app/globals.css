@@ -750,12 +750,6 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
 .wp-kpi-value { font-family:var(--display); font-size:var(--fs-5); font-weight:800; line-height:1;
   letter-spacing:-.03em; margin:var(--sp-3) 0; }
 .wp-kpi-sub { margin:0; font-size:var(--fs-1); }
-.wp-bars { display:flex; align-items:flex-end; gap:var(--sp-3); height:150px; padding-top:var(--sp-3); }
-.wp-barcol { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:var(--sp-3); }
-.wp-bar { width:100%; min-height:2px; background:var(--line); border-radius:var(--r-sm); display:flex;
-  flex-direction:column; justify-content:flex-end; overflow:hidden; }
-.wp-bar-fill { width:100%; background:var(--signal); border-radius:var(--r-sm); transition:height .4s ease; }
-.wp-barlabel { color:var(--muted); font-size:var(--fs-1); }
 
 /* screen-reader-only table backing a chart, per the dataviz table-view rule */
 .wp-visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
@@ -923,8 +917,6 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
 .wp-weeknow { margin-left:var(--sp-2); }
 .wp-reviewprompt { border-color:var(--signal-text); }
 .wp-root[data-mode="dark"] .wp-reviewprompt { border-color:var(--signal-text); }
-.wp-weekbars { height:120px; }
-.wp-weekbars .wp-barcol.is-today .wp-barlabel { color:var(--ink); }
 .wp-reviewlist { list-style:none; margin:0; padding:0; }
 .wp-reviewrow { padding:var(--sp-5) 0; border-top:1px solid var(--line); }
 .wp-reviewrow:first-child { border-top:none; }
@@ -952,7 +944,10 @@ body { background:inherit; overscroll-behavior:none; max-width:100vw; margin:0;
 .wp-pace { display:inline-flex; align-items:center; gap:var(--sp-2); border:1px solid var(--line);
   border-radius:var(--r-full); padding:var(--sp-2) var(--sp-3); color:var(--muted); flex:none; font-size:var(--fs-1); }
 .wp-pace.is-ahead { color:var(--signal-text); border-color:var(--signal-text); }
-.wp-pace.is-behind { color:var(--ink); border-color:var(--ink); }
+/* Rav, not red: behind is something to act on, not an error — and it
+   always carries its word, so it never rests on colour alone. */
+.wp-pace.is-behind { color:var(--drift); border-color:var(--drift); }
+.wp-drifttext { color:var(--drift); }
 .wp-reached { list-style:none; margin:var(--sp-4) 0 0; padding:0; display:flex;
   flex-direction:column; gap:var(--sp-3); }
 .wp-reached li { display:flex; align-items:center; gap:var(--sp-3); font-size:var(--fs-3); }
@@ -1070,6 +1065,128 @@ button.wp-set-row:disabled { cursor:progress; }
   color:var(--muted); transition:color .2s ease; }
 .wp-themeseg button[aria-checked="true"] { color:var(--ink); }
 
+/* ---------- where you stand: the lane ----------
+   Filled to how far along the route is, with an upright tick where an even
+   pace from start to target date would have you today. Behind, the stretch
+   between them is hatched in the drift colour: the distance to make up. */
+.wp-lanelist { list-style:none; margin:0; padding:0; }
+.wp-lanerow { padding:var(--sp-5) 0; border-top:1px solid var(--line); }
+.wp-lanerow:first-child { border-top:none; padding-top:var(--sp-2); }
+.wp-lane { position:relative; height:8px; border-radius:var(--r-full); background:var(--line);
+  margin:var(--sp-4) 0 var(--sp-3); }
+.wp-lane-fill { position:absolute; left:0; top:0; bottom:0; border-radius:var(--r-full); }
+.wp-lane-gap { position:absolute; top:0; bottom:0; border-radius:0 var(--r-full) var(--r-full) 0;
+  background:repeating-linear-gradient(45deg,
+    color-mix(in oklab, var(--drift) 70%, transparent) 0 3px,
+    color-mix(in oklab, var(--drift) 22%, transparent) 3px 6px); }
+.wp-lane-tick { position:absolute; top:-4px; width:2px; height:16px; margin-left:-1px;
+  border-radius:1px; background:var(--ink); }
+.wp-lane-text { margin:0; font-size:var(--fs-2); color:var(--muted); line-height:1.5; }
+.wp-lane-key { display:flex; align-items:center; gap:var(--sp-3); margin:var(--sp-3) 0 0; }
+.wp-lane-keytick { width:2px; height:12px; border-radius:1px; background:var(--ink); flex:none; }
+
+/* ---------- the week against its targets ---------- */
+.wp-targetlist { list-style:none; margin:0; padding:0; }
+.wp-targetrow { display:flex; align-items:center; gap:var(--sp-4); padding:var(--sp-4) 0;
+  border-top:1px solid var(--line); min-height:44px; }
+.wp-targetrow:first-child { border-top:none; padding-top:0; }
+.wp-targetrow-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:var(--sp-1); }
+.wp-targetrow-name { font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wp-targetrow-sub { font-size:var(--fs-1); color:var(--muted); }
+.wp-targetrow-sub.is-warn { color:var(--drift); }
+.wp-pips { display:flex; gap:var(--sp-2); flex:none; }
+.wp-pip { width:12px; height:12px; border-radius:4px; border:2px solid; }
+.wp-momentum { margin:var(--sp-4) 0 0; padding-top:var(--sp-4); border-top:1px solid var(--line);
+  font-size:var(--fs-2); }
+.wp-card-foot { margin:var(--sp-3) 0 0; font-size:var(--fs-1); color:var(--muted); line-height:1.5; }
+
+/* ---------- missed, and why ---------- */
+.wp-misslist { list-style:none; margin:0; padding:0; }
+.wp-misslist-sub { margin:var(--sp-5) 0 var(--sp-2); }
+.wp-missrow { border-top:1px solid var(--line); }
+.wp-missrow:first-child { border-top:none; }
+.wp-missrow-main { display:flex; align-items:center; gap:var(--sp-3); min-height:48px; }
+.wp-missring { width:12px; height:12px; border-radius:50%; border:2px solid; flex:none; }
+.wp-missrow-date { flex:none; width:52px; }
+.wp-missrow-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wp-reasontag { flex:none; min-height:36px; padding:0 var(--sp-4); border-radius:var(--r-full);
+  border:1px dashed var(--edge); background:none; color:var(--muted); font-family:var(--body);
+  font-size:var(--fs-1); font-weight:700; position:relative; }
+.wp-reasontag::before { content:''; position:absolute; inset:-4px 0; }
+.wp-reasontag:hover { color:var(--ink); border-color:var(--ink); }
+.wp-reasontag.is-set { border-style:solid; border-color:var(--line); color:var(--ink); background:var(--sunken); }
+.wp-missrow-chips { padding:0 0 var(--sp-4); }
+
+/* the answers, here and on Today's card */
+.wp-reasonchips { display:flex; flex-wrap:wrap; gap:var(--sp-3); }
+.wp-reasonchip { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:40px;
+  padding:0 var(--sp-4); border-radius:var(--r-full); border:1px solid var(--line); background:var(--sunken);
+  color:var(--ink); font-family:var(--body); font-size:var(--fs-2); font-weight:600; position:relative; }
+.wp-reasonchip::before { content:''; position:absolute; inset:-2px 0; }
+.wp-reasonchip:hover { border-color:var(--edge); }
+.wp-reasonchip.is-on { border-color:var(--ink); background:var(--raised); }
+.wp-reasonchip.is-didit { color:var(--signal-text); border-color:color-mix(in oklab, var(--signal) 55%, var(--line)); }
+
+/* ---------- patterns ---------- */
+.wp-patterns-insight { margin:0 0 var(--sp-5); font-size:var(--fs-3); line-height:1.5; }
+.wp-patterns-label { margin:0 0 var(--sp-3); }
+.wp-daybars { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:var(--sp-3); margin-bottom:var(--sp-6); }
+.wp-daybar { display:flex; flex-direction:column; align-items:center; gap:var(--sp-2); min-width:0; }
+.wp-daybar-track { width:100%; height:88px; display:flex; align-items:flex-end; }
+.wp-daybar-fill { width:100%; border-radius:var(--r-sm) var(--r-sm) 3px 3px; background:var(--signal); }
+.wp-daybar-fill.is-worst { background:var(--drift); }
+.wp-daybar-fill.is-empty { background:var(--line); }
+.wp-daybar-label { font-size:var(--fs-0); }
+.wp-daybar-count { font-size:var(--fs-0); }
+.wp-reasonbars { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--sp-3); }
+.wp-reasonbars li { display:grid; grid-template-columns:minmax(0, 7.5em) 1fr auto; align-items:center; gap:var(--sp-4);
+  font-size:var(--fs-2); }
+.wp-reasonbars-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wp-reasonbars-track { height:8px; border-radius:var(--r-full); background:var(--line); overflow:hidden; }
+.wp-reasonbars-track span { display:block; height:100%; border-radius:var(--r-full); background:var(--muted); }
+
+/* the week's log, folded away — it is a record, not a question */
+.wp-cleared summary { display:flex; align-items:center; gap:var(--sp-4); cursor:pointer; list-style:none;
+  min-height:44px; }
+.wp-cleared summary::-webkit-details-marker { display:none; }
+.wp-cleared summary h3 { flex:1; font-family:var(--display); font-size:var(--fs-4); font-weight:600;
+  letter-spacing:-.01em; margin:0; }
+.wp-cleared-chev { color:var(--muted); transition:transform .2s ease; }
+.wp-cleared[open] .wp-cleared-chev { transform:rotate(90deg); }
+.wp-cleared[open] summary { margin-bottom:var(--sp-3); }
+
+/* ---------- Today's nudge ---------- */
+.wp-nudge { border-color:color-mix(in oklab, var(--course, var(--signal)) 45%, var(--rim)); }
+.wp-nudge-head { display:flex; align-items:center; gap:var(--sp-3); margin:calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)) 0 0; }
+.wp-nudge-course { flex:1; min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wp-nudge-title { font-family:var(--display); font-size:var(--fs-4); font-weight:700; line-height:1.3;
+  letter-spacing:-.01em; margin:var(--sp-2) 0 0; }
+.wp-nudge-line { color:var(--muted); font-weight:600; }
+.wp-nudge-quote { margin:var(--sp-5) 0; padding:var(--sp-2) 0 var(--sp-2) var(--sp-5);
+  border-left:3px solid var(--course, var(--signal)); }
+.wp-nudge-quote blockquote { margin:0; font-size:var(--fs-3); font-style:italic; line-height:1.55; }
+.wp-nudge-quote figcaption { margin-top:var(--sp-2); color:var(--muted); font-size:var(--fs-0); }
+.wp-nudge-ask { margin:0 0 var(--sp-4); font-weight:600; }
+.wp-nudge-actions { display:flex; gap:var(--sp-3); flex-wrap:wrap; }
+.wp-nudge-today { margin:0 0 var(--sp-4); font-size:var(--fs-2); color:var(--muted); }
+.wp-nudge-ack { display:flex; align-items:center; gap:var(--sp-4); padding-top:var(--sp-3); padding-bottom:var(--sp-3); }
+.wp-nudge-acktext { flex:1; margin:0; font-size:var(--fs-2); }
+
+/* ---------- the add sheet's footer, and the weekly target stepper ---------- */
+.wp-addsheet-actions { justify-content:space-between; }
+.wp-donetoggle { display:inline-flex; align-items:center; gap:var(--sp-3); min-height:44px; padding:0;
+  background:none; border:none; color:var(--ink); font-family:var(--body); font-size:var(--fs-2); font-weight:600; }
+.wp-donetoggle .wp-check { display:flex; align-items:center; justify-content:center; flex:none; }
+.wp-stepper { display:flex; align-items:center; gap:var(--sp-3); }
+.wp-stepbtn { width:44px; height:44px; flex:none; display:flex; align-items:center; justify-content:center;
+  border-radius:var(--r-full); border:1px solid var(--edge); background:var(--raised); color:var(--ink); }
+.wp-stepbtn:hover:not(:disabled) { border-color:var(--ink); }
+.wp-stepbtn:disabled { color:var(--muted); border-color:var(--line); cursor:not-allowed; }
+.wp-stepval { flex:1; min-width:0; text-align:center; font-weight:600; font-variant-numeric:tabular-nums; }
+.wp-stepval.is-unset { color:var(--muted); font-weight:500; }
+.wp-stepval-note { display:block; font-size:var(--fs-1); font-weight:500; color:var(--muted); }
+.wp-fieldhint { margin:var(--sp-2) 0 0; font-size:var(--fs-1); color:var(--muted); }
+
 /* desktop — bring the top tabs back, retire the bottom bar */
 @media (min-width:769px) {
   .wp-nav { display:flex; }
@@ -1108,7 +1225,6 @@ button.wp-set-row:disabled { cursor:progress; }
   .wp-tag { display:none; }
   .wp-row-course { display:inline; }
   .wp-timer-on-name { max-width:150px; }
-  .wp-weekbars { height:96px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wp-root *, .wp-root *::before, .wp-root *::after { transition:none !important; animation:none !important; }
