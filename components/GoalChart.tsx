@@ -179,8 +179,9 @@ export function GoalChart({
           </tr>
         </thead>
         <tbody>
-          {points.map((p) => (
-            <tr key={p.date}>
+          {/* two readings can share a day, so the date alone is not a key */}
+          {points.map((p, i) => (
+            <tr key={`${p.date}-${i}`}>
               <td>{p.date}</td>
               <td>{formatGoalValue(p.value, goal.unit)}</td>
             </tr>
