@@ -33,6 +33,9 @@ export function CalendarView({
     return { y: d.getFullYear(), m: d.getMonth() };
   });
   const [selected, setSelected] = useState(today);
+  /* which way the last month turn went, so the new month slides in from
+     the side you were heading towards */
+  const [turn, setTurn] = useState<1 | -1 | 0>(0);
   const [adding, setAdding] = useState(false);
   const active = projects.filter((p) => p.status === "active");
   /* The course last added to is the one offered next — derived rather than
@@ -81,7 +84,8 @@ export function CalendarView({
     .toLocaleDateString("en-GB", { month: "long", year: "numeric" })
     .toUpperCase();
 
-  const step = (n: number) => {
+  const step = (n: 1 | -1) => {
+    setTurn(n);
     const d = new Date(cursor.y, cursor.m + n, 1);
     setCursor({ y: d.getFullYear(), m: d.getMonth() });
   };
@@ -131,7 +135,12 @@ export function CalendarView({
             <span key={d}>{d}</span>
           ))}
         </div>
-        <div className="wp-cal" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div
+          key={`${cursor.y}-${cursor.m}`}
+          className={`wp-cal${turn === 1 ? " is-from-next" : turn === -1 ? " is-from-prev" : ""}`}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           {cells.map((k, i) => {
             if (!k) return <span key={`x${i}`} className="wp-cell is-blank" />;
             const items = byDate[k] || [];

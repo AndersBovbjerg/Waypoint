@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, Compass, Layers, Calendar, CalendarCheck, BarChart3, Settings } from "lucide-react";
+import { X, Settings } from "lucide-react";
 import type {
   AppData,
   Activity,
@@ -37,6 +37,7 @@ import { StatsView } from "./StatsView";
 import { SettingsView } from "./SettingsView";
 import { useSystemDark } from "./useSystemDark";
 import { AddActivitySheet } from "./AddActivitySheet";
+import { TabBar, TopNav, type Tab } from "./TabBar";
 import { NudgeAck, NudgeCard } from "./NudgeCard";
 import { pickNudge } from "./nudge";
 import { targetWeeks, weeklyTarget } from "./targets";
@@ -51,12 +52,12 @@ type View = "today" | "projects" | "calendar" | "review" | "stats" | "settings";
 /* One list drives both the top tab row (desktop) and the bottom tab bar
    (mobile/tablet) — same views, same order, just a different shell around
    them depending on where the thumb actually is. */
-const TABS: [View, string, typeof Compass][] = [
-  ["today", "Today", Compass],
-  ["projects", "Courses", Layers],
-  ["calendar", "Calendar", Calendar],
-  ["review", "Review", CalendarCheck],
-  ["stats", "Stats", BarChart3],
+const TABS: Tab[] = [
+  { key: "today", label: "Today" },
+  { key: "projects", label: "Courses" },
+  { key: "calendar", label: "Calendar" },
+  { key: "review", label: "Review" },
+  { key: "stats", label: "Stats" },
 ];
 
 /* The hour on a Sunday when the review stops waiting and opens itself. */
@@ -492,6 +493,11 @@ export default function Waypoint({
     setNudgeAck(ack);
   };
 
+  const goTo = (k: View) => {
+    setView(k);
+    setOpenProject(null);
+  };
+
   const setTheme = (theme: ThemePref) =>
     mutate(
       (d) => ({ ...d, mode: theme }),
@@ -657,20 +663,7 @@ export default function Waypoint({
           <h1>Waypoint</h1>
         </div>
 
-        <nav className="wp-nav" aria-label="Sections">
-          {TABS.map(([k, label]) => (
-            <button
-              key={k}
-              className={`wp-tab${view === k ? " is-on" : ""}`}
-              onClick={() => {
-                setView(k);
-                setOpenProject(null);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        <TopNav tabs={TABS} active={view === "settings" ? null : view} onGo={goTo} />
 
         <div className="wp-headright">
           <TimerBadge
@@ -711,6 +704,9 @@ export default function Waypoint({
       )}
 
       <main className="wp-main">
+        {/* Keyed by where you are, so arriving somewhere new plays the
+            view's entrance once — a tab, or a course opened from the list. */}
+        <div className="wp-view" key={`${view}:${openProject ?? ""}`}>
         {view === "today" && (
           <TodayView
             items={todayItems}
@@ -877,24 +873,10 @@ export default function Waypoint({
             onBack={() => setView(backTo)}
           />
         )}
+        </div>
       </main>
 
-      <nav className="wp-tabbar" aria-label="Sections">
-        {TABS.map(([k, label, Icon]) => (
-          <button
-            key={k}
-            className={`wp-tabbar-btn${view === k ? " is-on" : ""}`}
-            onClick={() => {
-              setView(k);
-              setOpenProject(null);
-            }}
-            aria-current={view === k ? "page" : undefined}
-          >
-            <Icon size={19} aria-hidden="true" />
-            {label}
-          </button>
-        ))}
-      </nav>
+      <TabBar tabs={TABS} active={view === "settings" ? null : view} onGo={goTo} />
 
       {editing && (
         <ProjectModal

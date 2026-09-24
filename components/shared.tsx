@@ -61,6 +61,9 @@ export function ActivityRow({
      --edge is the neutral that reads on both card surfaces. */
   const color = project?.color || "var(--edge)";
   const metrics = a.source === "strava" ? formatStravaMetrics(a) : null;
+  /* The tick draws itself and the ring pops only on the tap that ticks it —
+     never on a list of already-done rows arriving on screen. */
+  const [ticking, setTicking] = React.useState(false);
   return (
     <li
       className={`wp-row${a.done ? " is-done" : ""}`}
@@ -70,9 +73,13 @@ export function ActivityRow({
       style={{ "--course": color } as React.CSSProperties}
     >
       <button
-        className="wp-check"
+        className={`wp-check${ticking ? " is-ticking" : ""}`}
         style={{ borderColor: color, background: a.done ? color : "transparent", color: "var(--tick)" }}
-        onClick={() => onToggle(a.id)}
+        onClick={() => {
+          setTicking(!a.done);
+          onToggle(a.id);
+        }}
+        onAnimationEnd={() => setTicking(false)}
         aria-pressed={a.done}
         aria-label={a.done ? `Mark ${a.title} as not done` : `Mark ${a.title} as done`}
       >
