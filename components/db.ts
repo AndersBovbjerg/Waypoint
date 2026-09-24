@@ -4,6 +4,7 @@ import type {
   Goal,
   GoalEntry,
   GoalUnit,
+  MissReason,
   ThemePref,
   Project,
   ProjectStatus,
@@ -47,6 +48,8 @@ interface ProjectRow {
   goal_start: number | null;
   goal_target: number | null;
   icon: string | null;
+  /* absent until migration-phase-8.sql has run */
+  weekly_target?: number | null;
 }
 
 interface GoalEntryRow {
@@ -152,6 +155,7 @@ const toProject = (r: ProjectRow, waypoints: WaypointItem[]): Project => ({
   waypoints,
   goal: toGoal(r),
   icon: r.icon,
+  weeklyTarget: r.weekly_target ?? null,
 });
 
 const toActivity = (r: ActivityRow): Activity => ({
@@ -213,6 +217,7 @@ const projectRow = (p: Project, userId: string) => ({
   goal_unit: p.goal?.unit ?? null,
   goal_start: p.goal ? p.goal.start : null,
   goal_target: p.goal ? p.goal.target : null,
+  weekly_target: p.weeklyTarget,
   icon: p.icon,
 });
 
@@ -245,7 +250,7 @@ function check(error: { message: string } | null, doing: string): void {
 
 export async function loadAll(userId: string): Promise<AppData> {
   const db = getSupabase();
-  const [projects, waypoints, activities, recurring, sessions, goalEntries, prefs] =
+  const [projects, waypoints, activities, recurring, sessions, goalEntries, prefs, reasons] =
     await Promise.all([
       db.from("projects").select("*").order("created_at", { ascending: true }),
       db.from("waypoints").select("*").order("position", { ascending: true }),
@@ -254,6 +259,7 @@ export async function loadAll(userId: string): Promise<AppData> {
       db.from("sessions").select("*").order("started_at", { ascending: true }),
       db.from("goal_entries").select("*").order("date", { ascending: true }),
       db.from("prefs").select("mode, review_seen, timer").eq("user_id", userId).maybeSingle(),
+      db.from("miss_reasons").select("activity_id, reason"),
     ]);
 
   check(projects.error, "load your projects");
@@ -268,6 +274,9 @@ export async function loadAll(userId: string): Promise<AppData> {
   check(sessions.error, "load your focus sessions");
   check(goalEntries.error, "load your goal readings");
   check(prefs.error, "load your preferences");
+  /* Like recurring_activities: read on every load, so this cannot ship
+     before migration-phase-8.sql has created the table. */
+  check(reasons.error, "load your reasons for missed activities");
 
   const byProject = new Map<string, WaypointItem[]>();
   ((waypoints.data ?? []) as WaypointRow[]).forEach((w) => {
@@ -289,6 +298,12 @@ export async function loadAll(userId: string): Promise<AppData> {
     goalEntries: ((goalEntries.data ?? []) as GoalEntryRow[]).map(toGoalEntry),
     timer: { ...DEFAULT_TIMER, ...(p?.timer ?? {}) },
     reviewSeen: p?.review_seen ?? null,
+    missReasons: Object.fromEntries(
+      ((reasons.data ?? []) as { activity_id: string; reason: MissReason }[]).map((r) => [
+        r.activity_id,
+        r.reason,
+      ])
+    ),
   };
 }
 
@@ -425,6 +440,15 @@ export async function getRecurringSkips(): Promise<Set<string>> {
   check(error, "load dismissed recurring activities");
   return new Set(
     ((data ?? []) as { rule_id: string; date: string }[]).map((r) => `${r.rule_id}_${r.date}`)
+  );
+}
+
+/* One reason per activity; answering again replaces the last answer. */
+export async function saveMissReason(activityId: string, reason: MissReason) {
+  const db = getSupabase();
+  check(
+    (await db.from("miss_reasons").upsert({ activity_id: activityId, reason })).error,
+    "save why it was missed"
   );
 }
 

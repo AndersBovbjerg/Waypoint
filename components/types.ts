@@ -4,6 +4,9 @@ export type Mode = "light" | "dark";
    when the phone flips to dark in the evening. */
 export type ThemePref = Mode | "system";
 export type ProjectStatus = "active" | "archived";
+/* Why a planned activity did not happen. "Did it anyway" is not one of
+   these — it ticks the activity instead of explaining it. */
+export type MissReason = "no_time" | "tired" | "sick" | "forgot" | "not_priority";
 
 export interface WaypointItem {
   id: string;
@@ -57,6 +60,9 @@ export interface Project {
   goal: Goal | null;
   /* an id from ICONS, or null to fall back to the colour dot */
   icon: string | null;
+  /* activities a week this course aims for; null to have none, or to borrow
+     the day count of its recurring rule — see weeklyTarget in targets.ts */
+  weeklyTarget: number | null;
   /* resolved from the colour slot at render time; never persisted */
   color?: string;
 }
@@ -189,6 +195,8 @@ export interface AppData {
   /* Monday key of the last week whose review was opened or dismissed, so the
      Sunday prompt stops nagging once it has been dealt with. */
   reviewSeen: string | null;
+  /* activity id → why it did not happen, for the ones that have been asked */
+  missReasons: Record<string, MissReason>;
 }
 
 /* A project with its colour slot resolved to a hex value. */
@@ -199,4 +207,6 @@ export interface NewActivity {
   projectId: string;
   title: string;
   date: string;
+  /* logged as already done — most activities are written down after the fact */
+  done?: boolean;
 }

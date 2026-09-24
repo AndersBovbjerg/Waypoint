@@ -1,5 +1,5 @@
 import type { Activity, ColoredProject, GoalEntry, Session, WaypointItem } from "./types";
-import { currentValue, deltaIsGood, formatDelta, formatGoalValue, valueOn } from "./goal";
+import { currentValue, deltaIsGood, formatDelta, formatGoalValue, goalProgress, valueOn } from "./goal";
 import { commitmentRate, fmtDuration, fromKey, keyOf, shiftKey } from "./helpers";
 
 /* Weeks run Monday to Sunday, matching the calendar grid. All of this works on
@@ -74,9 +74,10 @@ export interface Review {
    is spent — always a fact about the project's own dates, never about which
    week is being looked at, so both the weekly review and an all-time view
    compute it identically. */
-function projectPace(
+export function projectPace(
   project: ColoredProject,
-  today: string
+  today: string,
+  goalEntries: GoalEntry[] = []
 ): { timeGone: number | null; routeDone: number | null; daysToTarget: number | null } {
   let timeGone: number | null = null;
   let daysToTarget: number | null = null;
@@ -93,9 +94,17 @@ function projectPace(
       timeGone = elapsed >= 0.05 ? elapsed : null;
     }
   }
+  /* Waypoints are the route when there are any. A course measured only by
+     its goal — pages of a book, kroner saved — walks its route in that
+     number instead, so it still has a pace rather than none. */
   const routeDone = project.waypoints.length
     ? project.waypoints.filter((w) => w.done).length / project.waypoints.length
-    : null;
+    : project.goal
+      ? goalProgress(
+          project.goal,
+          currentValue(project.goal, goalEntries.filter((e) => e.projectId === project.id))
+        )
+      : null;
   return { timeGone, routeDone, daysToTarget };
 }
 
@@ -154,7 +163,7 @@ export function buildReview({
         .filter((s) => s.projectId === project.id)
         .reduce((n, s) => n + s.minutes, 0);
       const waypointsReached = project.waypoints.filter((w) => reachedIn(w, monday, sunday));
-      const { timeGone, routeDone, daysToTarget } = projectPace(project, today);
+      const { timeGone, routeDone, daysToTarget } = projectPace(project, today, goalEntries);
 
       /* The goal at both ends of the week. Comparing the reading in force on
          the Sunday with the one in force the day before the Monday means a
@@ -290,7 +299,7 @@ export function buildProjectStandings({
       const minutes = sessions
         .filter((s) => s.projectId === project.id)
         .reduce((n, s) => n + s.minutes, 0);
-      const { timeGone, routeDone, daysToTarget } = projectPace(project, today);
+      const { timeGone, routeDone, daysToTarget } = projectPace(project, today, goalEntries);
 
       let goalMove: ProjectStanding["goalMove"] = null;
       if (project.goal) {

@@ -12,6 +12,7 @@ import type { TimerPreset, TimerRuntime, TimerSettings, UnfiledSession } from ".
 const TIMER_KEY = "waypoint:timer";
 const COURSE_KEY = "waypoint:last-course";
 const UNFILED_KEY = "waypoint:unfiled-sessions";
+const NUDGE_KEY = "waypoint:nudge-closed";
 
 function readJSON<T>(key: string): T | null {
   try {
@@ -65,6 +66,15 @@ export const localStore = {
   },
   saveLastCourse(projectId: string): void {
     writeJSON(COURSE_KEY, projectId);
+  },
+  /* The day Today's nudge card was last answered or put away. One a day is
+     the promise, and "not now" is a decision about this device's morning,
+     not something worth a column that has to follow you everywhere. */
+  loadNudgeClosed(): string | null {
+    return readJSON<string>(NUDGE_KEY);
+  },
+  saveNudgeClosed(day: string): void {
+    writeJSON(NUDGE_KEY, day);
   },
 };
 

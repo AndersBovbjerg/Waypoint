@@ -106,6 +106,7 @@ export function Onboarding({
       waypoints: [{ id: uid(), title: first.trim(), due, done: false, doneAt: null }],
       goal: null,
       icon,
+      weeklyTarget: null,
     };
     try {
       await saveName(trimmed);
