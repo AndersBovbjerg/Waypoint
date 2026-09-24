@@ -20,8 +20,11 @@ change is where the data lives.
 
 ## Data model
 
-See `schema.sql`. Eight tables: `projects`, `waypoints`, `activities`, `sessions`,
-`goal_entries`, `prefs`, `strava_tokens`, `recurring_activities`.
+See `schema.sql` and the migrations after it. Tables: `projects`, `waypoints`,
+`activities`, `sessions`, `goal_entries`, `prefs`, `strava_tokens`,
+`recurring_activities`, `recurring_skips`, `push_subscriptions`, `miss_reasons`.
+`projects.weekly_target`, `prefs.feed_token` and the `calendar_feed()` function
+arrived in `migration-phase-8.sql`.
 All protected by row level security keyed on `auth.uid()`.
 
 Field notes that are easy to get wrong:
@@ -47,10 +50,17 @@ Field notes that are easy to get wrong:
 
 ## Features (all working in the prototype)
 
-**Today** — greeting, a one-line note generated from the day's activities, the day's
-to-do list with checkboxes, active projects (goal-based progress for any project that
-has one, a waypoint count for those that don't — never hidden either way), the next
-seven days, and the focus timer at the bottom.
+**Today** — greeting, a one-line note generated from the day's activities, at most
+one nudge card (see *Weekly targets and the nudge*), the day's to-do list with
+checkboxes, active projects (this week's count against the weekly target for a course
+that has one; otherwise goal-based progress, or a waypoint count — never hidden either
+way), the next seven days, and the focus timer at the bottom.
+
+**Settings** — its own page behind the gear in the header, which is all the header
+holds besides a running timer. Appearance (Light / Dark / System, where System follows
+`prefers-color-scheme` live), your name for the greeting (kept on the auth user), the
+daily reminder, the timer's three standing toggles (auto-start break, auto-start
+focus, sound), the Apple Calendar feed, Import, Strava, and sign out.
 
 **Projects** — create and edit with Purpose / Situation / Approach / target date /
 colour slot / optional icon. A project can also carry a **goal**: a label, a unit and
@@ -85,12 +95,26 @@ weekday, pausing the whole rule, or deleting one generated day only ever
 affects what happens *next* — already-materialized rows are never touched,
 the same principle as archiving a project rather than deleting it.
 
-**Calendar** — Monday-first month grid. One dot per activity in its project's colour:
-outlined = planned, filled = cleared. A day where everything is cleared gets a tinted
-background. Click a day to see and edit it.
+**Calendar** — Monday-first month grid under a centred `‹ MONTH ›`. One dot per
+activity in its project's colour: outlined = planned, filled = cleared. A day where
+everything is cleared gets a tinted background. A waypoint due that day is a small flag
+on the cell (filled once reached) and a row at the top of the day. The first tap picks a
+day; a second tap on the same day (or the + on its card) opens a popup: the activity,
+a row of course chips, and *Already done* — on by default for a past day, because most
+activities are logged after the fact. Months turn by the arrows or a sideways swipe.
 
-**Statistics** — completion rate, cleared count, clear streak, focus time, the effort
-chart, and "Progress by project."
+**Apple Calendar feed** — one way, Waypoint → Calendar. Settings creates a private
+32-character token in `prefs.feed_token`; `/api/calendar/<token>.ics` serves every
+activity within 60 days either side and every active waypoint deadline as an all-day
+event (`✓` when done, `⚑` for an open waypoint), with an alert at 08:00 on the day for
+anything open, from yesterday on. The token is checked inside Postgres by the
+security-definer `calendar_feed()`, so the route needs only the anon key. Calendar
+fetches on its own schedule, so a tick reaches it minutes to an hour later; nothing can
+be ticked from Calendar. "Make a new link" replaces the token and kills the old URL.
+
+**Statistics** — commitments kept (recurring only), targets hit (course-weeks over the
+last four finished weeks), activities logged, focus time, the effort chart, and
+"Progress by project" drawn as the same lanes the review uses.
 
 The effort score turns three different kinds of record into one running number: a
 cleared activity is worth 1 point, a reached waypoint 3, and a focus block 1 point
@@ -112,7 +136,7 @@ project with a goal — how far the goal has moved since it was set, start to no
 `buildProjectStandings` in `components/week.ts`, sharing its pace math with
 `buildReview` via the `projectPace` helper so the two can't quietly drift apart.
 
-**Import** — paste a list, one activity per line, optional leading `YYYY-MM-DD`.
+**Import** — from Settings: paste a list, one activity per line, optional leading `YYYY-MM-DD`.
 
 **Focus** — a focus/break timer on the Today view. Nothing is chosen before a block
 starts: there is no course or activity picker. Presets of 25/5, 50/10, 90/20 and a
@@ -122,13 +146,19 @@ to one of today's activities or to a course. Only then is it written to `session
 Statistics can answer where the hours went, not just which boxes were ticked. Stopping
 early still logs the minutes that were actually worked.
 
-**Review** — a Monday-to-Sunday look back at the week: what was cleared and what was
-left open, which waypoints were reached, and focus time logged. Available from its
-own tab at any time, and any past week can be paged back to. (The per-project
-breakdown that used to live here moved to Statistics' "Progress by project" — freed
-from the weekly window, it says how far from the real target rather than how much
-moved in the last seven days specifically, which reads as the more useful of the two
-questions when it can only be asked once, not both places.)
+**Review** — a Monday-to-Sunday look back at the week, built to end in something to
+do rather than a row of counts. In order: a one-line verdict (who hit their target,
+who slipped and by how much; mid-week it speaks about pace instead); *This week* —
+each course's target as pips, a streak of weeks in a row, and a momentum line against
+your own usual week; *Where you stand* — a lane per course, filled to how far along the
+route is, with a tick where an even pace from start to target date would have you
+today and the gap hatched in the drift colour when behind, plus a sentence naming
+what is overdue and what is next; *Missed activities* — only what is dated before
+today and still open, each with a reason, then *Still ahead* for the rest of a
+running week; *Patterns* — eight weeks of recurring activities kept by weekday, the
+weekday that slips most when the evidence is enough, and the reasons given most;
+and *What you cleared*, folded away. Available from its own tab at any time, and any
+past week can be paged back to.
 
 It also comes to you. Early on a Sunday it waits as a quiet card on Today; from
 09:00 it opens itself in a window over the app — either as the hour passes on a
@@ -139,7 +169,30 @@ there is no separate open/closed flag able to disagree with them. If notificatio
 have been granted for the timer, nine o'clock also sends one, since a window that
 opens behind other things is a window nobody sees.
 
-**Light / dark** — a toggle in the header, persisted per user in `prefs`.
+**Light / dark / system** — chosen in Settings, persisted per user in `prefs.mode`.
+
+**Weekly targets and the nudge** — a course can carry a weekly target: how many
+activities a week it aims for, never which days, because the days are re-planned
+outside the app. Set with a stepper when editing a course; a course with no target
+but an active recurring rule borrows the number of days that rule runs on. The count is
+activities cleared in that course and dated inside the week (`components/targets.ts`).
+
+Today shows at most one nudge a day. First choice: an activity from yesterday that was
+not ticked and has no reason yet (recurring ones first) — "Hey mester. *X* didn't happen
+yesterday", your own Purpose for the course quoted back, and one tap for a reason (No
+time / Tired / Sick / Forgot / Not a priority) or *Did it anyway*, which ticks it.
+Otherwise, from Wednesday, the course furthest behind a steady pace to its target —
+*Tick it off* when that course has an open item on today's list, *Log one now* when it
+doesn't. Any answer, or *Not now*, closes it for the day on this device. Reasons live in
+`miss_reasons`, one per activity, and feed the review's patterns.
+
+**Motion** — the tab bar is the one authored moment: each icon plays its own short
+move when tapped, and a single dot under the labels slides to the active tab. Views
+rise into place, popups lift in, months slide the way you turned, ticks draw
+themselves on the tap that ticks them, lanes and bars grow, pressed controls give and
+spring back. Everything fills backwards only, so no transform is left behind on a view
+(it would otherwise become the containing block for its own fixed overlays). All of it
+is off under `prefers-reduced-motion`.
 
 ### The timer, on an app that stays open
 
@@ -160,13 +213,19 @@ Waypoint is meant to sit open all day, which the timer has to survive:
 
 - **Completion rate** counts only activities dated today or earlier. Future activities
   are not failures.
+- **A weekly target** counts activities cleared in the course and dated inside the
+  week. Mid-week a course is *behind* when it has fewer than an even pace would have
+  by the end of yesterday (`floor(target × days gone ÷ 7)`); a finished week is simply
+  hit or not.
+- **Missed** means dated before today and still open. Today and later is *still
+  ahead*, never a miss.
 - **Clear streak** counts consecutive real calendar days, going back from today, where
   everything planned was cleared. A day with nothing logged at all ends the streak — it
   is not skipped — so the number is always a count the user could arrive at themselves
   by counting days on the calendar. If today still has open items, the count starts
   from yesterday: today is still in progress, not yet a miss. One definition
-  (`clearStreak` in `components/helpers.ts`), shared by Statistics and the home-screen
-  widget, so the two can never quietly disagree.
+  (`clearStreak` in `components/helpers.ts`). Statistics no longer shows it —
+  targets hit replaced it there — but the home-screen widget still does.
 - **A week runs Monday to Sunday**, matching the calendar grid. On a Sunday the week
   under review is the one ending that day, not the one before.
 - **The week's activities are the ones dated inside it**, cleared or not. An old item

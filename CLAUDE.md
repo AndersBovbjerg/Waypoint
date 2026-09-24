@@ -25,19 +25,17 @@ round trip and the webhook both need a public URL, so neither has been
 exercised end to end. Treat it as unproven until a real run has landed.
 Deliberately parked: Strava locked its API behind a paid developer
 subscription in mid-2026, and the user is waiting for cheaper student
-pricing before turning it on. `STRAVA_ENABLED = false` in `StatsView.tsx`
-hides the connect card until then.
+pricing before turning it on. `STRAVA_ENABLED = false` in `StravaCard.tsx`
+hides the connect card until then (the card now lives in Settings).
 
-Phase 4 (recurring activities) is **built, and live in the UI, but only
-half-working on the real database** — see the three migration notes below.
-`migration-phase-4` has been run; `-5` and `-6` have not, as of the last
-session. Until both run: recurring rules can be created and edited in
-`ProjectDetail.tsx`, but no activity rows actually materialize from them
-(phase 5 — silent DB conflict), and deleting a materialized instance fails
-loudly instead of just failing (phase 6 — no migration means no table to
-write the skip to). **Check whether the user has run these before doing
-anything else with recurring activities** — don't assume a fix that
-shipped in code is actually live.
+Phase 4 (recurring activities) is **built and working on the real database
+as of 24 September 2026** — `migration-phase-4`, `-5` and `-6` have all run
+(checked that day: recurring rows materialize, and `recurring_skips`
+exists). The history below is kept because it explains the code: before
+they ran, no activity rows materialized from a rule (phase 5 — silent DB
+conflict), and deleting a materialized instance failed loudly (phase 6 —
+no table to write the skip to). The lesson stands for any new migration:
+**check it has run before trusting code that depends on it.**
 
 A home-screen streak widget is also built and working, via a workaround
 that took several wrong turns to land on — worth reading the dated section
@@ -159,6 +157,13 @@ than missing setup.
   without adding an hourly-poll-plus-dedupe table for one hour of drift.
   Expired subscriptions (device uninstalled the app, permission revoked)
   are pruned automatically on a 404/410 from the push service.
+- **`migration-phase-8.sql` has been run** (24 September 2026, verified
+  against the live database: `miss_reasons`, `projects.weekly_target` and
+  `calendar_feed()` all answer). It carries every schema change from the
+  round described in the dated section at the bottom. `loadAll` reads
+  `miss_reasons` and `prefs.feed_token` on every load, and saving a course
+  writes `weekly_target`, so none of that code can run against a database
+  without it.
 - **Unfinished housekeeping:** two stray Vercel projects (`waypoint-vbue`,
   `waypoint-vxdj`) were created by a duplicate GitHub import and were never
   confirmed deleted — worth checking before they cause confusion about which
@@ -439,3 +444,49 @@ Statistics and the widget, so they can't drift apart again. If a lenient
 "don't count empty days against me" streak is ever wanted again, it needs
 a new name and a clear reason, not a silent reintroduction of the old
 `clearStreak`.
+
+## Settings, the review rebuilt, motion, Apple Calendar (24 September 2026)
+
+One round, asked for as a list of loose ideas and worked through as the
+user's "manager": questions first, then clickable mockups in chat for
+anything visual, then one change at a time, each built, tested against
+the real account in the browser pane (the user logs in; the password is
+never typed by Claude), and committed before the next. The user asked for
+one push at the end, after reviewing the whole — not a push per step.
+
+What shipped, in order: a Settings page behind a gear (the header's
+reminder, theme and sign-out buttons, Import from the calendar and the
+timer's toggles all moved there, plus System theme and the name field);
+the calendar (centred month, a second tap opens an add popup with course
+chips, swipe between months, waypoint deadlines as flags); weekly
+targets, a Today nudge ("Hey mester", quoting the course's own Purpose),
+reasons for missed activities, and the review rebuilt around them with
+lanes and eight-week patterns, Statistics following; the dark course
+palette at full chroma; motion throughout, with the tab bar as the one
+authored moment; and the Apple Calendar feed. `WAYPOINT.md` describes each.
+
+Worth knowing next time:
+- **The user reads the review through the effort chart and not much
+  else.** Before this round most review numbers sat at zero because they
+  measured "cleared of planned" in an app where nothing but recurring
+  items is planned. Targets, reasons and patterns are the answer tried
+  now; ask whether they are actually used before building on them.
+- **The user's answers to design questions:** OLED black stays; courses
+  are what should pop in dark mode, not surfaces. Animations should be
+  subtle but present — "it looked homemade without them". The tab
+  indicator is a dot under the label (a pill behind the icon read as
+  awkward). Nudge copy says "Hey mester". Alerts only on the day, never
+  days ahead.
+- **Apple Calendar is one-way by design.** A subscribed calendar is
+  read-only on iOS; two-way would mean iCloud CalDAV with an app-specific
+  password, which was offered and declined. Whether iOS keeps the feed's
+  08:00 alerts on a subscribed calendar was not confirmed on a device at
+  the time of writing — macOS strips them unless "Remove alerts" is
+  unticked when subscribing.
+- **Testing against the live account leaves traces unless cleaned up.**
+  Test rows and reasons written this round were removed straight after,
+  via the REST technique in the gotchas above; do the same, and say so.
+- **The pane being hidden freezes CSS transitions and rAF**, so a
+  computed style read then can look wrong (an opacity stuck at 1). Take a
+  screenshot first, which makes the pane render, before calling it a bug.
+
