@@ -1,9 +1,15 @@
-import { useMemo, useState } from "react";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import type { Activity, ColoredProject, NewActivity } from "./types";
+import { useMemo, useRef, useState } from "react";
+import { Plus, ChevronLeft, ChevronRight, Flag, X } from "lucide-react";
+import type { Activity, ColoredProject, NewActivity, WaypointItem } from "./types";
 import { fmtLong, fmtShort, fromKey, keyOf } from "./helpers";
 import { ActivityRow } from "./shared";
-import { Select } from "./Select";
+import { Overlay } from "./Overlay";
+
+/* A waypoint pinned to the day it is due, with the course it belongs to. */
+interface DueWaypoint {
+  w: WaypointItem;
+  project: ColoredProject;
+}
 
 export function CalendarView({
   activities,
@@ -27,10 +33,11 @@ export function CalendarView({
     return { y: d.getFullYear(), m: d.getMonth() };
   });
   const [selected, setSelected] = useState(today);
-  const [title, setTitle] = useState("");
+  const [adding, setAdding] = useState(false);
   const active = projects.filter((p) => p.status === "active");
-  /* derived rather than synced in an effect — see TodayView */
-  const [chosen, setPid] = useState("");
+  /* The course last added to is the one offered next — derived rather than
+     synced in an effect, see TodayView */
+  const [chosen, setChosen] = useState("");
   const pid = active.some((p) => p.id === chosen) ? chosen : active[0]?.id || "";
 
   const cells = useMemo(() => {
@@ -52,7 +59,24 @@ export function CalendarView({
     return map;
   }, [activities]);
 
+  /* Waypoints are the stable layer of a plan — the one thing in this app
+     that is honestly dated ahead — so they are the one thing the calendar
+     shows before it happens. Active courses only: an archived course's
+     deadlines are no longer anyone's. */
+  const dueByDate = useMemo(() => {
+    const map: Record<string, DueWaypoint[]> = {};
+    projects
+      .filter((p) => p.status === "active")
+      .forEach((project) =>
+        project.waypoints.forEach((w) => {
+          if (w.due) (map[w.due] = map[w.due] || []).push({ w, project });
+        })
+      );
+    return map;
+  }, [projects]);
+
   const dayItems = (byDate[selected] || []).sort((a, b) => Number(a.done) - Number(b.done));
+  const dayDue = dueByDate[selected] || [];
   const monthLabel = new Date(cursor.y, cursor.m, 1)
     .toLocaleDateString("en-GB", { month: "long", year: "numeric" })
     .toUpperCase();
@@ -62,19 +86,44 @@ export function CalendarView({
     setCursor({ y: d.getFullYear(), m: d.getMonth() });
   };
 
+  /* Swiping the grid sideways turns the month, the way a phone's own
+     calendar does. Only a clearly horizontal stroke counts, so scrolling
+     the page past the calendar never turns it by accident. */
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+  };
+
+  /* First tap picks the day, a second tap on the same day adds to it. The
+     + on the day card does the same, for anyone who never taps twice. */
+  const pickDay = (k: string) => {
+    if (k === selected) setAdding(true);
+    else setSelected(k);
+  };
+
   return (
     <div className="wp-stack">
       <section className="wp-card">
-        <div className="wp-card-head">
-          <div className="wp-monthnav">
-            <button className="wp-icon" onClick={() => step(-1)} aria-label="Previous month">
-              <ChevronLeft size={16} />
-            </button>
-            <h3 className="wp-mono wp-month">{monthLabel}</h3>
-            <button className="wp-icon" onClick={() => step(1)} aria-label="Next month">
-              <ChevronRight size={16} />
-            </button>
-          </div>
+        <div className="wp-calnav">
+          <button className="wp-icon" onClick={() => step(-1)} aria-label="Previous month">
+            <ChevronLeft size={18} />
+          </button>
+          <h3 className="wp-calnav-month" aria-live="polite">
+            {monthLabel}
+          </h3>
+          <button className="wp-icon" onClick={() => step(1)} aria-label="Next month">
+            <ChevronRight size={18} />
+          </button>
         </div>
 
         <div className="wp-cal-head wp-mono">
@@ -82,10 +131,11 @@ export function CalendarView({
             <span key={d}>{d}</span>
           ))}
         </div>
-        <div className="wp-cal">
+        <div className="wp-cal" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {cells.map((k, i) => {
             if (!k) return <span key={`x${i}`} className="wp-cell is-blank" />;
             const items = byDate[k] || [];
+            const due = dueByDate[k] || [];
             const allDone = items.length > 0 && items.every((a) => a.done);
             return (
               <button
@@ -93,8 +143,25 @@ export function CalendarView({
                 className={`wp-cell${k === today ? " is-today" : ""}${k === selected ? " is-sel" : ""}${
                   allDone ? " is-clear" : ""
                 }`}
-                onClick={() => setSelected(k)}
+                onClick={() => pickDay(k)}
+                aria-label={
+                  k === selected
+                    ? `${fmtLong(k)}, selected. Tap again to add an activity`
+                    : `${fmtLong(k)}${items.length ? `, ${items.length} activities` : ""}${
+                        due.length ? `, ${due.length} waypoint${due.length > 1 ? "s" : ""} due` : ""
+                      }`
+                }
               >
+                {due.length > 0 && (
+                  <Flag
+                    size={10}
+                    strokeWidth={2.5}
+                    className="wp-cell-flag"
+                    color={due[0].project.color}
+                    fill={due.every((d) => d.w.done) ? due[0].project.color : "none"}
+                    aria-hidden="true"
+                  />
+                )}
                 <span className="wp-mono wp-cell-num">{k.slice(-2)}</span>
                 <span className="wp-cell-dots">
                   {items.slice(0, 6).map((a) => {
@@ -117,12 +184,48 @@ export function CalendarView({
       <section className="wp-card">
         <div className="wp-card-head">
           <h3>{fmtLong(selected)}</h3>
-          <span className="wp-mono wp-muted">
-            {dayItems.filter((a) => a.done).length}/{dayItems.length}
-          </span>
+          <div className="wp-dayhead-actions">
+            <span className="wp-mono wp-muted">
+              {dayItems.filter((a) => a.done).length}/{dayItems.length}
+            </span>
+            <button
+              className="wp-icon wp-dayadd"
+              onClick={() => setAdding(true)}
+              disabled={!active.length}
+              aria-label={`Add an activity on ${fmtShort(selected)}`}
+            >
+              <Plus size={18} />
+            </button>
+          </div>
         </div>
+
+        {dayDue.length > 0 && (
+          <ul className="wp-list wp-duelist">
+            {dayDue.map(({ w, project }) => (
+              <li key={w.id} className={`wp-row wp-duerow${w.done ? " is-done" : ""}`}>
+                <Flag
+                  size={16}
+                  strokeWidth={2.25}
+                  color={project.color}
+                  fill={w.done ? project.color : "none"}
+                  aria-hidden="true"
+                />
+                <span className="wp-row-title">
+                  {w.title}
+                  <span className="wp-row-sub wp-muted"> · {project.name}</span>
+                </span>
+                <span className="wp-mono wp-muted">{w.done ? "REACHED" : "WAYPOINT DUE"}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
         {dayItems.length === 0 ? (
-          <p className="wp-empty">Nothing on this day. Add something below.</p>
+          <p className="wp-empty">
+            {active.length
+              ? "Nothing on this day yet. Tap the day again to add an activity."
+              : "Create a course first — every activity belongs to one."}
+          </p>
         ) : (
           <ul className="wp-list">
             {dayItems.map((a) => (
@@ -136,39 +239,100 @@ export function CalendarView({
             ))}
           </ul>
         )}
-        <div className="wp-addrow">
-          <input
-            className="wp-input"
-            placeholder={`Add an activity on ${fmtShort(selected)}`}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && title.trim() && pid) {
-                onAdd({ projectId: pid, title: title.trim(), date: selected });
-                setTitle("");
-              }
-            }}
-          />
-          <Select
-            className="wp-select"
-            value={pid}
-            options={active.map((p) => ({ value: p.id, label: p.name }))}
-            onChange={setPid}
-            ariaLabel="Project"
-          />
-          <button
-            className="wp-btn wp-btn-solid"
-            disabled={!active.length}
-            onClick={() => {
-              if (!title.trim() || !pid) return;
-              onAdd({ projectId: pid, title: title.trim(), date: selected });
-              setTitle("");
-            }}
-          >
-            <Plus size={15} /> Add
-          </button>
-        </div>
       </section>
+
+      {adding && active.length > 0 && (
+        <AddActivity
+          date={selected}
+          projects={active}
+          initialProject={pid}
+          onClose={() => setAdding(false)}
+          onAdd={(a) => {
+            onAdd(a);
+            setChosen(a.projectId);
+            setAdding(false);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+/* The popup a second tap opens: what, and which course. The course is a row
+   of chips rather than a dropdown — with a handful of active courses, one
+   tap on the one you mean beats opening a list to find it. */
+function AddActivity({
+  date,
+  projects,
+  initialProject,
+  onClose,
+  onAdd,
+}: {
+  date: string;
+  projects: ColoredProject[];
+  initialProject: string;
+  onClose: () => void;
+  onAdd: (a: NewActivity) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [pid, setPid] = useState(initialProject);
+  const ready = title.trim().length > 0 && Boolean(pid);
+
+  return (
+    <Overlay dirty={title.trim().length > 0} onClose={onClose}>
+      {(requestClose) => (
+        <form
+          className="wp-addsheet"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (ready) onAdd({ projectId: pid, title: title.trim(), date });
+          }}
+        >
+          <div className="wp-card-head">
+            <h3>{fmtLong(date)}</h3>
+            <button type="button" className="wp-icon" onClick={requestClose} aria-label="Close">
+              <X size={16} />
+            </button>
+          </div>
+
+          <label className="wp-field">
+            <span className="wp-eyebrow">Activity</span>
+            <input
+              className="wp-input wp-addsheet-input"
+              autoFocus
+              placeholder="Read 25 min"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+
+          <fieldset className="wp-field wp-coursechips">
+            <legend className="wp-eyebrow">Course</legend>
+            <div className="wp-coursechips-row" role="radiogroup" aria-label="Course">
+              {projects.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={pid === p.id}
+                  className={`wp-coursechip${pid === p.id ? " is-on" : ""}`}
+                  style={{ "--course": p.color } as React.CSSProperties}
+                  onClick={() => setPid(p.id)}
+                >
+                  <span className="wp-swatch" style={{ background: p.color }} />
+                  <span className="wp-coursechip-name">{p.name}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="wp-modal-actions">
+            <button type="submit" className="wp-btn wp-btn-solid" disabled={!ready}>
+              <Plus size={15} /> Add activity
+            </button>
+          </div>
+        </form>
+      )}
+    </Overlay>
   );
 }
