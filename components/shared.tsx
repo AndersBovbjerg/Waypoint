@@ -92,7 +92,7 @@ export function ActivityRow({
             displayed — the pill above 560px, this below. It sits inside the
             title so it shares the title's ellipsis and gets truncated first. */}
         <span className="wp-row-course">
-          {" · "}
+          <span className="wp-row-sep">{" · "}</span>
           {project?.name || "No course"}
         </span>
       </span>

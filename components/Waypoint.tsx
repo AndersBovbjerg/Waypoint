@@ -37,6 +37,8 @@ import { StatsView } from "./StatsView";
 import { SettingsView } from "./SettingsView";
 import { useSystemDark } from "./useSystemDark";
 import { AddActivitySheet } from "./AddActivitySheet";
+import { WaypointSheet, type WaypointEdit } from "./WaypointSheet";
+import { reschedule } from "./reschedule";
 import { TabBar, TopNav, type Tab } from "./TabBar";
 import { NudgeAck, NudgeCard } from "./NudgeCard";
 import { pickNudge } from "./nudge";
@@ -136,6 +138,8 @@ export default function Waypoint({
   const [nudgeClosed, setNudgeClosed] = useState<string | null>(() => localStore.loadNudgeClosed());
   const [nudgeAck, setNudgeAck] = useState<string | null>(null);
   const [logFor, setLogFor] = useState<string | null>(null);
+  /* the waypoint whose sheet is open, wherever it was tapped */
+  const [openWaypoint, setOpenWaypoint] = useState<{ pid: string; wid: string } | null>(null);
 
   const applyUnfiled = useCallback((next: UnfiledSession[]) => {
     setUnfiled(next);
@@ -363,6 +367,32 @@ export default function Waypoint({
       }),
       () => db.deleteWaypoint(wid)
     );
+
+  /* Everything the waypoint sheet can change, in one write: the name, the
+     reached tick, a new date and the later waypoints it drags along, and
+     the course's target date when those ran past it. The whole course is
+     saved rather than row by row, so a shifted route lands all at once or
+     not at all. */
+  const editWaypoint = (pid: string, wid: string, e: WaypointEdit) => {
+    const p = dataRef.current.projects.find((x) => x.id === pid);
+    const current = p?.waypoints.find((w) => w.id === wid);
+    if (!p || !current) return;
+    const moved = new Map(reschedule(p.waypoints, wid, e.due, e.shiftLater).map((m) => [m.id, m.to]));
+    const next: Project = {
+      ...p,
+      target: e.target ?? p.target,
+      waypoints: p.waypoints.map((w) => {
+        const due = moved.get(w.id) ?? w.due;
+        if (w.id !== wid) return due === w.due ? w : { ...w, due };
+        const doneAt = e.done === w.done ? w.doneAt : e.done ? new Date().toISOString() : null;
+        return { ...w, title: e.title, due, done: e.done, doneAt };
+      }),
+    };
+    mutate(
+      (d) => ({ ...d, projects: d.projects.map((x) => (x.id === pid ? next : x)) }),
+      () => db.saveProject(next, userId)
+    );
+  };
 
   const addActivity = ({ done = false, ...a }: NewActivity) => {
     const row: Activity = { id: uid(), done, doneAt: done ? new Date().toISOString() : null, ...a };
@@ -674,6 +704,9 @@ export default function Waypoint({
     );
   }
 
+
+  const sheetProject = openWaypoint ? projectsById[openWaypoint.pid] : undefined;
+  const sheetWaypoint = sheetProject?.waypoints.find((w) => w.id === openWaypoint?.wid);
   return (
     <div className="wp-root" data-mode={mode}>
       <header className="wp-head">
@@ -747,6 +780,7 @@ export default function Waypoint({
             onDismissReview={markReviewSeen}
             onToggle={toggleActivity}
             onToggleWaypoint={toggleWaypoint}
+            onOpenWaypoint={(pid, wid) => setOpenWaypoint({ pid, wid })}
             onRemove={removeActivity}
             onAdd={addActivity}
             onOpenProject={openCourseFrom("today")}
@@ -821,6 +855,7 @@ export default function Waypoint({
             backLabel={courseFrom ? TABS.find((t) => t.key === courseFrom)?.label : undefined}
             onEdit={() => setEditing(projectsById[openProject])}
             onToggleWaypoint={toggleWaypoint}
+            onOpenWaypoint={(wid) => setOpenWaypoint({ pid: openProject!, wid })}
             onAddWaypoint={addWaypoint}
             onRemoveWaypoint={removeWaypoint}
             onAddActivity={addActivity}
@@ -843,6 +878,7 @@ export default function Waypoint({
             onToggle={toggleActivity}
             onRemove={removeActivity}
             onAdd={addActivity}
+            onOpenWaypoint={(pid, wid) => setOpenWaypoint({ pid, wid })}
           />
         )}
 
@@ -934,6 +970,32 @@ export default function Waypoint({
             openCourseFrom("review")(id);
           }}
           onClose={markReviewSeen}
+        />
+      )}
+
+      {sheetWaypoint && sheetProject && (
+        <WaypointSheet
+          key={sheetWaypoint.id}
+          waypoint={sheetWaypoint}
+          project={sheetProject}
+          today={today}
+          onClose={() => setOpenWaypoint(null)}
+          onSave={(e) => {
+            editWaypoint(sheetProject.id, sheetWaypoint.id, e);
+            setOpenWaypoint(null);
+          }}
+          onDelete={() => {
+            removeWaypoint(sheetProject.id, sheetWaypoint.id);
+            setOpenWaypoint(null);
+          }}
+          onOpenCourse={() => {
+            setOpenWaypoint(null);
+            if (view === "projects") {
+              /* already among the courses: step in, Back leads to the list */
+              setOpenProject(sheetProject.id);
+              if (!openProject) setCourseFrom(null);
+            } else openCourseFrom(view)(sheetProject.id);
+          }}
         />
       )}
 

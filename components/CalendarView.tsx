@@ -19,6 +19,7 @@ export function CalendarView({
   onToggle,
   onRemove,
   onAdd,
+  onOpenWaypoint,
 }: {
   activities: Activity[];
   projects: ColoredProject[];
@@ -27,6 +28,7 @@ export function CalendarView({
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   onAdd: (a: NewActivity) => void;
+  onOpenWaypoint: (pid: string, wid: string) => void;
 }) {
   const [cursor, setCursor] = useState(() => {
     const d = fromKey(today);
@@ -219,10 +221,10 @@ export function CalendarView({
                   fill={w.done ? project.color : "none"}
                   aria-hidden="true"
                 />
-                <span className="wp-row-title">
+                <button className="wp-row-title wp-rowlink" onClick={() => onOpenWaypoint(project.id, w.id)}>
                   {w.title}
                   <span className="wp-row-sub wp-muted"> · {project.name}</span>
-                </span>
+                </button>
                 <span className="wp-mono wp-muted">{w.done ? "REACHED" : "WAYPOINT DUE"}</span>
               </li>
             ))}

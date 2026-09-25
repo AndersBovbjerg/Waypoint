@@ -22,6 +22,7 @@ export function ProjectDetail({
   backLabel = "All projects",
   onEdit,
   onToggleWaypoint,
+  onOpenWaypoint,
   onAddWaypoint,
   onRemoveWaypoint,
   onAddActivity,
@@ -43,6 +44,7 @@ export function ProjectDetail({
   backLabel?: string;
   onEdit: () => void;
   onToggleWaypoint: (pid: string, wid: string) => void;
+  onOpenWaypoint: (wid: string) => void;
   onAddWaypoint: (pid: string, title: string, due: string) => void;
   onRemoveWaypoint: (pid: string, wid: string) => void;
   onAddActivity: (a: NewActivity) => void;
@@ -228,7 +230,9 @@ export function ProjectDetail({
                 >
                   {w.done && <Check size={13} strokeWidth={3} color="currentColor" />}
                 </button>
-                <span className="wp-row-title">{w.title}</span>
+                <button className="wp-row-title wp-rowlink" onClick={() => onOpenWaypoint(w.id)}>
+                  {w.title}
+                </button>
                 <span className="wp-mono wp-muted">{w.due ? fmtShort(w.due).toUpperCase() : "—"}</span>
                 <button
                   className="wp-icon"

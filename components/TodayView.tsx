@@ -42,6 +42,7 @@ export function TodayView({
   onDismissReview,
   onToggle,
   onToggleWaypoint,
+  onOpenWaypoint,
   onRemove,
   onAdd,
   onOpenProject,
@@ -68,6 +69,7 @@ export function TodayView({
   onDismissReview: () => void;
   onToggle: (id: string) => void;
   onToggleWaypoint: (pid: string, wid: string) => void;
+  onOpenWaypoint: (pid: string, wid: string) => void;
   onRemove: (id: string) => void;
   onAdd: (a: NewActivity) => void;
   onOpenProject: (id: string) => void;
@@ -228,7 +230,7 @@ export function TodayView({
         </div>
 
         {dueWaypoints.length > 0 && (
-          <ul className={`wp-list${items.length ? " wp-duelist" : ""}`}>
+          <ul className={`wp-list wp-list-wrap${items.length ? " wp-duelist" : ""}`}>
             {dueWaypoints.map(({ w, project }) => (
               <WaypointRow
                 key={w.id}
@@ -236,6 +238,7 @@ export function TodayView({
                 project={project}
                 today={today}
                 onToggle={() => onToggleWaypoint(project.id, w.id)}
+                onOpen={() => onOpenWaypoint(project.id, w.id)}
               />
             ))}
           </ul>
@@ -250,7 +253,7 @@ export function TodayView({
              was the noise this card was accused of. */
           null
         ) : (
-          <ul className="wp-list">
+          <ul className="wp-list wp-list-wrap">
             {items.map((a) =>
               pending.includes(a.id) ? (
                 /* role="status" because the row changing under your thumb is
@@ -421,11 +424,13 @@ function WaypointRow({
   project,
   today,
   onToggle,
+  onOpen,
 }: {
   w: WaypointItem;
   project: ColoredProject;
   today: string;
   onToggle: () => void;
+  onOpen: () => void;
 }) {
   const [ticking, setTicking] = useState(false);
   const late = w.due < today;
@@ -451,13 +456,13 @@ function WaypointRow({
           <Flag size={10} strokeWidth={2.75} color={project.color} aria-hidden="true" />
         )}
       </button>
-      <span className="wp-row-title">
+      <button className="wp-row-title wp-rowlink" onClick={onOpen} aria-label={`Open waypoint ${w.title}`}>
         {w.title}
         <span className="wp-row-course">
-          {" · "}
+          <span className="wp-row-sep">{" · "}</span>
           {project.name}
         </span>
-      </span>
+      </button>
       <span className="wp-tag">{project.name}</span>
       <span className={`wp-mono wp-wprow-when${late && !w.done ? " wp-drifttext" : " wp-muted"}`}>
         {w.done ? "REACHED" : late ? `DUE ${fmtShort(w.due).toUpperCase()}` : "WAYPOINT"}
