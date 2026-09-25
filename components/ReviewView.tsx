@@ -30,6 +30,8 @@ export interface ReviewProps {
   today: string;
   onReason: (activityId: string, reason: MissReason) => void;
   onToggle: (id: string) => void;
+  /* opens a course from its row; absent where there is nowhere to go */
+  onOpenProject?: (id: string) => void;
 }
 
 /* The Sunday-morning window. It wraps the very same review the tab shows, so
@@ -73,6 +75,7 @@ export function ReviewView({
   today,
   onReason,
   onToggle,
+  onOpenProject,
 }: ReviewProps) {
   const [anchor, setAnchor] = useState(() => startOfWeek(today));
   const review = buildReview({ projects, activities, sessions, goalEntries, anchor, today });
@@ -141,7 +144,7 @@ export function ReviewView({
         ) : (
           <ul className="wp-targetlist">
             {weeks.map((w) => (
-              <TargetRow key={w.project.id} w={w} running={running} />
+              <TargetRow key={w.project.id} w={w} running={running} onOpen={onOpenProject} />
             ))}
           </ul>
         )}
@@ -179,6 +182,7 @@ export function ReviewView({
                   activities={activities}
                   goalEntries={goalEntries}
                   today={today}
+                  onOpen={onOpenProject}
                 />
               ))}
             </ul>
@@ -262,7 +266,15 @@ export function ReviewView({
   );
 }
 
-function TargetRow({ w, running }: { w: TargetWeek; running: boolean }) {
+function TargetRow({
+  w,
+  running,
+  onOpen,
+}: {
+  w: TargetWeek;
+  running: boolean;
+  onOpen?: (id: string) => void;
+}) {
   const left = Math.max(0, w.target - w.done);
   let status: string;
   if (w.hit) status = "Target hit";
@@ -270,8 +282,15 @@ function TargetRow({ w, running }: { w: TargetWeek; running: boolean }) {
   else status = `${left} short of ${w.target}`;
   const warn = !w.hit && (!running || w.behind);
 
+  /* the whole row opens the course, the same as a row on Today — a
+     button only where there is somewhere to go */
+  const Row = onOpen ? "button" : "div";
   return (
-    <li className="wp-targetrow">
+    <li>
+      <Row
+        className={`wp-targetrow${onOpen ? " is-link" : ""}`}
+        {...(onOpen && { onClick: () => onOpen(w.project.id), "aria-label": `Open ${w.project.name}` })}
+      >
       <span className="wp-swatch" style={{ background: w.project.color }} />
       <div className="wp-targetrow-text">
         <span className="wp-targetrow-name">{w.project.name}</span>
@@ -295,6 +314,8 @@ function TargetRow({ w, running }: { w: TargetWeek; running: boolean }) {
           {w.done}/{w.target}
         </span>
       )}
+      {onOpen && <ChevronRight size={16} className="wp-muted wp-rowchev" aria-hidden="true" />}
+      </Row>
     </li>
   );
 }

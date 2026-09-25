@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, ArrowUpRight, X, CalendarCheck, Undo2 } from "lucide-react";
+import { Plus, ArrowUpRight, X, CalendarCheck, Undo2, Check, Flag } from "lucide-react";
 import type {
   Activity,
   ColoredProject,
   GoalEntry,
   NewActivity,
+  WaypointItem,
   TimerSettings,
   UnfiledSession,
 } from "./types";
 import type { TimerApi } from "./useTimer";
-import { fmtDay, fmtLong, fmtShort, fmtWeekday, greeting, courseNote, shiftKey } from "./helpers";
+import { fmtDay, fmtLong, fmtShort, fmtWeekday, greeting, courseNote, shiftKey, keyOf } from "./helpers";
 import { currentValue, goalProgress } from "./goal";
 import { ActivityRow, MiniRoute } from "./shared";
 import { ProjectIcon } from "./identity";
@@ -40,6 +41,7 @@ export function TodayView({
   onOpenReview,
   onDismissReview,
   onToggle,
+  onToggleWaypoint,
   onRemove,
   onAdd,
   onOpenProject,
@@ -65,6 +67,7 @@ export function TodayView({
   onOpenReview: () => void;
   onDismissReview: () => void;
   onToggle: (id: string) => void;
+  onToggleWaypoint: (pid: string, wid: string) => void;
   onRemove: (id: string) => void;
   onAdd: (a: NewActivity) => void;
   onOpenProject: (id: string) => void;
@@ -136,9 +139,23 @@ export function TodayView({
     setPending((p) => p.filter((x) => x !== id));
   };
 
+  /* Waypoints that belong to today: the ones due today, and any earlier
+     one still not reached — a checkpoint that slipped does not stop being
+     today's business. One reached today stays on the list after its tick,
+     so the row does not vanish from under the thumb that ticked it. */
+  const dueWaypoints = projects
+    .flatMap((p) => p.waypoints.map((w) => ({ w, project: p })))
+    .filter(
+      ({ w }) =>
+        w.due === today ||
+        (w.due !== "" && w.due < today && (!w.done || (w.doneAt != null && keyOf(new Date(w.doneAt)) === today)))
+    )
+    .sort((a, b) => (a.w.due < b.w.due ? -1 : a.w.due > b.w.due ? 1 : 0));
+
   /* A row on its way out should not still be counted in "2/5". */
   const live = items.filter((i) => !pending.includes(i.id));
-  const done = live.filter((i) => i.done).length;
+  const done = live.filter((i) => i.done).length + dueWaypoints.filter(({ w }) => w.done).length;
+  const total = live.length + dueWaypoints.length;
 
   const submit = () => {
     if (!title.trim() || !pid) return;
@@ -176,7 +193,7 @@ export function TodayView({
       <section className="wp-hero">
         <h2 className="wp-greet">{name ? `${greeting()}, ${name}` : greeting()}</h2>
         <p className="wp-note wp-note-sm">
-          {fmtLong(today)} · {courseNote(items)}
+          {fmtLong(today)} · {courseNote([...dueWaypoints.map(({ w }) => w), ...items])}
         </p>
       </section>
 
@@ -206,9 +223,23 @@ export function TodayView({
         <div className="wp-card-head">
           <h3>To do today</h3>
           <span className="wp-mono wp-muted">
-            {done}/{live.length}
+            {done}/{total}
           </span>
         </div>
+
+        {dueWaypoints.length > 0 && (
+          <ul className={`wp-list${items.length ? " wp-duelist" : ""}`}>
+            {dueWaypoints.map(({ w, project }) => (
+              <WaypointRow
+                key={w.id}
+                w={w}
+                project={project}
+                today={today}
+                onToggle={() => onToggleWaypoint(project.id, w.id)}
+              />
+            ))}
+          </ul>
+        )}
 
         {items.length === 0 ? (
           /* Deliberately nothing. The hero two cards up already says
@@ -378,5 +409,59 @@ export function TodayView({
         onDrop={onDropSession}
       />
     </div>
+  );
+}
+
+/* A waypoint on Today reads like an activity row but is not one: the ring
+   carries a flag until it is reached, the right-hand side says when it was
+   due instead of offering a bin — a checkpoint is deleted from its course,
+   not from the day. */
+function WaypointRow({
+  w,
+  project,
+  today,
+  onToggle,
+}: {
+  w: WaypointItem;
+  project: ColoredProject;
+  today: string;
+  onToggle: () => void;
+}) {
+  const [ticking, setTicking] = useState(false);
+  const late = w.due < today;
+  return (
+    <li
+      className={`wp-row wp-wprow${w.done ? " is-done" : ""}`}
+      style={{ "--course": project.color } as React.CSSProperties}
+    >
+      <button
+        className={`wp-check${ticking ? " is-ticking" : ""}`}
+        style={{ borderColor: project.color, background: w.done ? project.color : "transparent", color: "var(--tick)" }}
+        onClick={() => {
+          setTicking(!w.done);
+          onToggle();
+        }}
+        onAnimationEnd={() => setTicking(false)}
+        aria-pressed={w.done}
+        aria-label={w.done ? `Mark waypoint ${w.title} as not reached` : `Mark waypoint ${w.title} as reached`}
+      >
+        {w.done ? (
+          <Check size={13} strokeWidth={3} color="currentColor" />
+        ) : (
+          <Flag size={10} strokeWidth={2.75} color={project.color} aria-hidden="true" />
+        )}
+      </button>
+      <span className="wp-row-title">
+        {w.title}
+        <span className="wp-row-course">
+          {" · "}
+          {project.name}
+        </span>
+      </span>
+      <span className="wp-tag">{project.name}</span>
+      <span className={`wp-mono wp-wprow-when${late && !w.done ? " wp-drifttext" : " wp-muted"}`}>
+        {w.done ? "REACHED" : late ? `DUE ${fmtShort(w.due).toUpperCase()}` : "WAYPOINT"}
+      </span>
+    </li>
   );
 }

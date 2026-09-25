@@ -111,6 +111,9 @@ export default function Waypoint({
   const [view, setView] = useState<View>(stravaResult === "connected" ? "settings" : "today");
   /* where the Back button on Settings returns to */
   const [backTo, setBackTo] = useState<View>("today");
+  /* where a course was opened from, when that was not the course list —
+     its Back returns there instead of dropping you on Projects */
+  const [courseFrom, setCourseFrom] = useState<View | null>(null);
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -505,6 +508,13 @@ export default function Waypoint({
   const goTo = (k: View) => {
     setView(k);
     setOpenProject(null);
+    setCourseFrom(null);
+  };
+
+  const openCourseFrom = (from: View) => (id: string) => {
+    setCourseFrom(from);
+    setOpenProject(id);
+    setView("projects");
   };
 
   const setTheme = (theme: ThemePref) =>
@@ -677,10 +687,7 @@ export default function Waypoint({
         <div className="wp-headright">
           <TimerBadge
             timer={timer}
-            onClick={() => {
-              setView("today");
-              setOpenProject(null);
-            }}
+            onClick={() => goTo("today")}
           />
           <button
             className={`wp-modebtn${view === "settings" ? " is-on" : ""}`}
@@ -739,12 +746,10 @@ export default function Waypoint({
             }}
             onDismissReview={markReviewSeen}
             onToggle={toggleActivity}
+            onToggleWaypoint={toggleWaypoint}
             onRemove={removeActivity}
             onAdd={addActivity}
-            onOpenProject={(id) => {
-              setOpenProject(id);
-              setView("projects");
-            }}
+            onOpenProject={openCourseFrom("today")}
             targets={weekTargets}
             nudge={
               nudgeAck ? (
@@ -808,7 +813,12 @@ export default function Waypoint({
             recurring={data.recurringActivities.filter((r) => r.projectId === openProject)}
             goalEntries={data.goalEntries}
             today={today}
-            onBack={() => setOpenProject(null)}
+            onBack={() => {
+              setOpenProject(null);
+              if (courseFrom) setView(courseFrom);
+              setCourseFrom(null);
+            }}
+            backLabel={courseFrom ? TABS.find((t) => t.key === courseFrom)?.label : undefined}
             onEdit={() => setEditing(projectsById[openProject])}
             onToggleWaypoint={toggleWaypoint}
             onAddWaypoint={addWaypoint}
@@ -848,6 +858,7 @@ export default function Waypoint({
             today={today}
             onReason={setMissReason}
             onToggle={toggleActivity}
+            onOpenProject={openCourseFrom("review")}
           />
         )}
 
@@ -918,6 +929,10 @@ export default function Waypoint({
           today={today}
           onReason={setMissReason}
           onToggle={toggleActivity}
+          onOpenProject={(id) => {
+            markReviewSeen();
+            openCourseFrom("review")(id);
+          }}
           onClose={markReviewSeen}
         />
       )}

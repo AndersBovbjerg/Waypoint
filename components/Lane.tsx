@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import type { Activity, ColoredProject, GoalEntry } from "./types";
 import { fmtShort } from "./helpers";
 import { Pace } from "./shared";
@@ -17,6 +18,7 @@ export function LaneRow({
   activities,
   goalEntries,
   today,
+  onOpen,
   children,
 }: {
   project: ColoredProject;
@@ -26,6 +28,8 @@ export function LaneRow({
   activities: Activity[];
   goalEntries: GoalEntry[];
   today: string;
+  /* when given, the course's name opens it */
+  onOpen?: (id: string) => void;
   /* an extra line under the sentence, for the view that needs one */
   children?: React.ReactNode;
 }) {
@@ -34,11 +38,20 @@ export function LaneRow({
 
   return (
     <li className="wp-lanerow">
-      <div className="wp-reviewrow-head">
-        <ProjectIcon icon={project.icon} color={project.color} size={15} />
-        <span className="wp-reviewrow-name">{project.name}</span>
-        <Pace timeGone={timeGone} routeDone={routeDone} />
-      </div>
+      {onOpen ? (
+        <button className="wp-reviewrow-head is-link" onClick={() => onOpen(project.id)}>
+          <ProjectIcon icon={project.icon} color={project.color} size={15} />
+          <span className="wp-reviewrow-name">{project.name}</span>
+          <Pace timeGone={timeGone} routeDone={routeDone} />
+          <ChevronRight size={16} className="wp-muted wp-rowchev" aria-hidden="true" />
+        </button>
+      ) : (
+        <div className="wp-reviewrow-head">
+          <ProjectIcon icon={project.icon} color={project.color} size={15} />
+          <span className="wp-reviewrow-name">{project.name}</span>
+          <Pace timeGone={timeGone} routeDone={routeDone} />
+        </div>
+      )}
 
       {routeDone !== null && (
         <div

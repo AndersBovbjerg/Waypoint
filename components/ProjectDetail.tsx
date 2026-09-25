@@ -19,6 +19,7 @@ export function ProjectDetail({
   goalEntries,
   today,
   onBack,
+  backLabel = "All projects",
   onEdit,
   onToggleWaypoint,
   onAddWaypoint,
@@ -38,6 +39,8 @@ export function ProjectDetail({
   goalEntries: GoalEntry[];
   today: string;
   onBack: () => void;
+  /* names wherever Back leads, which is not always the course list */
+  backLabel?: string;
   onEdit: () => void;
   onToggleWaypoint: (pid: string, wid: string) => void;
   onAddWaypoint: (pid: string, title: string, due: string) => void;
@@ -100,7 +103,7 @@ export function ProjectDetail({
   return (
     <div className="wp-stack">
       <button className="wp-back" onClick={onBack}>
-        <ChevronLeft size={15} /> All projects
+        <ChevronLeft size={15} /> {backLabel}
       </button>
 
       <section className="wp-card">
